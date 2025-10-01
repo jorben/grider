@@ -67,6 +67,9 @@ def clear_middleware_registry() -> None:
     logging.debug("Middleware registry cleared")
 
 
-# 自动注册CORS中间件
+# 自动注册中间件
 from .cors import setup_cors
+from .logging import setup_logging
+
 register_middleware(setup_cors)
+register_middleware(setup_logging)

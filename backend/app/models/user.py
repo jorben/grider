@@ -1,14 +1,15 @@
 from datetime import datetime
 from app import db
+from app.constants import TABLE_USER_VISITS, MAX_NAME_LENGTH, DEFAULT_VISIT_COUNT
 
 class UserVisit(db.Model):
-    __tablename__ = 't_user_visits'
+    __tablename__ = TABLE_USER_VISITS
     
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False, unique=True)
+    name = db.Column(db.String(MAX_NAME_LENGTH), nullable=False, unique=True)
     last_visit = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    visit_count = db.Column(db.Integer, nullable=False, default=1)  # 新增访问次数字段
+    visit_count = db.Column(db.Integer, nullable=False, default=DEFAULT_VISIT_COUNT)
     
     def __repr__(self):
         return f'<UserVisit {self.name}>'

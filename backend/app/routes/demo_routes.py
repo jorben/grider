@@ -3,25 +3,13 @@ from app.services.user_service import get_or_create_user_visit, get_all_user_vis
 from app.utils.validation import (
     validate_json, validate_query, validate_form, validate_all
 )
+from app.constants import (
+    USER_NAME_RULES, PAGINATION_RULES, SEARCH_RULES,
+    HTTP_OK, HTTP_BAD_REQUEST, HTTP_INTERNAL_SERVER_ERROR,
+    ERROR_INTERNAL_SERVER
+)
 
 bp = Blueprint('demo_routes', __name__)
-
-# 预定义验证规则
-USER_NAME_RULES = [
-    {'type': 'required', 'field': 'name'},
-    {'type': 'string', 'field': 'name', 'min_length': 1, 'max_length': 100}
-]
-
-PAGINATION_RULES = [
-    {'type': 'integer', 'field': 'page', 'min_value': 1},
-    {'type': 'integer', 'field': 'per_page', 'min_value': 1, 'max_value': 100}
-]
-
-SEARCH_RULES = [
-    {'type': 'string', 'field': 'query', 'max_length': 200},
-    {'type': 'string', 'field': 'sort_by', 'max_length': 50},
-    {'type': 'string', 'field': 'sort_order', 'max_length': 10}
-]
 
 # 示例1: 使用装饰器验证JSON请求体（POST请求）
 @bp.route('/hello', methods=['POST'])
@@ -51,12 +39,12 @@ def say_hello(validated_data):
         else:
             response_data['previous_visit'] = 'This is your first visit!'
         
-        return jsonify(response_data), 200
+        return jsonify(response_data), HTTP_OK
         
     except ValueError as e:
-        return jsonify({'error': str(e)}), 400
+        return jsonify({'error': str(e)}), HTTP_BAD_REQUEST
     except Exception as e:
-        return jsonify({'error': 'Internal server error'}), 500
+        return jsonify({'error': ERROR_INTERNAL_SERVER}), HTTP_INTERNAL_SERVER_ERROR
 
 # 示例2: 使用装饰器验证查询参数（GET请求）
 @bp.route('/visits', methods=['GET'])
@@ -86,10 +74,10 @@ def get_all_visits(validated_data):
                 'total': len(visits),
                 'pages': (len(visits) + per_page - 1) // per_page
             }
-        }), 200
+        }), HTTP_OK
         
     except Exception as e:
-        return jsonify({'error': 'Internal server error'}), 500
+        return jsonify({'error': ERROR_INTERNAL_SERVER}), HTTP_INTERNAL_SERVER_ERROR
 
 # 示例3: 使用组合验证（同时验证查询参数和搜索参数）
 @bp.route('/search', methods=['GET'])
@@ -136,10 +124,10 @@ def search_visits(validated_data):
                 'sort_by': sort_by,
                 'sort_order': sort_order
             }
-        }), 200
+        }), HTTP_OK
         
     except Exception as e:
-        return jsonify({'error': 'Internal server error'}), 500
+        return jsonify({'error': ERROR_INTERNAL_SERVER}), HTTP_INTERNAL_SERVER_ERROR
 
 # 示例4: 手动验证（保持原有方式，用于对比）
 @bp.route('/manual', methods=['POST'])
@@ -161,12 +149,12 @@ def manual_validation():
         return jsonify({
             'message': f'Hi, {result["user_visit"].name}',
             'current_visit': result['current_visit'].isoformat()
-        }), 200
+        }), HTTP_OK
         
     except ValueError as e:
-        return jsonify({'error': str(e)}), 400
+        return jsonify({'error': str(e)}), HTTP_BAD_REQUEST
     except Exception as e:
-        return jsonify({'error': 'Internal server error'}), 500
+        return jsonify({'error': ERROR_INTERNAL_SERVER}), HTTP_INTERNAL_SERVER_ERROR
 
 # 示例5: 表单数据验证（POST请求，表单数据）
 @bp.route('/form', methods=['POST'])
@@ -182,9 +170,9 @@ def form_validation(validated_data):
         return jsonify({
             'message': f'Form submitted for {result["user_visit"].name}',
             'current_visit': result['current_visit'].isoformat()
-        }), 200
+        }), HTTP_OK
         
     except ValueError as e:
-        return jsonify({'error': str(e)}), 400
+        return jsonify({'error': str(e)}), HTTP_BAD_REQUEST
     except Exception as e:
-        return jsonify({'error': 'Internal server error'}), 500
+        return jsonify({'error': ERROR_INTERNAL_SERVER}), HTTP_INTERNAL_SERVER_ERROR

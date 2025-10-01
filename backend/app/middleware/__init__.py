@@ -4,6 +4,14 @@
 """
 
 from .cors import setup_cors
+from .logging import setup_logging, LoggingConfig, RequestLogger, StructuredLogger
 from .registry import register_middlewares
 
-__all__ = ['setup_cors', 'register_middlewares']
+__all__ = [
+    'setup_cors',
+    'setup_logging',
+    'LoggingConfig',
+    'RequestLogger',
+    'StructuredLogger',
+    'register_middlewares'
+]

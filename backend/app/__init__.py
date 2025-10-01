@@ -12,6 +12,9 @@ db = SQLAlchemy()
 migrate = Migrate()
 jwt = JWTManager()
 
+# 导入常量模块
+from . import constants
+
 def create_app():
     app = Flask(__name__)
     

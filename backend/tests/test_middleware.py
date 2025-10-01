@@ -20,18 +20,20 @@ class TestMiddlewareRegistry:
         """Test clearing middleware registry"""
         # Store original count
         original_count = len(get_registered_middlewares())
-        
+    
         # Clear registry
         clear_middleware_registry()
-        
+    
         # Check it's empty
         assert len(get_registered_middlewares()) == 0
-        
-        # Re-register CORS middleware (restore state)
+    
+        # Re-register middlewares (restore state)
         from app.middleware.registry import _middleware_registry
         from app.middleware.cors import setup_cors
+        from app.middleware.logging import setup_logging
         _middleware_registry.append(setup_cors)
-        
+        _middleware_registry.append(setup_logging)
+    
         # Verify restoration
         assert len(get_registered_middlewares()) == original_count
 
