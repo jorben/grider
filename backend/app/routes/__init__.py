@@ -1,4 +1,5 @@
-from .user_routes import bp as user_bp
+from .demo_routes import bp as demo_bp
 
 def register(app):
-    app.register_blueprint(user_bp, url_prefix="/api/user")
+    # 可移除该demo
+    app.register_blueprint(demo_bp, url_prefix="/api/demo")
