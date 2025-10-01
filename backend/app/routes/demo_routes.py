@@ -9,6 +9,9 @@ from app.constants import (
     ERROR_INTERNAL_SERVER
 )
 
+from app.utils.logger import get_logger
+
+logger = get_logger(__name__)
 bp = Blueprint('demo_routes', __name__)
 
 # 示例1: 使用装饰器验证JSON请求体（POST请求）
@@ -20,7 +23,8 @@ def say_hello(validated_data):
     接收name字段，返回问候语和访问时间信息
     """
     name = validated_data['name'].strip()
-    
+    logger.debug(f'Hi, {name}')
+
     try:
         # 使用服务层处理业务逻辑
         result = get_or_create_user_visit(name)

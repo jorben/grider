@@ -1,5 +1,5 @@
 import logging
-from logging.config import fileConfig
+# from logging.config import fileConfig
 
 from flask import current_app
 
@@ -11,7 +11,10 @@ config = context.config
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
-fileConfig(config.config_file_name)
+# 注释掉 fileConfig 以避免覆盖 Flask 应用的日志配置
+# fileConfig(config.config_file_name)
+
+# 使用 Flask 应用已配置的 logger
 logger = logging.getLogger('alembic.env')
 
 
