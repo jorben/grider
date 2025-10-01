@@ -22,18 +22,19 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///app.db')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'your-secret-key-change-in-production')
+    app.config['ENV'] = os.getenv('FLASK_ENV', 'development')
     
     # 初始化扩展
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
-    
+
     # 注册中间件
-    from app.middleware import register_middlewares
-    app = register_middlewares(app)
+    from app.middleware import register as middle_register
+    middle_register(app)
     
     # 注册蓝图
-    from app.routes import register
-    register(app)
+    from app.routes import register as bp_register
+    bp_register(app)
     
     return app

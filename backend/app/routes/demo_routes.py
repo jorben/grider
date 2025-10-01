@@ -33,7 +33,7 @@ def say_hello(validated_data):
             'message': f'Hi, {user_visit.name}',
             'current_visit': current_visit.isoformat()
         }
-        
+
         if previous_visit:
             response_data['previous_visit'] = previous_visit.isoformat()
         else:
