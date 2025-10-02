@@ -1,0 +1,103 @@
+# 全局配置
+global:
+  max_retries: 3                              # 最大重试次数
+  retry_delay: 1                              # 重试延迟（秒）
+  timeout: 30                                 # 请求超时（秒）
+  cache_enabled: true                         # 启用缓存
+  cache_dir: "cache/external_api"             # 缓存目录
+  log_requests: true                          # 记录请求日志
+
+# 外部API提供商配置
+providers:
+  tsanghi:
+    name: "沧海数据API"
+    base_url: "https://www.tsanghi.com/api"
+    endpoints:
+      # 股票信息（套餐接口）
+      stock_info:
+        path: "/fin/stock/{exchange_code}/list?token={token}"
+        method: "GET"
+        cache_ttl: 31536000 # 缓存1年
+        tokens:
+          - token: "{TSANGHI_TOKEN_02}"
+            priority: 1
+          - token: "{TSANGHI_TOKEN_01}"
+            priority: 2
+      # 交易日历（按量接口）
+      calendar:
+        path: "/fin/stock/{exchange_code}/market/calendar?token={token}"
+        method: "GET"
+        cache_ttl: 31536000 # 缓存1年
+        tokens:
+          - token: "{TSANGHI_TOKEN_01}"
+            priority: 1
+      # 股票实时行情（按量接口）
+      stock_realtime:
+        path: "/fin/stock/{exchange_code}/realtime?token={token}"
+        method: "GET"
+        cache_ttl: 300 # 缓存5分钟
+        tokens:
+          - token: "{TSANGHI_TOKEN_01}"
+            priority: 1
+      # 股票历史日线（套餐接口）
+      stock_daily:
+        path: "/fin/stock/{exchange_code}/daily?token={token}"
+        method: "GET"
+        cache_ttl: 31536000 # 缓存1年
+        tokens:
+          - token: "{TSANGHI_TOKEN_02}"
+            priority: 1
+          - token: "{TSANGHI_TOKEN_01}"
+            priority: 2
+      # 股票历史5分钟（套餐接口）
+      stock_5min:
+        path: "/fin/stock/{exchange_code}/5min?token={token}"
+        method: "GET"
+        cache_ttl: 31536000 # 缓存1年
+        tokens:
+          - token: "{TSANGHI_TOKEN_02}"
+            priority: 1
+          - token: "{TSANGHI_TOKEN_01}"
+            priority: 2
+      # ETF信息（套餐接口）
+      etf_info:
+        path: "/fin/etf/{exchange_code}/list?token={token}"
+        method: "GET"
+        cache_ttl: 31536000 # 缓存1年
+        tokens:
+          - token: "{TSANGHI_TOKEN_02}"
+            priority: 1
+          - token: "{TSANGHI_TOKEN_01}"
+            priority: 2
+      # ETF实时行情（按量接口）
+      etf_realtime:
+        path: "/fin/etf/{exchange_code}/realtime?token={token}"
+        method: "GET"
+        cache_ttl: 300 # 缓存5分钟
+        tokens:
+          - token: "{TSANGHI_TOKEN_01}"
+            priority: 1
+      # ETF日线（套餐接口）
+      etf_daily:
+        path: "/fin/etf/{exchange_code}/daily?token={token}"
+        method: "GET"
+        cache_ttl: 31536000 # 缓存1年
+        tokens:
+          - token: "{TSANGHI_TOKEN_02}"
+            priority: 1
+          - token: "{TSANGHI_TOKEN_01}"
+            priority: 2
+      # ETF5分钟（套餐接口）
+      etf_5min:
+        path: "/fin/etf/{exchange_code}/5min?token={token}"
+        method: "GET"
+        cache_ttl: 31536000 # 缓存1年
+        tokens:
+          - token: "{TSANGHI_TOKEN_02}"
+            priority: 1
+          - token: "{TSANGHI_TOKEN_01}"
+            priority: 2
+
+
+  
+
