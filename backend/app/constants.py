@@ -6,26 +6,6 @@
 from typing import Final
 
 # ============================================================================
-# 应用配置常量
-# ============================================================================
-
-# 应用名称和版本
-APP_NAME: Final[str] = "Grider Backend"
-APP_VERSION: Final[str] = "1.0.0"
-API_VERSION: Final[str] = "v1"
-
-# 环境类型
-ENV_DEVELOPMENT: Final[str] = "development"
-ENV_PRODUCTION: Final[str] = "production"
-ENV_TESTING: Final[str] = "testing"
-
-# 默认配置值
-DEFAULT_DATABASE_URL: Final[str] = "sqlite:///app.db"
-DEFAULT_JWT_SECRET_KEY: Final[str] = "your-secret-key-change-in-production"
-DEFAULT_PORT: Final[int] = 5000
-DEFAULT_HOST: Final[str] = "127.0.0.1"
-
-# ============================================================================
 # HTTP 状态码常量
 # ============================================================================
 
@@ -153,37 +133,12 @@ JWT_REFRESH_TOKEN_EXPIRES: Final[int] = 2592000  # 30天
 MIN_PASSWORD_LENGTH: Final[int] = 8
 MAX_PASSWORD_LENGTH: Final[int] = 128
 
-# ============================================================================
-# API 路由前缀常量
-# ============================================================================
-
-API_PREFIX: Final[str] = "/api"
-API_V1_PREFIX: Final[str] = f"{API_PREFIX}/{API_VERSION}"
-
-# ============================================================================
-# 日志相关常量
-# ============================================================================
-
-# 日志级别
-LOG_LEVEL_DEBUG: Final[str] = "DEBUG"
-LOG_LEVEL_INFO: Final[str] = "INFO"
-LOG_LEVEL_WARNING: Final[str] = "WARNING"
-LOG_LEVEL_ERROR: Final[str] = "ERROR"
-LOG_LEVEL_CRITICAL: Final[str] = "CRITICAL"
-
-# 日志格式
-LOG_FORMAT_SIMPLE: Final[str] = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-LOG_FORMAT_DETAILED: Final[str] = "%(asctime)s - %(name)s - %(levelname)s - %(module)s:%(lineno)d - %(message)s"
 
 # ============================================================================
 # 导出常量
 # ============================================================================
 
 __all__ = [
-    # 应用配置
-    'APP_NAME', 'APP_VERSION', 'API_VERSION',
-    'ENV_DEVELOPMENT', 'ENV_PRODUCTION', 'ENV_TESTING',
-    'DEFAULT_DATABASE_URL', 'DEFAULT_JWT_SECRET_KEY', 'DEFAULT_PORT', 'DEFAULT_HOST',
     
     # HTTP 状态码
     'HTTP_OK', 'HTTP_CREATED', 'HTTP_ACCEPTED', 'HTTP_NO_CONTENT',
@@ -214,10 +169,4 @@ __all__ = [
     'JWT_ACCESS_TOKEN_EXPIRES', 'JWT_REFRESH_TOKEN_EXPIRES',
     'MIN_PASSWORD_LENGTH', 'MAX_PASSWORD_LENGTH',
     
-    # API 路由
-    'API_PREFIX', 'API_V1_PREFIX',
-    
-    # 日志相关
-    'LOG_LEVEL_DEBUG', 'LOG_LEVEL_INFO', 'LOG_LEVEL_WARNING', 'LOG_LEVEL_ERROR', 'LOG_LEVEL_CRITICAL',
-    'LOG_FORMAT_SIMPLE', 'LOG_FORMAT_DETAILED',
 ]
