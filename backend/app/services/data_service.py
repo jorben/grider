@@ -1,4 +1,5 @@
 """数据业务服务"""
+import pandas as pd
 
 from app.external.providers.tsanghi_provider import TsanghiProvider
 from app.utils.logger import get_logger
@@ -12,18 +13,52 @@ class DataService:
     def __init__(self):
         self.provider = TsanghiProvider()
 
-
-    def get_stock_info(self, ticker: str, exchange: str) -> dict:
-        """获取股票信息（自动处理缓存、重试、Token切换）"""
+    def search_by_ticker(self, ticker: str, country_code: str = "CHN"):
         try:
-            data = self.provider.get_stock_info(ticker, exchange)
+            result = self.provider.search_by_ticker(ticker, country_code)
 
-            return data
+            # 返回搜索结果中的第一条数据
+            if result and isinstance(result, dict) and "data" in result and result["data"]:
+                return result["data"][0]
+            return None
+        except Exception as e:
+            logger.error(f"获取股票信息失败: {e}")
+            raise
+    
+
+    def get_latest_price(self, ticker: str, exchange_code: str, type: str='STOCK'):
+        try:
+            if type == 'ETF':
+                result = self.provider.get_etf_realtime(ticker, exchange_code)
+            elif type == 'STOCK':
+                result = self.provider.get_stock_realtime(ticker, exchange_code)
+            else:
+                raise ValueError(f"不支持的证券类型: {type}")
+
+            # 返回搜索结果中的第一条数据
+            if result and isinstance(result, dict) and "data" in result and result["data"]:
+                return result["data"][0]
+            return None
         except Exception as e:
             logger.error(f"获取股票信息失败: {e}")
             raise
 
-    
+    def get_daily_data(self, ticker: str, exchange_code: str, type: str='STOCK', start_date: str = "", end_date: str=""):
+        try:
+            if type == 'ETF':
+                result = self.provider.get_etf_daily(ticker, exchange_code, start_date, end_date)
+            elif type == 'STOCK':
+                result = self.provider.get_stock_daily(ticker, exchange_code, start_date, end_date)
+            else:
+                raise ValueError(f"不支持的证券类型: {type}")
+
+            if result.get("data", None):
+                return pd.DataFrame(result['data'])
+            return None
+        except Exception as e:
+            logger.error(f"获取行情失败: {e}")
+            raise
+
 
     def clear_cache(self):
         """清除股票缓存"""
