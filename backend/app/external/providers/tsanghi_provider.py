@@ -13,6 +13,112 @@ class TsanghiProvider(BaseProvider):
 
     def __init__(self, config_path: str = "app/config/config.yaml"):
         super().__init__(config_path, "tsanghi")
+    
+    def get_exchange(self, country_code: str = "CHN"):
+        """获取交易所信息 CHN|USA|HKG"""
+        return self.call_api(
+            endpoint_name="exchange",
+            params={"country_code": country_code}
+        )
+    
+    def get_calendar(self, exchange_code: str = "CHN", limit=10):
+        """获取交易日历"""
+        return self.call_api(
+            endpoint_name="calendar",
+            params={
+                "exchange_code": exchange_code,
+                "status": 1, # 仅输出交易日
+                "limit": limit, # 最近的N个交易日
+                "order": 2, # 降序
+                "columns": "date"
+                }
+        )
+    
+    def search_by_ticker(self, ticker: str, country_code: str = "CHN"):
+        """搜索代码"""
+        response = self.call_api(
+            endpoint_name="search",
+            params={
+                "keywords": ticker,
+                "where": "TICKER",
+                "country_code": country_code,
+                "match_whole": 1
+                }
+        )
+        # 删除data中type不为STOCK和ETF的记录
+        if response.get('code') == 200 and 'data' in response:
+            response['data'] = [item for item in response['data'] if item.get('type') in ['STOCK', 'ETF']]
+        return response
+
+    def get_stock_realtime(self, ticker: str, exchange_code: str = "XSHG") -> dict:
+        """获取股票实时行情"""
+        return self.call_api(
+            endpoint_name="stock_realtime",
+            params={"exchange_code": exchange_code, "ticker": ticker, "columns": "ticker,date,open,high,low,close,volume,amount"}
+        )
+    
+    def get_stock_daily(self, ticker: str, exchange_code: str = "XSHG", start_date: str = "", end_date: str="") -> dict:
+        """获取股票历史日线行情"""
+        return self.call_api(
+            endpoint_name="stock_daily",
+            params={
+                "exchange_code": exchange_code,
+                "ticker": ticker,
+                "start_date": start_date,
+                "end_date":end_date,
+                "order":2,
+                "columns": "ticker,date,open,high,low,close,volume,amount"
+                }
+        )
+    
+    def get_stock_5min(self, ticker: str, exchange_code: str = "XSHG", start_date: str = "", end_date: str="") -> dict:
+        """获取股票历史5分钟行情"""
+        return self.call_api(
+            endpoint_name="stock_5min",
+            params={
+                "exchange_code": exchange_code,
+                "ticker": ticker,
+                "start_date": start_date,
+                "end_date":end_date,
+                "order":2,
+                "columns": "ticker,date,open,high,low,close,volume,amount"
+                }
+        )
+
+    def get_etf_realtime(self, ticker: str, exchange_code: str = "XSHG") -> dict:
+        """获取ETF实时行情"""
+        return self.call_api(
+            endpoint_name="etf_realtime",
+            params={"exchange_code": exchange_code, "ticker": ticker, "columns": "ticker,date,open,high,low,close,volume,amount"}
+        )
+    
+    def get_etf_daily(self, ticker: str, exchange_code: str = "XSHG", start_date: str = "", end_date: str="") -> dict:
+        """获取ETF历史日线行情"""
+        return self.call_api(
+            endpoint_name="etf_daily",
+            params={
+                "exchange_code": exchange_code,
+                "ticker": ticker,
+                "start_date": start_date,
+                "end_date":end_date,
+                "order":2,
+                "columns": "ticker,date,open,high,low,close,volume,amount"
+                }
+        )
+    
+    def get_etf_5min(self, ticker: str, exchange_code: str = "XSHG", start_date: str = "", end_date: str="") -> dict:
+        """获取ETF历史5分钟行情"""
+        return self.call_api(
+            endpoint_name="etf_5min",
+            params={
+                "exchange_code": exchange_code,
+                "ticker": ticker,
+                "start_date": start_date,
+                "end_date":end_date,
+                "order":2,
+                "columns": "ticker,date,open,high,low,close,volume,amount"
+                }
+        )
 
     def _create_auth_strategy(self) -> AuthStrategy:
         """创建URL Token认证策略"""
@@ -27,9 +133,4 @@ class TsanghiProvider(BaseProvider):
         """只缓存成功的响应（code==200）"""
         return response.get('code') == 200
 
-    def get_stock_info(self, ticker: str, exchange_code: str = "XSHE") -> dict:
-        """获取股票信息"""
-        return self.call_api(
-            endpoint_name="stock_info",
-            params={"exchange_code": exchange_code, "ticker": ticker, "columns": "ticker,name"}
-        )
+
