@@ -25,7 +25,7 @@ export default function ETFSelector({
           // 这里可以设置popularETFs，但通过props传递更合适
         }
       })
-      .catch((err) => console.error("获取热门ETF失败:", err));
+      .catch((err) => console.error("获取热门标的失败:", err));
   }, []);
 
   return (
@@ -38,7 +38,7 @@ export default function ETFSelector({
 
         {/* 热门ETF */}
         <div className="flex items-center">
-          <span className="text-xs text-gray-500 mr-2">热门ETF：</span>
+          <span className="text-xs text-gray-500 mr-2">热门标的：</span>
           <div className="flex flex-wrap gap-2">
             {hotETFs.map((code) => {
               const etf = popularETFs.find((e) => e.code === code);
@@ -66,7 +66,7 @@ export default function ETFSelector({
           type="text"
           value={value}
           onChange={(e) =>
-            onChange(e.target.value.replace(/\D/g, "").slice(0, 6))
+            onChange(e.target.value.replace(/[^0-9a-zA-Z]/g, ""))
           }
           placeholder="请输入标的代码，如：510300"
           className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
@@ -87,7 +87,7 @@ export default function ETFSelector({
                   {etfInfo.name}
                 </span>
                 <span className="text-sm text-blue-600">
-                  ¥{etfInfo.current_price?.toFixed(3)}
+                  {etfInfo.country === 'CHN' ? '¥' : etfInfo.country === 'USA' ? '$' : etfInfo.country === 'HKG' ? 'HK$' : '¥'}{etfInfo.current_price?.toFixed(3)}
                   <span
                     className={
                       etfInfo.change_pct >= 0

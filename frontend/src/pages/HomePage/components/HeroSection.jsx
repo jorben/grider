@@ -12,10 +12,10 @@ export default function HeroSection({ onStartAnalysis }) {
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 space-y-8 p-8">
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-gray-900 mb-4">
-          智能ETF网格交易策略分析
+          智能网格交易策略分析工具
         </h2>
         <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-          基于ATR算法的专业网格交易策略设计系统，通过分析ETF历史数据，
+          基于ATR算法的专业网格交易策略设计系统，通过分析标的历史数据，
           结合您的投资偏好，自动计算最适合的网格交易参数，并提供详细的策略分析和收益预测。
         </p>
       </div>

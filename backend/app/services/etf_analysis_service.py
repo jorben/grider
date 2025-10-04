@@ -85,6 +85,8 @@ class ETFAnalysisService:
                 'date': price_data.get('date', ''),
                 'data_age_days': price_data.get('data_age_days', 0),
                 'change_pct': price_data.get('change_pct', ''),
+                'exchange_code': search.get('exchange_code', ''),
+                'country': self.country,
             }
             
             logger.info(f"获取ETF基础信息成功: {etf_code} - {etf_info['name']}")

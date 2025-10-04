@@ -10,10 +10,11 @@
  *
  * @example
  * validateETFCode('510300') // true
- * validateETFCode('123') // false
+ * validateETFCode('ABC123') // true
+ * validateETFCode('1') // false
  */
 export const validateETFCode = (etfCode) => {
-  return etfCode && /^\d{6}$/.test(etfCode);
+  return etfCode && /^[A-Za-z0-9]{2,6}$/.test(etfCode);
 };
 
 /**

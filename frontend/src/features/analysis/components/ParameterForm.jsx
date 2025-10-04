@@ -113,7 +113,7 @@ const ParameterForm = ({ onAnalysis, loading, initialValues }) => {
 
   // ETF代码变化时获取基础信息
   useEffect(() => {
-    if (etfCode && etfCode.length === 6) {
+    if (etfCode && etfCode.length >= 2) {
       setEtfLoading(true);
       setEtfInfo(null);
 
@@ -130,7 +130,7 @@ const ParameterForm = ({ onAnalysis, loading, initialValues }) => {
         })
         .catch((err) => {
           setEtfInfo(null);
-          setErrors((prev) => ({ ...prev, etfCode: "获取ETF信息失败" }));
+          setErrors((prev) => ({ ...prev, etfCode: "获取标的信息失败" }));
         })
         .finally(() => {
           setEtfLoading(false);
@@ -146,7 +146,7 @@ const ParameterForm = ({ onAnalysis, loading, initialValues }) => {
     const newErrors = {};
 
     if (!validateETFCode(etfCode)) {
-      newErrors.etfCode = "请输入6位数字ETF代码";
+      newErrors.etfCode = "请输入标的代码（支持A股/港股/美股，无需交易所符号）";
     }
 
     const capitalValidation = validateCapital(parseFloat(totalCapital));
