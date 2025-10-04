@@ -47,7 +47,7 @@ class ETFAnalysisService:
         self.atr_analyzer = atr_analyzer or ATRAnalyzer(ATRCalculator())
         self.arithmetic_calculator = arithmetic_calculator or ArithmeticGridCalculator()
         self.geometric_calculator = geometric_calculator or GeometricGridCalculator()
-        self.grid_optimizer = grid_optimizer or GridOptimizer()
+        self.grid_optimizer = grid_optimizer or GridOptimizer(country=self.country)
         self.suitability_analyzer = suitability_analyzer or SuitabilityAnalyzer()
     
     def get_basic_info(self, etf_code: str) -> Dict:

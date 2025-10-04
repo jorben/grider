@@ -13,13 +13,32 @@ logger = logging.getLogger(__name__)
 
 class GridOptimizer:
     """网格优化器"""
-    
-    def __init__(self):
-        """初始化优化器"""
+
+    def __init__(self, country: str = 'CHN'):
+        """
+        初始化优化器
+
+        Args:
+            country: 市场国家代码 ('CHN', 'HKG', 'USA')
+        """
+        self.country = country or 'CHN'
         self.arithmetic_calculator = ArithmeticGridCalculator()
         self.geometric_calculator = GeometricGridCalculator()
-    
-    def calculate_optimal_step_size(self, atr_ratio: float, current_price: float, 
+
+    def _get_min_trade_unit(self, country: str = None) -> int:
+        """
+        获取市场最小交易单位
+
+        Args:
+            country: 市场国家代码，如果不提供则使用实例的country
+
+        Returns:
+            最小交易单位（股数）
+        """
+        market = country or self.country
+        return 1 if market == 'USA' else 100
+
+    def calculate_optimal_step_size(self, atr_ratio: float, current_price: float,
                                    risk_preference: str, adjustment_coefficient: float) -> Tuple[float, float]:
         """
         基于ATR计算最优步长
@@ -253,10 +272,11 @@ class GridOptimizer:
             fund_requirement_factor = buy_price_sum + sell_grid_count * current_price
             
             # 4. 计算单笔股数
-            # 单笔股数 = floor(可用资金 ÷ 资金需求系数 ÷ 100) × 100
+            # 单笔股数 = floor(可用资金 ÷ 资金需求系数 ÷ min_unit) × min_unit
             theoretical_shares = available_capital / fund_requirement_factor
-            shares_per_100 = int(theoretical_shares / 100)
-            single_trade_quantity = max(100, shares_per_100 * 100)
+            min_unit = self._get_min_trade_unit()
+            shares_per_unit = int(theoretical_shares / min_unit)
+            single_trade_quantity = max(min_unit, shares_per_unit * min_unit)
             
             # 5. 计算底仓股数和资金
             # 底仓股数 = 卖出网格数量 × 单笔股数
@@ -273,8 +293,8 @@ class GridOptimizer:
             # 8. 如果超出资金限制，调整单笔股数
             if safety_ratio > 1.0:
                 adjustment_factor = 0.95 / safety_ratio  # 留5%安全边际
-                adjusted_shares = int(single_trade_quantity * adjustment_factor / 100) * 100
-                single_trade_quantity = max(100, adjusted_shares)
+                adjusted_shares = int(single_trade_quantity * adjustment_factor / min_unit) * min_unit
+                single_trade_quantity = max(min_unit, adjusted_shares)
                 
                 # 重新计算调整后的资金需求
                 # 重新计算卖出网格数量（因为单笔股数变化可能影响网格分配）
@@ -505,19 +525,20 @@ class GridOptimizer:
             # 公式：单笔股数 = 可用网格资金 ÷ 买入网格总价格成本
             theoretical_shares = available_grid_amount / total_buy_price_cost
             
-            # 4. 向下取整到100股的整数倍
-            shares_per_100 = int(theoretical_shares / 100)
-            single_trade_quantity = max(1, shares_per_100) * 100
+            # 4. 向下取整到最小交易单位的整数倍
+            min_unit = self._get_min_trade_unit()
+            shares_per_unit = int(theoretical_shares / min_unit)
+            single_trade_quantity = max(1, shares_per_unit) * min_unit
             
             # 5. 验证资金安全性
             total_required_fund = sum(price * single_trade_quantity for price in buy_levels)
             safety_ratio = total_required_fund / available_grid_amount
             
             # 6. 如果超出资金限制，进一步调整
-            if safety_ratio > 1:  
+            if safety_ratio > 1:
                 adjustment_factor = 1 / safety_ratio
-                adjusted_shares = int(single_trade_quantity * adjustment_factor / 100) * 100
-                single_trade_quantity = max(100, adjusted_shares)
+                adjusted_shares = int(single_trade_quantity * adjustment_factor / min_unit) * min_unit
+                single_trade_quantity = max(min_unit, adjusted_shares)
                 
                 # 重新计算最终的资金使用情况
                 final_required_fund = sum(price * single_trade_quantity for price in buy_levels)

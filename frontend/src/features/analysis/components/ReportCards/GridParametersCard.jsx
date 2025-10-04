@@ -297,7 +297,7 @@ const GridParametersCard = ({
             <div className="text-xl font-bold text-gray-900">
               {fund_allocation.single_trade_quantity || 0}股
             </div>
-            <div className="text-xs text-gray-600">100股整数倍</div>
+            <div className="text-xs text-gray-600">{etfInfo?.country == 'USA' ? "美股市场1股起售" : "1手(100股)起售"}</div>
           </div>
 
           <div className="bg-gray-50 p-4 rounded-lg">
