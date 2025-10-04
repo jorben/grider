@@ -74,8 +74,10 @@ class DataService:
                     if item.get('amount') is None:
                         high = item.get('high', 0)
                         low = item.get('low', 0)
+                        open = item.get('open', 0)
+                        close = item.get('close', 0)
                         volume = item.get('volume', 0)
-                        item['amount'] = ((high + low) / 2) * volume
+                        item['amount'] = ((open + close + high + low) / 4) * volume
                 return pd.DataFrame(data)
             return None
         except Exception as e:
