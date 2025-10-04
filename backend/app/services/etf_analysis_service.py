@@ -81,9 +81,10 @@ class ETFAnalysisService:
                 'current_price': price_data.get('close', 0),
                 'volume': price_data.get('volume', 0),
                 'amount': price_data.get('amount', 0),
-                'fund_type': search.get('type', 'STOCK'),
-                'trade_date': price_data.get('date', ''),
-                'data_age_days': price_data.get('data_age_days', 0)
+                'type': search.get('type', 'STOCK'),
+                'date': price_data.get('date', ''),
+                'data_age_days': price_data.get('data_age_days', 0),
+                'change_pct': price_data.get('change_pct', ''),
             }
             
             logger.info(f"获取ETF基础信息成功: {etf_code} - {etf_info['name']}")

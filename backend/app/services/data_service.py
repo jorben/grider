@@ -37,6 +37,22 @@ class DataService:
 
             # 返回搜索结果中的第一条数据
             if result and isinstance(result, dict) and "data" in result and result["data"]:
+                # 基于pre_close和close计算change_pct补充到数据中
+                pre_close_raw = result["data"][0].get("pre_close")
+                close_raw = result["data"][0].get("close")
+                if pre_close_raw is not None and close_raw is not None:
+                    try:
+                        pre_close = float(pre_close_raw)
+                        close = float(close_raw)
+                        if pre_close != 0:
+                            change_pct = (close - pre_close) / pre_close * 100
+                            result["data"][0]['change_pct'] = round(change_pct, 3)
+                        else:
+                            result["data"][0]['change_pct'] = None
+                    except (ValueError, TypeError):
+                        result["data"][0]['change_pct'] = None
+                else:
+                    result["data"][0]['change_pct'] = None
                 return result["data"][0]
             return None
         except Exception as e:

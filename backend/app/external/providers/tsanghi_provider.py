@@ -54,7 +54,7 @@ class TsanghiProvider(BaseProvider):
         """获取股票实时行情"""
         return self.call_api(
             endpoint_name="stock_realtime",
-            params={"exchange_code": exchange_code, "ticker": ticker, "columns": "ticker,date,open,high,low,close,volume,amount"}
+            params={"exchange_code": exchange_code, "ticker": ticker, "columns": "ticker,date,open,high,low,close,volume,amount,pre_close"}
         )
     
     def get_stock_daily(self, ticker: str, exchange_code: str = "XSHG", start_date: str = "", end_date: str="") -> dict:
@@ -89,7 +89,7 @@ class TsanghiProvider(BaseProvider):
         """获取ETF实时行情"""
         return self.call_api(
             endpoint_name="etf_realtime",
-            params={"exchange_code": exchange_code, "ticker": ticker, "columns": "ticker,date,open,high,low,close,volume,amount"}
+            params={"exchange_code": exchange_code, "ticker": ticker, "columns": "ticker,date,open,high,low,close,volume,amount,pre_close"}
         )
     
     def get_etf_daily(self, ticker: str, exchange_code: str = "XSHG", start_date: str = "", end_date: str="") -> dict:

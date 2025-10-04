@@ -228,7 +228,7 @@ class SuitabilityAnalyzer:
                 freshness_desc = "数据较新"
             else:
                 freshness = "需要更新"
-                freshness_desc = f"数据已过时{days_diff}天"
+                freshness_desc = f"数据已过去{days_diff}天"
             
             # 数据完整性检查
             total_days = len(df)
