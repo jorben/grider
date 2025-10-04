@@ -402,7 +402,7 @@ class ETFAnalysisService:
             
             result = {
                 'current_price': current_price,
-                'price_date': latest_price_info.get('trade_date', ''),  # 添加价格对应的交易日期
+                'price_date': latest_price_info.get('date', ''),  # 添加价格对应的交易日期
                 'price_range': {
                     'lower': round(price_lower, 3),
                     'upper': round(price_upper, 3),

@@ -43,10 +43,7 @@ const GridParametersCard = ({
     // 优先使用gridStrategy中的price_date（来自TushareClient::get_latest_price）
     const priceDate = gridStrategy?.price_date;
     if (priceDate) {
-      const formattedDate = formatDate(priceDate);
-      if (formattedDate) {
-        return `${formattedDate} 收盘价`;
-      }
+      return `数据时间：${priceDate} `;
     }
 
     // 回退到dataQuality中的latest_date

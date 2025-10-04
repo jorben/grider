@@ -198,7 +198,7 @@ export const parseAnalysisURL = (pathname, search) => {
   };
 
   // 解析ETF代码
-  const pathMatch = pathname.match(/^\/analysis\/(\d{6})$/);
+  const pathMatch = pathname.match(/^\/analysis\/([a-zA-Z0-9]{2,6})$/);
   if (pathMatch) {
     result.etfCode = pathMatch[1];
   }
