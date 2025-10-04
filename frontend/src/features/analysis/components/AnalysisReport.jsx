@@ -163,6 +163,7 @@ const AnalysisReport = ({
               adjustmentSuggestions={adjustment_suggestions}
               showDetailed={true}
               dataQuality={data_quality}
+              etfInfo={etf_info}
             />
           )}
         </div>

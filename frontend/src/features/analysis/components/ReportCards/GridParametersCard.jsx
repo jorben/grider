@@ -26,6 +26,7 @@ const GridParametersCard = ({
   adjustmentSuggestions,
   showDetailed = false,
   dataQuality,
+  etfInfo,
 }) => {
   if (!gridStrategy) return null;
 
@@ -80,6 +81,7 @@ const GridParametersCard = ({
                 inputParameters?.total_capital ||
                   inputParameters?.totalCapital ||
                   0,
+                etfInfo?.country,
               )}
             </div>
             <div className="text-sm text-orange-700 font-medium">投资资金</div>
@@ -88,7 +90,7 @@ const GridParametersCard = ({
 
           <div className="text-center p-4 bg-blue-50 rounded-lg">
             <div className="text-2xl font-bold text-blue-600 mb-1">
-              {formatCurrency(fund_allocation.base_position_amount)}
+              {formatCurrency(fund_allocation.base_position_amount, etfInfo?.country)}
             </div>
             <div className="text-sm text-blue-700 font-medium">底仓资金</div>
             <div className="text-xs text-gray-600 mt-1">
@@ -98,7 +100,7 @@ const GridParametersCard = ({
 
           <div className="text-center p-4 bg-green-50 rounded-lg">
             <div className="text-2xl font-bold text-green-600 mb-1">
-              {formatCurrency(fund_allocation.grid_trading_amount)}
+              {formatCurrency(fund_allocation.grid_trading_amount, etfInfo?.country)}
             </div>
             <div className="text-sm text-green-700 font-medium">网格资金</div>
             <div className="text-xs text-gray-600 mt-1">用于网格交易</div>
@@ -106,7 +108,7 @@ const GridParametersCard = ({
 
           <div className="text-center p-4 bg-rose-50 rounded-lg">
             <div className="text-2xl font-bold text-rose-600 mb-1">
-              {formatCurrency(fund_allocation.reserve_amount)}
+              {formatCurrency(fund_allocation.reserve_amount, etfInfo?.country)}
             </div>
             <div className="text-sm text-rose-700 font-medium">预留资金</div>
             <div className="text-xs text-gray-600 mt-1">预留5%保障流动性</div>
@@ -143,7 +145,7 @@ const GridParametersCard = ({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="text-center p-4 bg-green-50 rounded-lg">
             <div className="text-2xl font-bold text-green-600 mb-1">
-              ¥{price_range.lower.toFixed(3)}
+              {formatCurrency(price_range.lower, etfInfo?.country, { maximumFractionDigits: 3 })}
             </div>
             <div className="text-sm text-green-700 font-medium">下边界</div>
             <div className="text-xs text-gray-600 mt-1">买入区间下限</div>
@@ -151,7 +153,7 @@ const GridParametersCard = ({
 
           <div className="text-center p-4 bg-gray-50 rounded-lg">
             <div className="text-2xl font-bold text-gray-900 mb-1">
-              ¥{current_price.toFixed(3)}
+              {formatCurrency(current_price, etfInfo?.country, { maximumFractionDigits: 3 })}
             </div>
             <div className="text-sm text-gray-700 font-medium">基准价格</div>
             <div className="text-xs text-gray-600 mt-1">
@@ -161,7 +163,7 @@ const GridParametersCard = ({
 
           <div className="text-center p-4 bg-red-50 rounded-lg">
             <div className="text-2xl font-bold text-red-600 mb-1">
-              ¥{price_range.upper.toFixed(3)}
+              {formatCurrency(price_range.upper, etfInfo?.country, { maximumFractionDigits: 3 })}
             </div>
             <div className="text-sm text-red-700 font-medium">上边界</div>
             <div className="text-xs text-gray-600 mt-1">卖出区间上限</div>
@@ -194,14 +196,14 @@ const GridParametersCard = ({
             {/* 左侧标签 */}
             <div className="absolute left-2 top-1/2 transform -translate-y-1/2">
               <span className="text-xs font-medium text-white drop-shadow pl-2">
-                ¥{price_range.lower.toFixed(3)}
+                {formatCurrency(price_range.lower, etfInfo?.country, { maximumFractionDigits: 3 })}
               </span>
             </div>
 
             {/* 右侧标签 */}
             <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
               <span className="text-xs font-medium text-white drop-shadow pr-2">
-                ¥{price_range.upper.toFixed(3)}
+                {formatCurrency(price_range.upper, etfInfo?.country, { maximumFractionDigits: 3 })}
               </span>
             </div>
           </div>
@@ -270,13 +272,13 @@ const GridParametersCard = ({
                   {formatPercent(grid_config.step_ratio)}
                 </div>
                 <div className="text-xs text-gray-600">
-                  步长比例 · ¥{grid_config.step_size.toFixed(3)}
+                  步长比例 · {formatCurrency(grid_config.step_size, etfInfo?.country, { maximumFractionDigits: 3 })}
                 </div>
               </>
             ) : (
               <>
                 <div className="text-xl font-bold text-gray-900">
-                  ¥{grid_config.step_size.toFixed(3)}
+                  {formatCurrency(grid_config.step_size, etfInfo?.country, { maximumFractionDigits: 3 })}
                 </div>
                 <div className="text-xs text-gray-600">
                   步长价格 · {formatPercent(grid_config.step_ratio)}
@@ -306,7 +308,7 @@ const GridParametersCard = ({
               </span>
             </div>
             <div className="text-xl font-bold text-gray-900">
-              {formatCurrency(fund_allocation.expected_profit_per_trade)}
+              {formatCurrency(fund_allocation.expected_profit_per_trade, etfInfo?.country, { maximumFractionDigits: 2 })}
             </div>
             <div className="text-xs text-gray-600">
               按网格间距和单笔数量计算
@@ -346,7 +348,7 @@ const GridParametersCard = ({
                               : "bg-yellow-50 text-yellow-700 border border-yellow-200"
                         }`}
                       >
-                        <div className="font-medium">¥{price.toFixed(3)}</div>
+                        <div className="font-medium">{price.toFixed(3)}</div>
                         <div className="text-xs opacity-75">
                           {price < current_price
                             ? "买入"
@@ -396,7 +398,7 @@ const GridParametersCard = ({
                             : "bg-yellow-50 text-yellow-700 border border-yellow-200"
                       }`}
                     >
-                      <div className="font-medium">¥{price.toFixed(3)}</div>
+                      <div className="font-medium">{price.toFixed(3)}</div>
                       <div className="text-xs opacity-75">
                         {price < current_price
                           ? "买入"

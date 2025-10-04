@@ -4,8 +4,9 @@
  */
 
 /**
- * 格式化金额为中文货币格式
+ * 格式化金额为指定货币格式
  * @param {number} amount - 金额数值
+ * @param {string} country - 国家代码 ('CHN', 'HKG', 'USA')
  * @param {Object} [options] - 格式化选项
  * @param {number} [options.minimumFractionDigits=0] - 最小小数位数
  * @param {number} [options.maximumFractionDigits=0] - 最大小数位数
@@ -13,17 +14,38 @@
  * @throws {Error} 当amount不是有效数字时
  *
  * @example
- * formatCurrency(100000) // '¥100,000'
- * formatCurrency(1234.567, { maximumFractionDigits: 2 }) // '¥1,234.57'
+ * formatCurrency(100000, 'CHN') // '¥100,000'
+ * formatCurrency(100000, 'HKG') // 'HK$100,000'
+ * formatCurrency(100000, 'USA') // '$100,000'
+ * formatCurrency(1234.567, 'CHN', { maximumFractionDigits: 2 }) // '¥1,234.57'
  */
-export const formatCurrency = (amount, options = {}) => {
+export const formatCurrency = (amount, country = 'CHN', options = {}) => {
   if (typeof amount !== "number" || isNaN(amount)) {
     throw new Error("Amount must be a valid number");
   }
 
-  return new Intl.NumberFormat("zh-CN", {
+  let locale = "zh-CN";
+  let currency = "CNY";
+
+  switch (country) {
+    case "HKG":
+      locale = "zh-HK";
+      currency = "HKD";
+      break;
+    case "USA":
+      locale = "en-US";
+      currency = "USD";
+      break;
+    case "CHN":
+    default:
+      locale = "zh-CN";
+      currency = "CNY";
+      break;
+  }
+
+  return new Intl.NumberFormat(locale, {
     style: "currency",
-    currency: "CNY",
+    currency: currency,
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
     ...options,

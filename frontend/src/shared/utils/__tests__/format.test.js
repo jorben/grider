@@ -9,35 +9,41 @@ import {
 describe("format utils", () => {
   describe("formatCurrency", () => {
     test("should format numbers correctly", () => {
-      expect(formatCurrency(100000)).toBe("¥100,000");
-      expect(formatCurrency(1234567)).toBe("¥1,234,567");
-      expect(formatCurrency(1234.56)).toBe("¥1,235");
+      expect(formatCurrency(100000, 'CHN')).toBe("¥100,000");
+      expect(formatCurrency(1234567, 'CHN')).toBe("¥1,234,567");
+      expect(formatCurrency(1234.56, 'CHN')).toBe("¥1,235");
     });
 
     test("should handle decimal options", () => {
       expect(
-        formatCurrency(1234.56, {
+        formatCurrency(1234.56, 'CHN', {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2,
         }),
       ).toBe("¥1,234.56");
-      expect(formatCurrency(1234.567, { maximumFractionDigits: 2 })).toBe(
+      expect(formatCurrency(1234.567, 'CHN', { maximumFractionDigits: 2 })).toBe(
         "¥1,234.57",
       );
     });
 
     test("should throw error for invalid input", () => {
-      expect(() => formatCurrency("invalid")).toThrow(
+      expect(() => formatCurrency("invalid", 'CHN')).toThrow(
         "Amount must be a valid number",
       );
-      expect(() => formatCurrency(NaN)).toThrow(
+      expect(() => formatCurrency(NaN, 'CHN')).toThrow(
         "Amount must be a valid number",
       );
     });
 
     test("should handle edge cases", () => {
-      expect(formatCurrency(0)).toBe("¥0");
-      expect(formatCurrency(-1000)).toBe("-¥1,000");
+      expect(formatCurrency(0, 'CHN')).toBe("¥0");
+      expect(formatCurrency(-1000, 'CHN')).toBe("-¥1,000");
+    });
+
+    test("should format different currencies", () => {
+      expect(formatCurrency(100000, 'CHN')).toBe("¥100,000");
+      expect(formatCurrency(100000, 'HKG')).toBe("HK$100,000");
+      expect(formatCurrency(100000, 'USA')).toBe("$100,000");
     });
   });
 
