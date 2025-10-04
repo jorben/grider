@@ -68,6 +68,8 @@ class URLTokenAuthStrategy(AuthStrategy):
 
     def is_token_expired(self, response: requests.Response) -> bool:
         """检查token是否失效"""
+        logger.debug(f"检查token是否失效，响应状态码: {response.status_code}")
+
         # 检查HTTP状态码
         if response.status_code in self.expired_status_codes:
             logger.debug(
@@ -79,14 +81,17 @@ class URLTokenAuthStrategy(AuthStrategy):
         if self.expired_response_codes:
             try:
                 data = response.json()
+                logger.debug(f"响应数据: {data}")
                 if isinstance(data, dict):
                     response_code = data.get('code')
+                    logger.debug(f"响应code: {response_code}")
                     if response_code in self.expired_response_codes:
                         logger.debug(
                             f"检测到token失效（响应码）: {response_code}"
                         )
                         return True
-            except (ValueError, TypeError, KeyError):
-                pass
+            except (ValueError, TypeError, KeyError) as e:
+                logger.debug(f"解析响应JSON失败: {e}")
 
+        logger.debug("token未失效")
         return False

@@ -144,8 +144,13 @@ def after_request_handler(response):
     # 计算处理时间（毫秒）
     duration_ms = round((time.time() - start_time) * 1000, 2)
     
-    # 获取响应大小
-    response_size = len(response.get_data()) if response.get_data() else 0
+    # 获取响应大小（避免在direct passthrough模式下调用get_data）
+    try:
+        response_data = response.get_data()
+        response_size = len(response_data) if response_data else 0
+    except RuntimeError:
+        # direct passthrough模式，无法获取数据大小
+        response_size = 0
     
     # 提取请求数据
     request_data = extract_request_data()

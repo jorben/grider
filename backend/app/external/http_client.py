@@ -4,7 +4,7 @@ import time
 import requests
 from typing import Dict, Optional
 from app.external.auth_strategy import AuthStrategy
-from app.external.exceptions import TokenExpiredError, NetworkError, AllTokensFailedError
+from app.external.exceptions import NetworkError, AllTokensFailedError
 from app.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -53,12 +53,19 @@ class HTTPClient:
         start_time = time.time()
 
         # Token重试循环
-        while True:
+        attempt_count = 0
+        max_token_attempts = 10  # 防止无限循环
+        while attempt_count < max_token_attempts:
+            attempt_count += 1
+            logger.debug(f"Token重试循环开始，第{attempt_count}次尝试: {provider_name}.{endpoint_name}")
+
             try:
                 # 1. 准备认证信息
                 auth_url, auth_headers, auth_params = auth_strategy.prepare_request(
                     provider_name, endpoint_name, url, headers, params
                 )
+                current_token = auth_strategy.get_current_token()
+                logger.debug(f"当前token: {current_token[:8] if current_token else 'None'}***")
 
                 # 2. 发送请求
                 response = self._send_request(
@@ -66,7 +73,10 @@ class HTTPClient:
                 )
 
                 # 3. 检查token是否失效
-                if auth_strategy.is_token_expired(response):
+                is_expired = auth_strategy.is_token_expired(response)
+                logger.debug(f"is_token_expired检查结果: {is_expired}, 状态码: {response.status_code}")
+
+                if is_expired:
                     # 标记token失效，继续尝试下一个token
                     auth_strategy.mark_token_failed(provider_name, endpoint_name)
                     logger.warning(f"Token失效，切换下一个: {provider_name}.{endpoint_name}")
@@ -92,6 +102,10 @@ class HTTPClient:
                 # 其他错误
                 logger.error(f"请求失败: {e}")
                 raise
+
+        # 如果达到最大尝试次数
+        logger.error(f"达到最大token尝试次数({max_token_attempts}): {provider_name}.{endpoint_name}")
+        raise AllTokensFailedError(f"达到最大token尝试次数: {provider_name}.{endpoint_name}")
 
 
     def _send_request(
@@ -142,31 +156,35 @@ class HTTPClient:
                     time.sleep(self.retry_delay)
                     continue
                 raise NetworkError(f"请求错误: {e}")
+            except Exception as e :
+                if attempt < self.max_retries - 1:
+                    logger.warning(f"请求错误，重试第{attempt + 1}次: {e}")
+                    time.sleep(self.retry_delay)
+                    continue
+                raise
 
     def _log_request(self, method: str, url: str, headers: dict, params: dict):
         """记录请求日志（隐藏敏感信息）"""
-        if logger.isEnabledFor(logger.level):
-            # 隐藏敏感信息
-            safe_headers = headers.copy()
-            if 'Authorization' in safe_headers:
-                token = safe_headers['Authorization']
-                if token.startswith('Bearer '):
-                    safe_headers['Authorization'] = f"Bearer ***{token[-8:]}"
-                else:
-                    safe_headers['Authorization'] = f"***{token[-8:]}"
+        # 隐藏敏感信息
+        safe_headers = headers.copy()
+        if 'Authorization' in safe_headers:
+            token = safe_headers['Authorization']
+            if token.startswith('Bearer '):
+                safe_headers['Authorization'] = f"Bearer ***{token[-8:]}"
+            else:
+                safe_headers['Authorization'] = f"***{token[-8:]}"
 
-            logger.info(f"HTTP请求: {method} {url}")
-            logger.debug(f"请求头: {safe_headers}")
-            if params:
-                # 隐藏可能包含token的参数
-                safe_params = {
-                    k: f"***{str(v)[-4:]}" if 'token' in k.lower() or 'key' in k.lower() else v
-                    for k, v in params.items()
-                }
-                logger.debug(f"请求参数: {safe_params}")
+        logger.info(f"HTTP请求: {method} {url}")
+        logger.debug(f"请求头: {safe_headers}")
+        if params:
+            # 隐藏可能包含token的参数
+            safe_params = {
+                k: f"***{str(v)[-4:]}" if 'token' in k.lower() or 'key' in k.lower() else v
+                for k, v in params.items()
+            }
+            logger.debug(f"请求参数: {safe_params}")
 
     def _log_response(self, response: requests.Response, duration: float):
         """记录响应日志"""
-        if logger.isEnabledFor(logger.level):
-            logger.info(f"HTTP响应: {response.status_code} {response.url} ({duration:.2f}s)")
-            logger.debug(f"响应头: {dict(response.headers)}")
+        logger.info(f"HTTP响应: {response.status_code} {response.url} ({duration:.2f}s)")
+        logger.debug(f"响应头: {dict(response.headers)}")

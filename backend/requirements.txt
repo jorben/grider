@@ -10,6 +10,10 @@ flask-migrate==4.1.0
     # via grider (pyproject.toml)
 flask-sqlalchemy==3.1.1
     # via grider (pyproject.toml)
+gevent==25.9.1
+    # via grider (pyproject.toml)
+gunicorn==23.0.0
+    # via grider (pyproject.toml)
 marshmallow==4.0.1
     # via grider (pyproject.toml)
 pandas==2.3.3

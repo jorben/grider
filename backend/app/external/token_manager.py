@@ -80,15 +80,24 @@ class TokenManager:
         tokens = self.get_tokens(provider_name, endpoint_name)
         state_key = f"{provider_name}_{endpoint_name}"
 
+        logger.debug(f"获取tokens: {provider_name}.{endpoint_name}, tokens数量: {len(tokens)}")
+        for i, token_info in enumerate(tokens):
+            logger.debug(f"Token {i}: {token_info['token'][:8] if token_info['token'] else 'None'}*** (优先级: {token_info['priority']})")
+
         # 初始化状态
         if state_key not in self._token_states:
             self._token_states[state_key] = {token['token']: True for token in tokens}
+            logger.debug(f"初始化token状态: {self._token_states[state_key]}")
+
+        logger.debug(f"当前token状态: {self._token_states.get(state_key, {})}")
 
         # 查找第一个可用的Token
         for token_info in tokens:
             token = token_info['token']
-            if self._token_states[state_key].get(token, True):
-                logger.debug(f"选择Token: {provider_name}.{endpoint_name} -> {token} (优先级: {token_info['priority']})")
+            is_available = self._token_states[state_key].get(token, True)
+            logger.debug(f"检查token: {token[:8] if token else 'None'}***, 可用: {is_available}")
+            if is_available:
+                logger.debug(f"选择Token: {provider_name}.{endpoint_name} -> {token[:8] if token else 'None'}*** (优先级: {token_info['priority']})")
                 return token
 
         # 所有Token都失效了
