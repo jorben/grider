@@ -7,7 +7,7 @@ from flask import Flask, request
 import json
 
 from app.utils.validation import (
-    validate_required, validate_string, validate_integer, validate_email,
+    validate_required, validate_string, validate_integer, validate_enum, validate_email,
     validate_all, validate_with_rules, validate_json, validate_query,
     validate_form, validate_combined, VALIDATION_RULES
 )
@@ -76,14 +76,29 @@ class TestValidationFunctions:
         assert result is not None
         assert result[1] == 400
 
+    def test_validate_enum_success(self):
+        """测试枚举验证成功"""
+        data = {'status': 'active'}
+        result = validate_enum(data, 'status', ['active', 'inactive', 'pending'])
+        assert result is None
+
+    def test_validate_enum_failure(self):
+        """测试枚举验证失败"""
+        data = {'status': 'unknown'}
+        result = validate_enum(data, 'status', ['active', 'inactive', 'pending'])
+        assert result is not None
+        assert result[1] == 400
+        assert 'must be one of' in result[0]['error']
+
     def test_validate_all_success(self):
         """测试批量验证成功"""
-        data = {'name': 'John', 'age': 25, 'email': 'john@example.com'}
+        data = {'name': 'John', 'age': 25, 'email': 'john@example.com', 'status': 'active'}
         rules = [
             {'type': 'required', 'field': 'name'},
             {'type': 'string', 'field': 'name', 'min_length': 1, 'max_length': 100},
             {'type': 'integer', 'field': 'age', 'min_value': 18, 'max_value': 100},
-            {'type': 'email', 'field': 'email'}
+            {'type': 'email', 'field': 'email'},
+            {'type': 'enum', 'field': 'status', 'enum_values': ['active', 'inactive', 'pending']}
         ]
         result = validate_all(data, rules)
         assert result is None

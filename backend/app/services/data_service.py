@@ -53,7 +53,14 @@ class DataService:
                 raise ValueError(f"不支持的证券类型: {type}")
 
             if result.get("data", None):
-                return pd.DataFrame(result['data'])
+                data = result['data']
+                for item in data:
+                    if item.get('amount') is None:
+                        high = item.get('high', 0)
+                        low = item.get('low', 0)
+                        volume = item.get('volume', 0)
+                        item['amount'] = ((high + low) / 2) * volume
+                return pd.DataFrame(data)
             return None
         except Exception as e:
             logger.error(f"获取行情失败: {e}")

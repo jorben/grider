@@ -1,7 +1,6 @@
-from .demo_routes import bp as demo_bp
-from .analysis_routes import bp as analysis_bp
+from .info_routes import bp as info_bp
+from .grid_routes import bp as grid_bp
 
 def register(app):
-    # 可移除该demo
-    app.register_blueprint(demo_bp, url_prefix="/api/demo")
-    app.register_blueprint(analysis_bp, url_prefix="/api/v1")
+    app.register_blueprint(info_bp, url_prefix="/api/info")
+    app.register_blueprint(grid_bp, url_prefix="/api/grid")

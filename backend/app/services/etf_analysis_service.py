@@ -23,6 +23,7 @@ class ETFAnalysisService:
     """ETF分析服务主类 - 专注于业务流程协调"""
     
     def __init__(self, 
+                 country: str = 'CHN',
                  atr_analyzer: ATRAnalyzer = None,
                  arithmetic_calculator: ArithmeticGridCalculator = None,
                  geometric_calculator: GeometricGridCalculator = None,
@@ -40,7 +41,7 @@ class ETFAnalysisService:
         """
         self.data_client = DataService()
 
-        self.country = 'HKG'
+        self.country = country or 'CHN'
         
         # 使用依赖注入或创建默认实例
         self.atr_analyzer = atr_analyzer or ATRAnalyzer(ATRCalculator())
@@ -48,33 +49,6 @@ class ETFAnalysisService:
         self.geometric_calculator = geometric_calculator or GeometricGridCalculator()
         self.grid_optimizer = grid_optimizer or GridOptimizer()
         self.suitability_analyzer = suitability_analyzer or SuitabilityAnalyzer()
-        
-        # 热门ETF列表
-        self.popular_etfs = [
-            {'code': '510300', 'name': '沪深300ETF'},
-            {'code': '510500', 'name': '中证500ETF'},
-            {'code': '159919', 'name': '沪深300ETF'},
-            {'code': '159915', 'name': '创业板ETF'},
-            {'code': '512880', 'name': '证券ETF'},
-            {'code': '515050', 'name': '5G通信ETF'},
-            {'code': '512690', 'name': '酒ETF'},
-            {'code': '516160', 'name': '新能源ETF'},
-            {'code': '159928', 'name': '消费ETF'},
-            {'code': '512170', 'name': '医疗ETF'},
-            {'code': '159941', 'name': '纳指ETF'},
-            {'code': '513100', 'name': '纳指ETF'},
-            {'code': '159920', 'name': '恒生ETF'},
-            {'code': '510880', 'name': '红利ETF'},
-            {'code': '588000', 'name': '科创50ETF'},
-            {'code': '512480', 'name': '半导体ETF'},
-            {'code': '159819', 'name': '人工智能ETF'},
-            {'code': '159742', 'name': '恒生科技ETF'},
-            {'code': '159949', 'name': '创业板50ETF'}
-        ]
-    
-    def get_popular_etfs(self) -> List[Dict]:
-        """获取热门ETF列表"""
-        return self.popular_etfs
     
     def get_basic_info(self, etf_code: str) -> Dict:
         """

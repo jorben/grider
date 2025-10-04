@@ -95,6 +95,18 @@ SEARCH_RULES: Final[list] = [
     {'type': 'string', 'field': 'sort_order', 'max_length': 10}
 ]
 
+# 网格策略分析验证规则 ['etfCode', 'totalCapital', 'gridType', 'riskPreference', 'adjustmentCoefficient']
+GRID_ANALYZE_RULES: Final[list] = [
+    {'type': 'required', 'field': 'etfCode'},
+    {'type': 'required', 'field': 'totalCapital'},
+    {'type': 'required', 'field': 'gridType'},
+    {'type': 'required', 'field': 'riskPreference'},
+    {'type': 'integer', 'field': 'totalCapital', 'min_value': 10000, 'max_value': 1000000},
+    {'type': 'enum', 'field': 'gridType', 'enum_values': ['等比', '等差']},
+    {'type': 'enum', 'field': 'riskPreference', 'enum_values': ['低频', '均衡', '高频']},
+    {'type': 'float', 'field': 'adjustmentCoefficient', 'min_value': 0, 'max_value': 2}
+]
+
 # ============================================================================
 # 响应消息常量
 # ============================================================================
@@ -133,6 +145,43 @@ JWT_REFRESH_TOKEN_EXPIRES: Final[int] = 2592000  # 30天
 MIN_PASSWORD_LENGTH: Final[int] = 8
 MAX_PASSWORD_LENGTH: Final[int] = 128
 
+# ============================================================================
+# 业务相关常量
+# ============================================================================
+# 热门ETF列表
+ETF_POPULAR_LIST: Final[list] = [
+    {'code': '510300', 'name': '沪深300ETF'},
+    {'code': '510500', 'name': '中证500ETF'},
+    {'code': '159919', 'name': '沪深300ETF'},
+    {'code': '159915', 'name': '创业板ETF'},
+    {'code': '512880', 'name': '证券ETF'},
+    {'code': '515050', 'name': '5G通信ETF'},
+    {'code': '512690', 'name': '酒ETF'},
+    {'code': '516160', 'name': '新能源ETF'},
+    {'code': '159928', 'name': '消费ETF'},
+    {'code': '512170', 'name': '医疗ETF'},
+    {'code': '159941', 'name': '纳指ETF'},
+    {'code': '513100', 'name': '纳指ETF'},
+    {'code': '159920', 'name': '恒生ETF'},
+    {'code': '510880', 'name': '红利ETF'},
+    {'code': '588000', 'name': '科创50ETF'},
+    {'code': '512480', 'name': '半导体ETF'},
+    {'code': '159819', 'name': '人工智能ETF'},
+    {'code': '159742', 'name': '恒生科技ETF'},
+    {'code': '159949', 'name': '创业板50ETF'}
+]
+
+# 常用资金
+CAPITAL_PRESETS: Final[list] = [
+    {'value': 100000, 'label': '10万', 'popular': True},
+    {'value': 200000, 'label': '20万', 'popular': True},
+    {'value': 300000, 'label': '30万', 'popular': False},
+    {'value': 500000, 'label': '50万', 'popular': True},
+    {'value': 800000, 'label': '80万', 'popular': False},
+    {'value': 1000000, 'label': '100万', 'popular': True},
+    {'value': 1500000, 'label': '150万', 'popular': False},
+    {'value': 2000000, 'label': '200万', 'popular': False}
+]
 
 # ============================================================================
 # 导出常量
@@ -156,7 +205,7 @@ __all__ = [
     'DEFAULT_VISIT_COUNT', 'DEFAULT_PAGE_SIZE', 'MAX_PAGE_SIZE',
     
     # 验证规则
-    'USER_NAME_RULES', 'USER_EMAIL_RULES', 'PAGINATION_RULES', 'SEARCH_RULES',
+    'USER_NAME_RULES', 'USER_EMAIL_RULES', 'PAGINATION_RULES', 'SEARCH_RULES', 'GRID_ANALYZE_RULES',
     
     # 响应消息
     'SUCCESS_CREATED', 'SUCCESS_UPDATED', 'SUCCESS_DELETED', 'SUCCESS_OPERATION',
@@ -168,5 +217,8 @@ __all__ = [
     # 安全相关
     'JWT_ACCESS_TOKEN_EXPIRES', 'JWT_REFRESH_TOKEN_EXPIRES',
     'MIN_PASSWORD_LENGTH', 'MAX_PASSWORD_LENGTH',
+
+    # 业务相关
+    'ETF_POPULAR_LIST', 'CAPITAL_PRESETS',
     
 ]

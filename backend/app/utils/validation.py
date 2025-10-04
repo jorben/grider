@@ -19,7 +19,7 @@ def validate_required(data: Dict[str, Any], fields: List[str]) -> Optional[Tuple
     missing_fields = [field for field in fields if field not in data or data[field] is None]
     if missing_fields:
         return {
-            'error': f'Missing required fields: {", ".join(missing_fields)}',
+            'error': f'缺少必填字段：{", ".join(missing_fields)}',
             'missing_fields': missing_fields
         }, 400
     return None
@@ -42,11 +42,11 @@ def validate_string(data: Dict[str, Any], field: str, min_length: int = 1, max_l
         value = str(data[field])
         if len(value) < min_length:
             return {
-                'error': f'Field "{field}" must be at least {min_length} characters'
+                'error': f'字段 "{field}" 至少需要 {min_length} 个字符'
             }, 400
         if max_length and len(value) > max_length:
             return {
-                'error': f'Field "{field}" must be at most {max_length} characters'
+                'error': f'字段 "{field}" 最多只能有 {max_length} 个字符'
             }, 400
     return None
 
@@ -69,15 +69,65 @@ def validate_integer(data: Dict[str, Any], field: str, min_value: Optional[int] 
             value = int(data[field])
             if min_value is not None and value < min_value:
                 return {
-                    'error': f'Field "{field}" must be at least {min_value}'
+                    'error': f'字段 "{field}" 必须至少为 {min_value}'
                 }, 400
             if max_value is not None and value > max_value:
                 return {
-                    'error': f'Field "{field}" must be at most {max_value}'
+                    'error': f'字段 "{field}" 必须最多为 {max_value}'
                 }, 400
         except (ValueError, TypeError):
             return {
-                'error': f'Field "{field}" must be an integer'
+                'error': f'字段 "{field}" 必须是整数'
+            }, 400
+    return None
+
+def validate_float(data: Dict[str, Any], field: str, min_value: Optional[float] = None, max_value: Optional[float] = None) -> Optional[Tuple[Dict, int]]:
+    """
+    验证浮点数字段
+
+    Args:
+        data: 要验证的数据字典
+        field: 字段名
+        min_value: 最小值
+        max_value: 最大值
+
+    Returns:
+        如果验证失败返回错误响应和状态码，否则返回None
+    """
+    if field in data and data[field] is not None:
+        try:
+            value = float(data[field])
+            if min_value is not None and value < min_value:
+                return {
+                    'error': f'字段 "{field}" 必须至少为 {min_value}'
+                }, 400
+            if max_value is not None and value > max_value:
+                return {
+                    'error': f'字段 "{field}" 必须最多为 {max_value}'
+                }, 400
+        except (ValueError, TypeError):
+            return {
+                'error': f'字段 "{field}" 必须是浮点数'
+            }, 400
+    return None
+
+
+def validate_enum(data: Dict[str, Any], field: str, enum_values: List[Any]) -> Optional[Tuple[Dict, int]]:
+    """
+    验证枚举字段
+
+    Args:
+        data: 要验证的数据字典
+        field: 字段名
+        enum_values: 允许的值列表
+
+    Returns:
+        如果验证失败返回错误响应和状态码，否则返回None
+    """
+    if field in data and data[field] is not None:
+        if data[field] not in enum_values:
+            return {
+                'error': f'字段 "{field}" 必须是以下之一：{", ".join(map(str, enum_values))}'
             }, 400
     return None
 
@@ -98,7 +148,7 @@ def validate_email(data: Dict[str, Any], field: str) -> Optional[Tuple[Dict, int
         email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
         if not re.match(email_pattern, str(data[field])):
             return {
-                'error': f'Field "{field}" must be a valid email address'
+                'error': f'字段 "{field}" 必须是有效的电子邮件地址'
             }, 400
     return None
 
@@ -127,14 +177,14 @@ def validate_custom(data: Dict[str, Any], field: str, validator_func: Callable[[
 def validate_all(data: Dict[str, Any], rules: List[Dict]) -> Optional[Tuple[Dict, int]]:
     """
     批量验证多个规则
-    
+
     Args:
         data: 要验证的数据字典
         rules: 验证规则列表，每个规则包含:
-            - type: 验证类型 ('required', 'string', 'integer', 'email', 'custom')
+            - type: 验证类型 ('required', 'string', 'integer', 'float', 'enum', 'email', 'custom')
             - field: 字段名
             - 其他参数根据验证类型而定
-    
+
     Returns:
         如果验证失败返回错误响应和状态码，否则返回None
     """
@@ -148,6 +198,10 @@ def validate_all(data: Dict[str, Any], rules: List[Dict]) -> Optional[Tuple[Dict
             result = validate_string(data, field, rule.get('min_length', 1), rule.get('max_length'))
         elif rule_type == 'integer':
             result = validate_integer(data, field, rule.get('min_value'), rule.get('max_value'))
+        elif rule_type == 'float':
+            result = validate_float(data, field, rule.get('min_value'), rule.get('max_value'))
+        elif rule_type == 'enum':
+            result = validate_enum(data, field, rule['enum_values'])
         elif rule_type == 'email':
             result = validate_email(data, field)
         elif rule_type == 'custom':
