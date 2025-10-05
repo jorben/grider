@@ -5,7 +5,7 @@
 
 from typing import Final
 
-APP_VERSION: str = "1.0.2"
+APP_VERSION: str = "1.0.0"
 
 # ============================================================================
 # HTTP 状态码常量
