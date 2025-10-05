@@ -40,7 +40,7 @@ providers:
       stock_realtime:
         path: "/fin/stock/{exchange_code}/realtime?token={token}"
         method: "GET"
-        cache_ttl: 300 # 缓存5分钟
+        cache_ttl: 1800 # 缓存30分钟
         tokens:
           - token: "{TSANGHI_TOKEN_01}"
             priority: 1
@@ -68,7 +68,7 @@ providers:
       etf_realtime:
         path: "/fin/etf/{exchange_code}/realtime?token={token}"
         method: "GET"
-        cache_ttl: 300 # 缓存5分钟
+        cache_ttl: 1800 # 缓存30分钟
         tokens:
           - token: "{TSANGHI_TOKEN_01}"
             priority: 1
