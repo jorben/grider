@@ -1,11 +1,6 @@
 # 全局配置
 global:
-  max_retries: 3                              # 最大重试次数
-  retry_delay: 1                              # 重试延迟（秒）
-  timeout: 30                                 # 请求超时（秒）
-  cache_enabled: true                         # 启用缓存
   cache_dir: "cache/external_api"             # 缓存目录
-  log_requests: true                          # 记录请求日志
 
 # 外部API提供商配置
 providers:
