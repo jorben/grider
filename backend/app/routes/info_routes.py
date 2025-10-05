@@ -23,7 +23,7 @@ def get_popular_etfs():
         logger.error(f"获取热门ETF列表失败: {str(e)}")
         return jsonify({
             'success': False,
-            'error': '获取热门ETF列表失败'
+            'message': '获取热门ETF列表失败'
         }), HTTP_INTERNAL_SERVER_ERROR
     
 @bp.route('/<etf_code>', methods=['GET'])
@@ -35,7 +35,7 @@ def get_basic_info(etf_code):
         if not etf_code:
             return jsonify({
                 'success': False,
-                'error': 'ETF代码为空'
+                'message': 'ETF代码为空'
             }), HTTP_BAD_REQUEST
         etf_service = ETFAnalysisService(country=country)
         etf_info = etf_service.get_basic_info(etf_code)
@@ -47,13 +47,13 @@ def get_basic_info(etf_code):
     except ValueError as e:
         return jsonify({
             'success': False,
-            'error': str(e)
+            'message': str(e)
         }), HTTP_NOT_FOUND
     except Exception as e:
         logger.error(f"获取ETF基础信息失败: {etf_code}, {str(e)}")
         return jsonify({
             'success': False,
-            'error': '获取ETF信息失败，请检查代码是否正确'
+            'message': '获取ETF信息失败，请检查代码是否正确'
         }), HTTP_INTERNAL_SERVER_ERROR
 
 @bp.route('/capital', methods=['GET'])
@@ -69,5 +69,5 @@ def get_capital_presets():
         logger.error(f"获取预设资金选项失败: {str(e)}")
         return jsonify({
             'success': False,
-            'error': '获取预设资金选项失败'
+            'message': '获取预设资金选项失败'
         }), HTTP_INTERNAL_SERVER_ERROR

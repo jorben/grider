@@ -75,7 +75,7 @@ def setup_static_routes(app):
             app.logger.error("静态文件 index.html 不存在")
             return {
                 'success': False,
-                'error': '前端文件未找到，请检查构建是否完成'
+                'message': '前端文件未找到，请检查构建是否完成'
             }, 404
     
     @app.route('/<path:path>')
@@ -96,7 +96,7 @@ def setup_static_routes(app):
                 app.logger.error("静态文件 index.html 不存在")
                 return {
                     'success': False,
-                    'error': '前端文件未找到'
+                    'message': '前端文件未找到'
                 }, 404
         
         # 尝试提供静态文件
@@ -110,5 +110,5 @@ def setup_static_routes(app):
                 app.logger.error("静态文件 index.html 不存在")
                 return {
                     'success': False,
-                    'error': '前端文件未找到'
+                    'message': '前端文件未找到'
                 }, 404

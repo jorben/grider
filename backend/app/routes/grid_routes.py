@@ -4,7 +4,7 @@ from app.utils.validation import (
     validate_json, validate_query
 )
 from app.constants import (
-    GRID_ANALYZE_RULES, HTTP_OK, HTTP_INTERNAL_SERVER_ERROR
+    GRID_ANALYZE_RULES, HTTP_OK, HTTP_INTERNAL_SERVER_ERROR, HTTP_BAD_REQUEST
 )
 
 from app.utils.logger import get_logger
@@ -41,14 +41,28 @@ def analyze_strategy(validated_data):
         logger.info(f"ETF策略分析完成: {etf_code}, "
                    f"适宜度评分{analysis_result['suitability_evaluation']['total_score']}")
         
+        # 检查网格资金利用率
+        if analysis_result['grid_strategy']['fund_allocation']['grid_fund_utilization_rate'] > 1 or analysis_result['grid_strategy']['fund_allocation']['grid_trading_amount'] < 0:
+            return jsonify({
+                'success': False,
+                'message': '分析失败，标的价格较高，请增加总投入资金量，降低交易频率'
+            }), HTTP_BAD_REQUEST
+
         return jsonify({
             'success': True,
             'data': analysis_result
         }), HTTP_OK
-
-    except Exception as e:
-        logger.error(f"ETF策略分析失败: {str(e)}")
+    
+    except (KeyError, TypeError) as e:
+        logger.error(f"资金分配数据解析失败: {str(e)}")
         return jsonify({
             'success': False,
-            'error': '分析失败，请稍后重试或检查ETF代码是否正确'
+            'message': '分析失败，资金分配数据不完整'
+        }), HTTP_INTERNAL_SERVER_ERROR
+
+    except Exception as e:
+        logger.error(f"网格策略分析失败: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': '分析失败，请稍后重试或检查标的数据是否充足'
         }), HTTP_INTERNAL_SERVER_ERROR
