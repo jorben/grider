@@ -1,0 +1,59 @@
+# Changelog
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [1.0.0] - 2025-10-05
+### :boom: BREAKING CHANGES
+- due to [`2e228c3`](https://github.com/jorben/Grider/commit/2e228c3fafcee016b4f2ad1cd4073d6430643934) - 添加参数验证工具和示例路由 *(commit by [@jorben](https://github.com/jorben))*:
+
+  移除了原有的user_routes蓝图，改为demo_routes，URL前缀从/api/user更改为/api/demo
+
+- due to [`1791cd7`](https://github.com/jorben/Grider/commit/1791cd72ab99318369e62b7ca94d30a7f0960c2b) - 添加常量管理模块和日志中间件 *(commit by [@jorben](https://github.com/jorben))*:
+
+  移除路由中的硬编码验证规则，改为使用常量模块中的预定义规则
+
+- due to [`cdb964e`](https://github.com/jorben/Grider/commit/cdb964e269645f9698b93a4e8e77576af54aad3b) - 支持多市场货币格式化 *(commit by [@jorben](https://github.com/jorben))*:
+
+  formatCurrency 函数签名变更，第二个参数由 options 改为 country，options 移至第三个参数
+
+- due to [`628daf0`](https://github.com/jorben/Grider/commit/628daf0136582faf700889edd2dccf944266b132) - add support for Hong Kong and US ETFs with UI refinements *(commit by [@jorben](https://github.com/jorben))*:
+
+  UI text changes may affect user expectations for data sources and labels
+
+- due to [`cac1128`](https://github.com/jorben/Grider/commit/cac1128b323459d3b75cd5d316029588239bc03f) - add GitHub Actions workflows for release and changelog management *(commit by [@jorben](https://github.com/jorben))*:
+
+  Removed global config options (max_retries, retry_delay, timeout, cache_enabled, log_requests) which may affect external API behavior if relied upon.
+
+
+### :sparkles: New Features
+- [`d4a1aaf`](https://github.com/jorben/Grider/commit/d4a1aaf3170ab3c868812eae8e732a85fd2b858d) - **backend**: 初始化Flask后端项目结构 *(commit by [@jorben](https://github.com/jorben))*
+- [`2e228c3`](https://github.com/jorben/Grider/commit/2e228c3fafcee016b4f2ad1cd4073d6430643934) - **validation**: 添加参数验证工具和示例路由 *(commit by [@jorben](https://github.com/jorben))*
+- [`1791cd7`](https://github.com/jorben/Grider/commit/1791cd72ab99318369e62b7ca94d30a7f0960c2b) - **config**: 添加常量管理模块和日志中间件 *(commit by [@jorben](https://github.com/jorben))*
+- [`ebdad24`](https://github.com/jorben/Grider/commit/ebdad2401b5515fe2e9799d3606c922209fe52a6) - **backend**: 集成日志系统并添加项目文档 *(commit by [@jorben](https://github.com/jorben))*
+- [`2996085`](https://github.com/jorben/Grider/commit/2996085e75744c5f1da453eca86b83614bcd5621) - **middleware**: 添加请求日志中间件并优化日志系统 *(commit by [@jorben](https://github.com/jorben))*
+- [`6b353b0`](https://github.com/jorben/Grider/commit/6b353b004e562386dcfbf5066a66fb583bcaa5ef) - **api**: add external API integration framework with providers, authentication, and caching *(commit by [@jorben](https://github.com/jorben))*
+- [`4db8491`](https://github.com/jorben/Grider/commit/4db8491cbd2f6ea4e085d1f5560f67a8a9bc08d9) - **api**: update tsanghi provider with new endpoints and remove deprecated code *(commit by [@jorben](https://github.com/jorben))*
+- [`27c7790`](https://github.com/jorben/Grider/commit/27c77900b440c2e94bf8fbfc70798407b3f86526) - **analysis**: add comprehensive ETF grid trading strategy analysis system *(commit by [@jorben](https://github.com/jorben))*
+- [`7f146a0`](https://github.com/jorben/Grider/commit/7f146a0aec93927339207701eca08445192a8c2f) - **api**: 添加网格交易策略分析和ETF信息端点，重构路由和常量 *(commit by [@jorben](https://github.com/jorben))*
+- [`434a699`](https://github.com/jorben/Grider/commit/434a699aad8e8a3f2a546dccc91777e855ff26da) - **frontend**: add complete React application for ETF grid trading analysis *(commit by [@jorben](https://github.com/jorben))*
+- [`9a7c633`](https://github.com/jorben/Grider/commit/9a7c633c35e86796b47859dc9f8895c218f53920) - **build**: add Docker support and production deployment configuration *(commit by [@jorben](https://github.com/jorben))*
+- [`3b16867`](https://github.com/jorben/Grider/commit/3b16867e0559dc58c79a03422872f6c2c505aa7b) - **data**: 更新金额计算公式以包含开盘价和收盘价 *(commit by [@jorben](https://github.com/jorben))*
+- [`bf41c67`](https://github.com/jorben/Grider/commit/bf41c67214985a979cb9dbff95125dfa3573b2e7) - add support for multi-market securities including A-shares, Hong Kong, and US stocks *(commit by [@jorben](https://github.com/jorben))*
+- [`cdb964e`](https://github.com/jorben/Grider/commit/cdb964e269645f9698b93a4e8e77576af54aad3b) - **currency**: 支持多市场货币格式化 *(commit by [@jorben](https://github.com/jorben))*
+- [`9a36b96`](https://github.com/jorben/Grider/commit/9a36b962f4396036994b431070b2e0c0691d65b1) - **grid**: add support for multi-market minimum trade units *(commit by [@jorben](https://github.com/jorben))*
+- [`628daf0`](https://github.com/jorben/Grider/commit/628daf0136582faf700889edd2dccf944266b132) - **etf**: add support for Hong Kong and US ETFs with UI refinements *(commit by [@jorben](https://github.com/jorben))*
+
+### :bug: Bug Fixes
+- [`d062b57`](https://github.com/jorben/Grider/commit/d062b572af8fd5f67ec9a7fd2cc041c7eb2ab298) - correct price date key and update ETF code regex *(commit by [@jorben](https://github.com/jorben))*
+- [`8875391`](https://github.com/jorben/Grider/commit/8875391a035618b29d387553e08de488c4e12d59) - **api**: update error response keys and enhance grid strategy validation *(commit by [@jorben](https://github.com/jorben))*
+
+### :recycle: Refactors
+- [`c971d9e`](https://github.com/jorben/Grider/commit/c971d9e6b2180100781647ee00e449d2d6e65b00) - **middleware**: 简化中间件架构并优化CORS配置 *(commit by [@jorben](https://github.com/jorben))*
+- [`22e9831`](https://github.com/jorben/Grider/commit/22e98315ddc1cd617c4f908bcebc9c0a19de6a00) - **constants**: 移除未使用的配置常量 *(commit by [@jorben](https://github.com/jorben))*
+
+### :wrench: Chores
+- [`4155a96`](https://github.com/jorben/Grider/commit/4155a9699126e2804e94675ad0a732a4509efb4e) - **config**: update project name, description, and version to 1.0.0 *(commit by [@jorben](https://github.com/jorben))*
+
+[1.0.0]: https://github.com/jorben/Grider/compare/0.0.1...1.0.0
