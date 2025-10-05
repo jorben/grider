@@ -1,28 +1,10 @@
-import React, { useState, useEffect } from "react";
 import { Waypoints, Github } from "lucide-react";
-import { getVersion } from "@shared/services/api";
 
 /**
  * 应用头部组件
  * 负责显示logo、标题、导航和版本信息
  */
 export default function AppHeader() {
-  const [version, setVersion] = useState("v1.0.0");
-
-  useEffect(() => {
-    const fetchVersion = async () => {
-      try {
-        const response = await getVersion();
-        if (response.success && response.data.version) {
-          setVersion(`v${response.data.version}`);
-        }
-      } catch (error) {
-        console.error("获取版本号失败:", error);
-      }
-    };
-
-    fetchVersion();
-  }, []);
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
@@ -50,7 +32,7 @@ export default function AppHeader() {
               className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 transition-colors"
             >
               <Github className="w-4 h-4" />
-              <span className="text-sm">GitHub {version}</span>
+              <span className="text-sm">社区版</span>
             </a>
           </div>
         </div>

@@ -170,7 +170,9 @@ ETF_POPULAR_LIST: Final[list] = [
     {'code': '512480', 'name': '半导体ETF'},
     {'code': '159819', 'name': '人工智能ETF'},
     {'code': '159742', 'name': '恒生科技ETF'},
-    {'code': '159949', 'name': '创业板50ETF'}
+    {'code': '159949', 'name': '创业板50ETF'},
+    {'code': '3032', 'name': '恒生科技ETF'},
+    {'code': 'SPY', 'name': 'S&P500ETF'}
 ]
 
 # 常用资金

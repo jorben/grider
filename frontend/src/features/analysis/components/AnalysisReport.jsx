@@ -55,7 +55,7 @@ const AnalysisReport = ({
   if (loading) {
     return (
       <LoadingSpinner
-        message="正在分析ETF数据..."
+        message="正在分析标的数据..."
         showProgress={true}
         progress={75}
       />

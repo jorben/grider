@@ -14,7 +14,7 @@ export default function ETFSelector({
   etfInfo,
   loading,
 }) {
-  const hotETFs = ["510300", "510500", "159915", "588000", "512480", "159819"];
+  const hotETFs = ["510300", "510500", "159915", "588000", "3032" , "SPY"];
 
   // 获取热门ETF列表
   useEffect(() => {
@@ -66,7 +66,7 @@ export default function ETFSelector({
           type="text"
           value={value}
           onChange={(e) =>
-            onChange(e.target.value.replace(/[^0-9a-zA-Z]/g, ""))
+            onChange(e.target.value.replace(/[^0-9a-zA-Z]/g, "").toUpperCase())
           }
           placeholder="请输入标的代码，如：510300"
           className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
@@ -79,7 +79,7 @@ export default function ETFSelector({
         <div className="mt-2" style={{ minHeight: "80px" }}>
           {loading && <ETFInfoSkeleton />}
 
-          {!loading && etfInfo && (
+          {!loading && etfInfo && etfInfo.code === value && (
             <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <div className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-blue-600" />

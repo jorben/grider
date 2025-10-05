@@ -281,6 +281,7 @@ class ETFAnalysisService:
             调整建议
         """
         try:
+            suggest_count = 0
             suggestions = {
                 'market_environment_changes': [],
                 'parameter_optimization': [],
@@ -291,10 +292,12 @@ class ETFAnalysisService:
             # 市场环境变化应对
             adx_value = suitability_result['market_indicators']['adx_value']
             if adx_value > 25:
+                suggest_count+=1
                 suggestions['market_environment_changes'].append(
                     "当前处于强趋势环境，建议增加底仓比例，减少网格交易频率"
                 )
             elif adx_value < 15:
+                suggest_count+=1
                 suggestions['market_environment_changes'].append(
                     "震荡特征明显，可适当增加网格密度，提高交易频率"
                 )
@@ -302,16 +305,19 @@ class ETFAnalysisService:
             # 参数优化建议
             volatility = suitability_result['market_indicators']['volatility']
             if volatility > 0.4:
+                suggest_count+=1
                 suggestions['parameter_optimization'].append(
                     "波动率较高，建议扩大网格间距，降低交易频率"
                 )
             elif volatility < 0.15:
+                suggest_count+=1
                 suggestions['parameter_optimization'].append(
                     "波动率较低，可适当缩小网格间距，增加交易机会"
                 )
             
             # 风险控制建议
             if volatility > 0.4:
+                suggest_count+=1
                 suggestions['risk_control'].append(
                     "波动率较高，建议设置止损线或减少网格密度"
                 )
@@ -319,6 +325,7 @@ class ETFAnalysisService:
             # 收益增强建议
             grid_count = grid_params['grid_config']['count']
             if grid_count < 20:
+                suggest_count+=1
                 suggestions['profit_enhancement'].append(
                     "网格数量较少，可考虑增加网格密度提高交易机会"
                 )
@@ -326,11 +333,13 @@ class ETFAnalysisService:
             # 资金效率建议
             grid_fund_utilization_rate = grid_params['fund_allocation']['grid_fund_utilization_rate']
             if grid_fund_utilization_rate < 0.8:
+                suggest_count+=1
                 suggestions['profit_enhancement'].append(
                     f"网格资金利用率{grid_fund_utilization_rate:.1%}偏低，可考虑调整网格配置"
                 )
-            
-            return suggestions
+            if suggest_count > 0 :
+                return suggestions
+            return None
             
         except Exception as e:
             logger.error(f"生成调整建议失败: {str(e)}")
