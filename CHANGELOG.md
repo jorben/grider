@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2025-10-05
+### :wrench: Chores
+- [`92dbabb`](https://github.com/jorben/grider/commit/92dbabbe89af3b765fac92a8d8f3d0ea73828f48) - bump version to 1.1.0 and add version update script *(commit by [@jorben](https://github.com/jorben))*
+
+
 ## [1.0.0] - 2025-10-05
 ### :boom: BREAKING CHANGES
 - due to [`2e228c3`](https://github.com/jorben/Grider/commit/2e228c3fafcee016b4f2ad1cd4073d6430643934) - 添加参数验证工具和示例路由 *(commit by [@jorben](https://github.com/jorben))*:
@@ -57,3 +62,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [`4155a96`](https://github.com/jorben/Grider/commit/4155a9699126e2804e94675ad0a732a4509efb4e) - **config**: update project name, description, and version to 1.0.0 *(commit by [@jorben](https://github.com/jorben))*
 
 [1.0.0]: https://github.com/jorben/Grider/compare/0.0.1...1.0.0
+[1.1.0]: https://github.com/jorben/grider/compare/1.0.0...1.1.0
