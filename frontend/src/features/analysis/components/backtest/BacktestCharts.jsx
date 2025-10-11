@@ -90,7 +90,7 @@ export default function BacktestCharts({ priceCurve = [], equityCurve = [], trad
     <div className="space-y-6">
       {/* 主图：价格走势 + 买卖点 */}
       <div className="bg-white rounded-lg shadow p-4">
-        <h3 className="text-lg font-semibold mb-4">价格走势与交易点位</h3>
+        <h3 className="text-lg font-semibold mb-4">行情与交易</h3>
         <ResponsiveContainer width="100%" height={400}>
           <ComposedChart data={priceData}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -102,6 +102,7 @@ export default function BacktestCharts({ priceCurve = [], equityCurve = [], trad
             <YAxis
               domain={['dataMin - 0.1', 'dataMax + 0.1']}
               tick={{ fontSize: 12 }}
+              tickFormatter={(value) => value.toFixed(3)}
             />
             <Tooltip
               content={({ active, payload }) => {
@@ -110,7 +111,7 @@ export default function BacktestCharts({ priceCurve = [], equityCurve = [], trad
                   return (
                     <div className="bg-white p-3 border border-gray-300 rounded shadow">
                       <p className="text-sm font-semibold">{data.fullTime}</p>
-                      <p className="text-sm">收盘价: {data.close.toFixed(3)}</p>
+                      <p className="text-sm">价格: {data.close.toFixed(3)}</p>
                       <p className="text-sm">最高: {data.high.toFixed(3)}</p>
                       <p className="text-sm">最低: {data.low.toFixed(3)}</p>
                       {data.buyPrice && (
@@ -158,7 +159,7 @@ export default function BacktestCharts({ priceCurve = [], equityCurve = [], trad
               stroke="#3b82f6"
               strokeWidth={2}
               dot={false}
-              name="收盘价"
+              name="价格"
             />
 
             {/* 买入点 */}
@@ -182,7 +183,7 @@ export default function BacktestCharts({ priceCurve = [], equityCurve = [], trad
 
       {/* 副图：收益曲线对比 */}
       <div className="bg-white rounded-lg shadow p-4">
-        <h3 className="text-lg font-semibold mb-4">收益曲线对比</h3>
+        <h3 className="text-lg font-semibold mb-4">收益对比</h3>
         <ResponsiveContainer width="100%" height={300}>
           <AreaChart data={equityData}>
             <CartesianGrid strokeDasharray="3 3" />
