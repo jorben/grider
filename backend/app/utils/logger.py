@@ -6,8 +6,10 @@ import os
 import sys
 import json
 import logging
+import time
+import shutil
 from logging.handlers import TimedRotatingFileHandler
-from datetime import datetime, timezone 
+from datetime import datetime, timezone
 from pathlib import Path
 
 
@@ -65,6 +67,93 @@ class TextFormatter(logging.Formatter):
             fmt='%(asctime)s - %(name)s - %(levelname)s - [%(module)s:%(funcName)s:%(lineno)d] - %(message)s',
             datefmt='%Y-%m-%d %H:%M:%S'
         )
+
+
+class SafeTimedRotatingFileHandler(TimedRotatingFileHandler):
+    """
+    安全的时间轮转文件处理器，解决Windows文件锁定问题
+    使用复制+截断策略替代移动策略
+    """
+    
+    def doRollover(self):
+        """
+        执行日志轮转
+        重写父类方法，使用复制+截断策略避免Windows文件锁定问题
+        """
+        if self.stream:
+            self.stream.close()
+            self.stream = None
+        
+        # 获取轮转时间
+        currentTime = int(time.time())
+        dstNow = time.localtime(currentTime)[-1]
+        t = self.rolloverAt - self.interval
+        if self.utc:
+            timeTuple = time.gmtime(t)
+        else:
+            timeTuple = time.localtime(t)
+            dstThen = timeTuple[-1]
+            if dstNow != dstThen:
+                if dstNow:
+                    addend = 3600
+                else:
+                    addend = -3600
+                timeTuple = time.localtime(t + addend)
+        
+        # 生成备份文件名 - 格式：app.日期.log
+        base_dir = os.path.dirname(self.baseFilename)
+        base_name = os.path.basename(self.baseFilename)
+        # 移除 .log 扩展名
+        if base_name.endswith('.log'):
+            base_name = base_name[:-4]
+        # 构建新文件名：基础名.日期.log
+        dfn = self.rotation_filename(
+            os.path.join(
+                base_dir,
+                f"{base_name}.{time.strftime(self.suffix, timeTuple)}.log"
+            )
+        )
+        
+        # 如果备份文件已存在，删除它
+        if os.path.exists(dfn):
+            os.remove(dfn)
+        
+        # 复制当前日志文件到备份文件
+        if os.path.exists(self.baseFilename):
+            try:
+                shutil.copy2(self.baseFilename, dfn)
+                # 截断原文件
+                with open(self.baseFilename, 'w', encoding=self.encoding) as f:
+                    pass
+            except Exception as e:
+                # 如果复制失败，记录错误但继续
+                print(f"日志轮转失败: {e}", file=sys.stderr)
+        
+        # 删除过期的备份文件
+        if self.backupCount > 0:
+            for s in self.getFilesToDelete():
+                os.remove(s)
+        
+        # 重新打开日志文件
+        if not self.delay:
+            self.stream = self._open()
+        
+        # 计算下次轮转时间
+        newRolloverAt = self.computeRollover(currentTime)
+        while newRolloverAt <= currentTime:
+            newRolloverAt = newRolloverAt + self.interval
+        
+        # 如果是夏令时，调整时间
+        if (self.when == 'MIDNIGHT' or self.when.startswith('W')) and not self.utc:
+            dstAtRollover = time.localtime(newRolloverAt)[-1]
+            if dstNow != dstAtRollover:
+                if not dstNow:
+                    addend = -3600
+                else:
+                    addend = 3600
+                newRolloverAt += addend
+        
+        self.rolloverAt = newRolloverAt
 
 
 def setup_logger(app):
@@ -130,22 +219,24 @@ def setup_logger(app):
         if log_dir:
             # 创建日志文件路径
             log_file = log_path / 'app.log'
-            
+
             try:
-                # 使用TimedRotatingFileHandler按天轮转日志
-                file_handler = TimedRotatingFileHandler(
+                # 使用SafeTimedRotatingFileHandler按天轮转日志
+                file_handler = SafeTimedRotatingFileHandler(
                     filename=str(log_file),
                     when='midnight',
                     interval=1,
                     backupCount=log_backup_count,
-                    encoding='utf-8'
+                    encoding='utf-8',
+                    delay=False  # 不延迟打开，确保文件立即创建
                 )
                 file_handler.setLevel(numeric_level)
                 file_handler.setFormatter(formatter)
-                
+
                 # 设置日志文件名后缀
-                file_handler.suffix = '%Y-%m-%d.log'
-                
+                file_handler.suffix = '%Y-%m-%d'
+
+                # 使用同一个handler，避免多个handler同时轮转同一个文件
                 app.logger.addHandler(file_handler)
                 root_logger.addHandler(file_handler)
             except (OSError, PermissionError) as e:
