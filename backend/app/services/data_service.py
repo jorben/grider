@@ -1,7 +1,10 @@
 """数据业务服务"""
 import pandas as pd
+from datetime import datetime
+from typing import List
 
 from app.external.providers.tsanghi_provider import TsanghiProvider
+from app.algorithms.backtest.models import KBar
 from app.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -92,6 +95,78 @@ class DataService:
             logger.info("缓存清除完成")
         except Exception as e:
             logger.error(f"清除缓存失败: {e}")
+            raise
+
+    def get_5min_kline(self, ticker: str, exchange_code: str,
+                        start_date: str, end_date: str) -> List[KBar]:
+        """
+        获取5分钟K线数据
+
+        Args:
+            ticker: 标的代码
+            exchange_code: 交易所代码
+            start_date: 开始日期 (YYYY-MM-DD)
+            end_date: 结束日期 (YYYY-MM-DD)
+
+        Returns:
+            K线数据列表
+        """
+        try:
+            # 判断标的类型（ETF或股票）
+            if ticker.startswith('5') or ticker.startswith('1'):
+                # ETF
+                response = self.provider.get_etf_5min(ticker, exchange_code, start_date, end_date)
+            else:
+                # 股票
+                response = self.provider.get_stock_5min(ticker, exchange_code, start_date, end_date)
+
+            if response.get('code') == 200 and 'data' in response:
+                data = response['data']
+            else:
+                logger.warning(f"获取5分钟K线数据失败: {response}")
+                return []
+
+            # 转换为KBar对象
+            kbars = []
+            for row in data:
+                kbars.append(KBar(
+                    time=datetime.strptime(row['date'], '%Y-%m-%d %H:%M:%S'),
+                    open=float(row['open']),
+                    high=float(row['high']),
+                    low=float(row['low']),
+                    close=float(row['close']),
+                    volume=int(row['volume'])
+                ))
+
+            # 按时间排序，确保从历史到现在的顺序
+            kbars.sort(key=lambda k: k.time)
+
+            return kbars
+        except Exception as e:
+            logger.error(f"获取5分钟K线数据失败: {e}")
+            raise
+
+    def get_trading_calendar(self, exchange_code: str, limit: int = 5) -> List[str]:
+        """
+        获取最近N个交易日
+
+        Args:
+            exchange_code: 交易所代码
+            limit: 获取天数
+
+        Returns:
+            交易日列表 ['2025-01-16', '2025-01-15', ...]
+        """
+        try:
+            response = self.provider.get_calendar(exchange_code, limit)
+            if response.get('code') == 200 and 'data' in response:
+                calendar_data = response['data']
+                return [row['date'] for row in calendar_data]
+            else:
+                logger.warning(f"获取交易日历失败: {response}")
+                return []
+        except Exception as e:
+            logger.error(f"获取交易日历失败: {e}")
             raise
 
     def get_cache_stats(self) -> dict:

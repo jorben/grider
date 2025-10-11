@@ -421,7 +421,8 @@ class ETFAnalysisService:
                     'count': grid_count,
                     'type': grid_type,
                     'step_size': round(step_size, 3),
-                    'step_ratio': round(step_ratio, 4)
+                    'step_ratio': round(step_ratio, 4),
+                    'single_trade_quantity': fund_allocation['single_trade_quantity']
                 },
                 'price_levels': [round(p, 3) for p in price_levels],
                 'fund_allocation': fund_allocation,

@@ -1,7 +1,8 @@
 from flask import Blueprint, request, jsonify
 from app.services.etf_analysis_service import ETFAnalysisService
+from app.services.backtest_service import BacktestService
 from app.utils.validation import (
-    validate_json, validate_query
+    validate_json, validate_query, validate_backtest_request
 )
 from app.constants import (
     GRID_ANALYZE_RULES, HTTP_OK, HTTP_INTERNAL_SERVER_ERROR, HTTP_BAD_REQUEST
@@ -65,4 +66,67 @@ def analyze_strategy(validated_data):
         return jsonify({
             'success': False,
             'message': '分析失败，请稍后重试或检查标的数据是否充足'
+        }), HTTP_INTERNAL_SERVER_ERROR
+
+
+@bp.route('/backtest', methods=['POST'])
+def run_backtest():
+    """
+    执行网格策略回测
+
+    请求格式:
+    {
+        "etfCode": "510300",
+        "gridStrategy": {...},
+        "backtestConfig": {...}
+    }
+    """
+    try:
+        # 1. 获取并验证请求参数
+        data = request.get_json()
+
+        if not data:
+            return jsonify({
+                'success': False,
+                'error': '请求参数不能为空'
+            }), HTTP_BAD_REQUEST
+
+        # 验证必需字段
+        validation_result = validate_backtest_request(data)
+        if not validation_result['valid']:
+            return jsonify({
+                'success': False,
+                'error': validation_result['error']
+            }), HTTP_BAD_REQUEST
+
+        etf_code = data.get('etfCode')
+        grid_strategy = data.get('gridStrategy')
+        backtest_config = data.get('backtestConfig')
+
+        # 2. 执行回测
+        backtest_service = BacktestService()
+        result = backtest_service.run_backtest(
+            etf_code=etf_code,
+            grid_strategy=grid_strategy,
+            backtest_config=backtest_config
+        )
+
+        # 3. 返回结果
+        return jsonify({
+            'success': True,
+            'data': result
+        }), HTTP_OK
+
+    except ValueError as e:
+        logger.warning(f"参数验证错误: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), HTTP_BAD_REQUEST
+
+    except Exception as e:
+        logger.error(f"回测执行异常: {str(e)}", exc_info=True)
+        return jsonify({
+            'success': False,
+            'error': '回测执行失败，请稍后重试'
         }), HTTP_INTERNAL_SERVER_ERROR

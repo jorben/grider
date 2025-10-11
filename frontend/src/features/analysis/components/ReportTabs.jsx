@@ -1,5 +1,5 @@
 import React from "react";
-import { Eye, ThermometerSun, Grid3X3 } from "lucide-react";
+import { Eye, ThermometerSun, Grid3X3, TrendingUp } from "lucide-react";
 
 /**
  * 报告标签页导航组件
@@ -17,6 +17,11 @@ export default function ReportTabs({ activeTab, onTabChange }) {
       id: "strategy",
       label: "网格策略",
       icon: <Grid3X3 className="w-4 h-4" />,
+    },
+    {
+      id: "backtest",
+      label: "回测分析",
+      icon: <TrendingUp className="w-4 h-4" />,
     },
   ];
 

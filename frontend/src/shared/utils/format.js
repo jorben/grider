@@ -56,16 +56,16 @@ export const formatCurrency = (amount, country = 'CHN', options = {}) => {
  * 格式化百分比
  * @param {number} value - 小数值（如 0.1234）
  * @param {number} [digits=2] - 小数位数，默认2位
- * @returns {string} 格式化后的百分比字符串
- * @throws {Error} 当value不是有效数字时
+ * @returns {string} 格式化后的百分比字符串，无效值返回'N/A'
  *
  * @example
  * formatPercent(0.1234) // '12.34%'
  * formatPercent(0.05, 1) // '5.0%'
+ * formatPercent(null) // 'N/A'
  */
 export const formatPercent = (value, digits = 2) => {
   if (typeof value !== "number" || isNaN(value)) {
-    throw new Error("Value must be a valid number");
+    return "N/A";
   }
 
   return (value * 100).toFixed(digits) + "%";

@@ -347,6 +347,7 @@ class GridOptimizer:
             
             result = {
                 'base_position_amount': round(base_position_amount, 2),
+                'base_position_shares': base_position_shares,
                 'grid_trading_amount': round(grid_trading_amount, 2),
                 'reserve_amount': round(reserve_amount, 2),
                 'grid_funds': grid_funds,
@@ -399,28 +400,32 @@ class GridOptimizer:
             # 使用低频的底仓比例（30%）
             base_position_ratio = 0.3
             base_position_amount = total_capital * base_position_ratio
-            
+
+            # 计算底仓股数（基于当前价格）
+            base_position_shares = int(base_position_amount / current_price / 100) * 100  # 100股整数倍
+            base_position_amount = base_position_shares * current_price  # 重新计算实际金额
+
             # 预留资金
             reserve_amount = total_capital * 0.05
             available_grid_amount = total_capital - base_position_amount - reserve_amount
-            
+
             # 使用原有的单笔数量计算方法
             single_trade_quantity = self._calculate_single_trade_quantity(
                 available_grid_amount, price_levels, current_price
             )
-            
+
             # 生成网格资金分配
             grid_funds = []
             buy_grid_fund = 0
-            
+
             for i, price in enumerate(price_levels):
                 is_buy_level = price < current_price
                 shares = single_trade_quantity if is_buy_level else 0
                 actual_fund = shares * price
-                
+
                 if is_buy_level:
                     buy_grid_fund += actual_fund
-                
+
                 grid_funds.append({
                     'level': i + 1,
                     'price': round(price, 3),
@@ -429,12 +434,13 @@ class GridOptimizer:
                     'actual_fund': round(actual_fund, 2),
                     'is_buy_level': is_buy_level
                 })
-            
+
             grid_fund_utilization_rate = buy_grid_fund / available_grid_amount if available_grid_amount > 0 else 0
             safety_ratio = buy_grid_fund / available_grid_amount if available_grid_amount > 0 else 0
-            
+
             result = {
                 'base_position_amount': round(base_position_amount, 2),
+                'base_position_shares': base_position_shares,
                 'grid_trading_amount': round(available_grid_amount, 2),
                 'reserve_amount': round(reserve_amount, 2),
                 'grid_funds': grid_funds,
@@ -466,10 +472,13 @@ class GridOptimizer:
         """
         reserve_amount = total_capital * 0.05
         base_position_amount = total_capital * 0.2  # 固定20%底仓
+        base_position_shares = int(base_position_amount / current_price / 100) * 100  # 100股整数倍
+        base_position_amount = base_position_shares * current_price  # 重新计算实际金额
         grid_trading_amount = total_capital - base_position_amount - reserve_amount
-        
+
         return {
             'base_position_amount': round(base_position_amount, 2),
+            'base_position_shares': base_position_shares,
             'grid_trading_amount': round(grid_trading_amount, 2),
             'reserve_amount': round(reserve_amount, 2),
             'grid_funds': [],

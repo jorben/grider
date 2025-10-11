@@ -324,3 +324,51 @@ def validate_headers(rules: List[Dict]):
 def validate_combined(rules: List[Dict]):
     """验证合并数据源的快捷装饰器（优先级：json > form > args）"""
     return validate_request(rules, data_source='combined')
+
+
+def validate_backtest_request(data: dict) -> dict:
+    """
+    验证回测请求参数
+
+    Args:
+        data: 请求数据
+
+    Returns:
+        {'valid': bool, 'error': str}
+    """
+    # 验证ETF代码
+    if 'etfCode' not in data:
+        return {'valid': False, 'error': '缺少etfCode参数'}
+
+    # 验证网格策略
+    if 'gridStrategy' not in data:
+        return {'valid': False, 'error': '缺少gridStrategy参数'}
+
+    grid_strategy = data['gridStrategy']
+
+    # 验证必需字段
+    required_fields = [
+        'current_price', 'price_range', 'grid_config', 'fund_allocation'
+    ]
+
+    for field in required_fields:
+        if field not in grid_strategy:
+            return {'valid': False, 'error': f'网格策略缺少{field}字段'}
+
+    # 验证回测配置（可选）
+    if 'backtestConfig' in data:
+        config = data['backtestConfig']
+
+        # 验证费率范围
+        if 'commissionRate' in config:
+            rate = config['commissionRate']
+            if not (0 <= rate <= 1):
+                return {'valid': False, 'error': '手续费率必须在0-1之间'}
+
+        # 验证最低收费
+        if 'minCommission' in config:
+            min_fee = config['minCommission']
+            if min_fee < 0:
+                return {'valid': False, 'error': '最低收费不能为负'}
+
+    return {'valid': True, 'error': None}

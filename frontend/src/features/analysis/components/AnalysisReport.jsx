@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { LoadingSpinner } from "@shared/components/ui";
 import { useShare } from "@shared/hooks";
 import ReportTabs from "./ReportTabs";
@@ -7,6 +7,9 @@ import ErrorState from "./ErrorState";
 import Disclaimer from "./Disclaimer";
 import SuitabilityCard from "./ReportCards/SuitabilityCard";
 import GridParametersCard from "./ReportCards/GridParametersCard";
+
+// 懒加载回测组件
+const BacktestTab = lazy(() => import("./BacktestTab"));
 
 /**
  * 分析报告容器组件
@@ -165,6 +168,16 @@ const AnalysisReport = ({
               dataQuality={data_quality}
               etfInfo={etf_info}
             />
+          )}
+
+          {/* 回测分析标签页 */}
+          {activeTab === "backtest" && (
+            <Suspense fallback={<div className="text-center py-12">加载中...</div>}>
+              <BacktestTab
+                etfCode={etf_info.code}
+                gridStrategy={grid_strategy}
+              />
+            </Suspense>
           )}
         </div>
       </div>

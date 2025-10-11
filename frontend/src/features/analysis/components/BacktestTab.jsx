@@ -1,0 +1,138 @@
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { runBacktest } from '@shared/services/api';
+import { LoadingSpinner } from '@shared/components/ui';
+import BacktestGuide from './backtest/BacktestGuide';
+import BacktestConfigEditor from './backtest/BacktestConfigEditor';
+import BacktestMetrics from './backtest/BacktestMetrics';
+import BacktestCharts from './backtest/BacktestCharts';
+import TradeList from './backtest/TradeList';
+import GridPerformance from './backtest/GridPerformance';
+import BacktestLoading from './backtest/BacktestLoading';
+import BacktestError from './backtest/BacktestError';
+
+/**
+ * 回测分析标签页
+ */
+export default function BacktestTab({ etfCode, gridStrategy }) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [backtestResult, setBacktestResult] = useState(null);
+  const [backtestConfig, setBacktestConfig] = useState({
+    commissionRate: 0.0002,
+    minCommission: 5.0,
+    riskFreeRate: 0.03,
+    tradingDaysPerYear: 244,
+  });
+
+  // 缓存回测结果的key
+  const cacheKey = useMemo(() => {
+    return `backtest_${etfCode}_${JSON.stringify(gridStrategy)}_${JSON.stringify(backtestConfig)}`;
+  }, [etfCode, gridStrategy, backtestConfig]);
+
+  const handleRunBacktest = useCallback(async () => {
+    console.log('handleRunBacktest called');
+    setLoading(true);
+    setError(null);
+
+    try {
+      console.log('Calling runBacktest API...');
+      const response = await runBacktest(etfCode, gridStrategy, backtestConfig);
+      console.log('API response received:', response);
+      const result = response.data; // 提取实际数据
+      console.log('Extracted result:', result);
+      // 缓存结果
+      sessionStorage.setItem(cacheKey, JSON.stringify(result));
+      setBacktestResult(result);
+      console.log('Backtest result set successfully');
+    } catch (err) {
+      console.error('Backtest error:', err);
+      setError(err.message || '回测执行失败，请稍后重试');
+    } finally {
+      setLoading(false);
+    }
+  }, [etfCode, gridStrategy, backtestConfig, cacheKey]);
+
+  useEffect(() => {
+    console.log('BacktestTab useEffect triggered:', { etfCode, gridStrategy: !!gridStrategy });
+    if (etfCode && gridStrategy) {
+      console.log('Starting backtest for:', etfCode);
+      // 尝试从缓存读取
+      const cached = sessionStorage.getItem(cacheKey);
+      if (cached) {
+        try {
+          const cachedData = JSON.parse(cached);
+          setBacktestResult(cachedData);
+          console.log('Loaded from cache');
+          return;
+        } catch (e) {
+          console.error('缓存解析失败', e);
+        }
+      }
+
+      // 执行回测
+      console.log('Executing backtest...');
+      handleRunBacktest();
+    } else {
+      console.log('Backtest not triggered: missing etfCode or gridStrategy');
+    }
+  }, [etfCode, gridStrategy, cacheKey, handleRunBacktest]);
+
+  return (
+    <div className="space-y-6">
+      {/* 功能引导 */}
+      <BacktestGuide />
+
+      {/* 参数编辑器 */}
+      <BacktestConfigEditor
+        config={backtestConfig}
+        onConfigChange={setBacktestConfig}
+        onRunBacktest={handleRunBacktest}
+      />
+
+      {loading && <BacktestLoading />}
+
+      {error && <BacktestError error={error} onRetry={handleRunBacktest} />}
+
+      {!loading && !error && !backtestResult && (
+        <div className="text-center py-12">
+          <p className="text-gray-500">暂无回测数据</p>
+          <button
+            onClick={handleRunBacktest}
+            className="mt-4 px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            开始回测
+          </button>
+        </div>
+      )}
+
+      {backtestResult && (
+        <>
+          {/* 指标概览 */}
+          <BacktestMetrics
+            metrics={backtestResult.performance_metrics}
+            tradingMetrics={backtestResult.trading_metrics}
+            benchmark={backtestResult.benchmark_comparison}
+            period={backtestResult.backtest_period}
+          />
+
+          {/* 图表展示 */}
+          <BacktestCharts
+            priceCurve={backtestResult.price_curve}
+            equityCurve={backtestResult.equity_curve}
+            tradeRecords={backtestResult.trade_records}
+            gridStrategy={gridStrategy}
+          />
+
+          {/* 交易记录 */}
+          <TradeList trades={backtestResult.trade_records} />
+
+          {/* 网格表现分析 */}
+          <GridPerformance
+            gridAnalysis={backtestResult.grid_analysis}
+            priceLevels={gridStrategy.price_levels}
+          />
+        </>
+      )}
+    </div>
+  );
+}

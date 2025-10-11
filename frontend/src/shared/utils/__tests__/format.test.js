@@ -59,11 +59,11 @@ describe("format utils", () => {
       expect(formatPercent(0.05, 0)).toBe("5%");
     });
 
-    test("should throw error for invalid input", () => {
-      expect(() => formatPercent("invalid")).toThrow(
-        "Value must be a valid number",
-      );
-      expect(() => formatPercent(NaN)).toThrow("Value must be a valid number");
+    test("should return N/A for invalid input", () => {
+      expect(formatPercent("invalid")).toBe("N/A");
+      expect(formatPercent(NaN)).toBe("N/A");
+      expect(formatPercent(null)).toBe("N/A");
+      expect(formatPercent(undefined)).toBe("N/A");
     });
 
     test("should handle edge cases", () => {
