@@ -113,7 +113,7 @@ export default function TradeList({ trades = [] }) {
                   {trade.quantity}股
                 </td>
                 <td className="text-sm text-right text-gray-600">
-                  {formatCurrency(trade.commission)}
+                  {formatCurrency(trade.commission, 'CHN', { maximumFractionDigits: 3 })}
                 </td>
                 <td className="text-sm text-right">
                   {trade.profit !== null ? (
