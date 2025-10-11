@@ -13,6 +13,7 @@ import {
   Scatter,
   ComposedChart,
 } from 'recharts';
+import { TrendingUp, BarChart3, DollarSign, Target, Calendar } from 'lucide-react';
 
 /**
  * 回测图表组件
@@ -89,11 +90,19 @@ export default function BacktestCharts({ priceCurve = [], equityCurve = [], trad
   return (
     <div className="space-y-6">
       {/* 主图：价格走势 + 买卖点 */}
-      <div className="bg-white rounded-lg shadow p-4">
-        <h3 className="text-lg font-semibold mb-4">行情与交易</h3>
+      <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 bg-gradient-to-r from-blue-100 to-purple-100 rounded-lg">
+            <TrendingUp className="w-5 h-5 text-gradient-to-r from-blue-600 to-purple-600" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-900">行情与交易</h3>
+            <p className="text-sm text-gray-600">价格走势与网格交易点位</p>
+          </div>
+        </div>
         <ResponsiveContainer width="100%" height={400}>
           <ComposedChart data={priceData}>
-            <CartesianGrid strokeDasharray="3 3" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
             <XAxis
               dataKey="time"
               tick={{ fontSize: 12 }}
@@ -109,21 +118,23 @@ export default function BacktestCharts({ priceCurve = [], equityCurve = [], trad
                 if (active && payload && payload.length) {
                   const data = payload[0].payload;
                   return (
-                    <div className="bg-white p-3 border border-gray-300 rounded shadow">
-                      <p className="text-sm font-semibold">{data.fullTime}</p>
-                      <p className="text-sm">价格: {data.close.toFixed(3)}</p>
-                      <p className="text-sm">最高: {data.high.toFixed(3)}</p>
-                      <p className="text-sm">最低: {data.low.toFixed(3)}</p>
-                      {data.buyPrice && (
-                        <p className="text-sm text-red-600">
-                          ↑ 买入: {data.buyPrice.toFixed(3)}
-                        </p>
-                      )}
-                      {data.sellPrice && (
-                        <p className="text-sm text-blue-600">
-                          ↓ 卖出: {data.sellPrice.toFixed(3)}
-                        </p>
-                      )}
+                    <div className="bg-white p-4 border border-gray-200 rounded-lg shadow-lg">
+                      <p className="text-sm font-semibold text-gray-900 mb-2">{data.fullTime}</p>
+                      <div className="space-y-1 text-sm">
+                        <p className="text-gray-700">价格: <span className="font-medium">{data.close.toFixed(3)}</span></p>
+                        <p className="text-gray-700">最高: <span className="font-medium">{data.high.toFixed(3)}</span></p>
+                        <p className="text-gray-700">最低: <span className="font-medium">{data.low.toFixed(3)}</span></p>
+                        {data.buyPrice && (
+                          <p className="text-red-600 font-medium">
+                            ↑ 买入: {data.buyPrice.toFixed(3)}
+                          </p>
+                        )}
+                        {data.sellPrice && (
+                          <p className="text-blue-600 font-medium">
+                            ↓ 卖出: {data.sellPrice.toFixed(3)}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   );
                 }
@@ -135,21 +146,21 @@ export default function BacktestCharts({ priceCurve = [], equityCurve = [], trad
             {/* 价格上下限参考线 */}
             <ReferenceLine
               y={price_range.upper}
-              stroke="red"
+              stroke="#ef4444"
               strokeDasharray="5 5"
-              label="上限"
+              label={{ value: '上限', position: 'insideTopRight', fill: '#ef4444' }}
             />
             <ReferenceLine
               y={price_range.lower}
-              stroke="green"
+              stroke="#22c55e"
               strokeDasharray="5 5"
-              label="下限"
+              label={{ value: '下限', position: 'insideBottomRight', fill: '#22c55e' }}
             />
             <ReferenceLine
               y={current_price}
-              stroke="gray"
+              stroke="#6b7280"
               strokeDasharray="3 3"
-              label="基准"
+              label={{ value: '基准', position: 'insideTopLeft', fill: '#6b7280' }}
             />
 
             {/* 收盘价折线 */}
@@ -165,7 +176,7 @@ export default function BacktestCharts({ priceCurve = [], equityCurve = [], trad
             {/* 买入点 */}
             <Scatter
               dataKey="buyPrice"
-              fill="red"
+              fill="#ef4444"
               shape="triangle"
               name="买入"
             />
@@ -173,7 +184,7 @@ export default function BacktestCharts({ priceCurve = [], equityCurve = [], trad
             {/* 卖出点 */}
             <Scatter
               dataKey="sellPrice"
-              fill="blue"
+              fill="#3b82f6"
               shape="triangleDown"
               name="卖出"
             />
@@ -182,11 +193,19 @@ export default function BacktestCharts({ priceCurve = [], equityCurve = [], trad
       </div>
 
       {/* 副图：收益曲线对比 */}
-      <div className="bg-white rounded-lg shadow p-4">
-        <h3 className="text-lg font-semibold mb-4">收益对比</h3>
+      <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 bg-gradient-to-r from-green-100 to-blue-100 rounded-lg">
+            <BarChart3 className="w-5 h-5 text-gradient-to-r from-green-600 to-blue-600" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-900">收益对比</h3>
+            <p className="text-sm text-gray-600">网格策略与持有不动策略收益对比</p>
+          </div>
+        </div>
         <ResponsiveContainer width="100%" height={300}>
           <AreaChart data={equityData}>
-            <CartesianGrid strokeDasharray="3 3" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
             <XAxis
               dataKey="time"
               tick={{ fontSize: 12 }}
@@ -198,17 +217,21 @@ export default function BacktestCharts({ priceCurve = [], equityCurve = [], trad
                 if (active && payload && payload.length) {
                   const data = payload[0].payload;
                   return (
-                    <div className="bg-white p-3 border border-gray-300 rounded shadow">
-                      <p className="text-sm font-semibold">{data.time}</p>
-                      <p className="text-sm text-blue-600">
-                        网格策略: {data.gridReturn.toFixed(2)}%
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        持有不动: {data.holdReturn.toFixed(2)}%
-                      </p>
-                      <p className="text-sm text-green-600">
-                        超额收益: {data.excess.toFixed(2)}%
-                      </p>
+                    <div className="bg-white p-4 border border-gray-200 rounded-lg shadow-lg">
+                      <p className="text-sm font-semibold text-gray-900 mb-2">{data.time}</p>
+                      <div className="space-y-1 text-sm">
+                        <p className="text-blue-600 font-medium">
+                          网格策略: {data.gridReturn.toFixed(2)}%
+                        </p>
+                        <p className="text-gray-600 font-medium">
+                          持有不动: {data.holdReturn.toFixed(2)}%
+                        </p>
+                        <p className={`font-medium ${
+                          data.excess >= 0 ? 'text-green-600' : 'text-red-600'
+                        }`}>
+                          超额收益: {data.excess.toFixed(2)}%
+                        </p>
+                      </div>
                     </div>
                   );
                 }
@@ -238,7 +261,7 @@ export default function BacktestCharts({ priceCurve = [], equityCurve = [], trad
             />
 
             {/* 零线 */}
-            <ReferenceLine y={0} stroke="#000" strokeDasharray="3 3" />
+            <ReferenceLine y={0} stroke="#6b7280" strokeDasharray="3 3" />
           </AreaChart>
         </ResponsiveContainer>
       </div>

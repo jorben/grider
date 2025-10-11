@@ -95,10 +95,10 @@ export default function BacktestTab({ etfCode, exchangeCode, gridStrategy, type 
 
       {!loading && !error && !backtestResult && (
         <div className="text-center py-12">
-          <p className="text-gray-500">暂无回测数据</p>
+          <p className="text-gray-500 mb-4">暂无回测数据</p>
           <button
             onClick={handleRunBacktest}
-            className="mt-4 px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            className="btn btn-primary"
           >
             开始回测
           </button>

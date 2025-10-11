@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 import { formatCurrency } from '@shared/utils/format';
+import { Grid3X3, Activity, Target, CheckCircle, XCircle } from 'lucide-react';
 
 /**
  * 网格表现分析组件
@@ -28,7 +29,7 @@ export default function GridPerformance({ gridAnalysis = null, priceLevels = [] 
 
   if (!gridAnalysis) {
     return (
-      <div className="bg-white rounded-lg shadow p-4">
+      <div className="bg-white border border-gray-200 rounded-lg p-6">
         <p className="text-gray-500 text-center py-8">暂无网格分析数据</p>
       </div>
     );
@@ -38,28 +39,45 @@ export default function GridPerformance({ gridAnalysis = null, priceLevels = [] 
   const triggerRate = (triggered_grids / total_grids * 100).toFixed(1);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* 网格概览 */}
-      <div className="bg-white rounded-lg shadow p-4">
-        <h3 className="text-lg font-semibold mb-4">网格表现分析</h3>
+      <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 bg-gradient-to-r from-purple-100 to-indigo-100 rounded-lg">
+            <Grid3X3 className="w-5 h-5 text-gradient-to-r from-purple-600 to-indigo-600" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-900">网格表现分析</h3>
+            <p className="text-sm text-gray-600">各网格点位的触发频率和盈利贡献</p>
+          </div>
+        </div>
 
         <div className="grid grid-cols-3 gap-4 mb-6">
-          <div className="text-center p-3 bg-blue-50 rounded">
+          <div className="text-center p-4 bg-blue-50 rounded-lg">
+            <div className="flex items-center justify-center w-10 h-10 mx-auto mb-2 bg-blue-100 rounded-full">
+              <Grid3X3 className="w-5 h-5 text-blue-600" />
+            </div>
             <p className="text-sm text-gray-600 mb-1">总网格数</p>
-            <p className="text-2xl font-bold text-blue-600">{total_grids}</p>
+            <p className="text-xl font-bold text-blue-600">{total_grids}</p>
           </div>
-          <div className="text-center p-3 bg-green-50 rounded">
+          <div className="text-center p-4 bg-green-50 rounded-lg">
+            <div className="flex items-center justify-center w-10 h-10 mx-auto mb-2 bg-green-100 rounded-full">
+              <Activity className="w-5 h-5 text-green-600" />
+            </div>
             <p className="text-sm text-gray-600 mb-1">已触发</p>
-            <p className="text-2xl font-bold text-green-600">{triggered_grids}</p>
+            <p className="text-xl font-bold text-green-600">{triggered_grids}</p>
           </div>
-          <div className="text-center p-3 bg-purple-50 rounded">
+          <div className="text-center p-4 bg-purple-50 rounded-lg">
+            <div className="flex items-center justify-center w-10 h-10 mx-auto mb-2 bg-purple-100 rounded-full">
+              <Target className="w-5 h-5 text-purple-600" />
+            </div>
             <p className="text-sm text-gray-600 mb-1">触发率</p>
-            <p className="text-2xl font-bold text-purple-600">{triggerRate}%</p>
+            <p className="text-xl font-bold text-purple-600">{triggerRate}%</p>
           </div>
         </div>
 
         {/* 触发频率图例 */}
-        <div className="flex justify-center space-x-4 mb-4 text-sm">
+        <div className="flex justify-center space-x-6 mb-4 text-sm">
           <div className="flex items-center">
             <div className="w-4 h-4 bg-gray-200 rounded mr-2"></div>
             <span className="text-gray-600">未触发</span>
@@ -81,7 +99,7 @@ export default function GridPerformance({ gridAnalysis = null, priceLevels = [] 
         {/* 网格触发频率图 */}
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={gridData}>
-            <CartesianGrid strokeDasharray="3 3" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
             <XAxis
               dataKey="price"
               tick={{ fontSize: 11 }}
@@ -97,12 +115,14 @@ export default function GridPerformance({ gridAnalysis = null, priceLevels = [] 
                 if (active && payload && payload.length) {
                   const data = payload[0].payload;
                   return (
-                    <div className="bg-white p-3 border border-gray-300 rounded shadow">
-                      <p className="text-sm font-semibold">价格: {data.price}</p>
-                      <p className="text-sm">触发次数: {data.triggerCount}</p>
-                      <p className="text-sm text-green-600">
-                        盈利贡献: {formatCurrency(data.profitContribution)}
-                      </p>
+                    <div className="bg-white p-4 border border-gray-200 rounded-lg shadow-lg">
+                      <p className="text-sm font-semibold text-gray-900 mb-2">网格价格: {data.price}</p>
+                      <div className="space-y-1 text-sm">
+                        <p className="text-gray-700">触发次数: <span className="font-medium">{data.triggerCount}</span></p>
+                        <p className="text-green-600 font-medium">
+                          盈利贡献: {formatCurrency(data.profitContribution)}
+                        </p>
+                      </div>
                     </div>
                   );
                 }
@@ -119,44 +139,46 @@ export default function GridPerformance({ gridAnalysis = null, priceLevels = [] 
       </div>
 
       {/* 网格详细表格 */}
-      <div className="bg-white rounded-lg shadow p-4">
-        <h4 className="text-md font-semibold mb-3">网格明细</h4>
+      <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 bg-gray-100 rounded-lg">
+            <Grid3X3 className="w-5 h-5 text-gray-600" />
+          </div>
+          <h4 className="font-semibold text-gray-900">网格明细</h4>
+        </div>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="responsive-table">
+            <thead>
               <tr>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                  网格价格
-                </th>
-                <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">
-                  触发次数
-                </th>
-                <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">
-                  盈利贡献
-                </th>
-                <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">
-                  状态
-                </th>
+                <th>网格价格</th>
+                <th className="text-center">触发次数</th>
+                <th className="text-right">盈利贡献</th>
+                <th className="text-center">状态</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody>
               {gridData.slice(0, 10).map((grid, index) => (
                 <tr key={index} className={grid.triggered ? 'bg-blue-50' : ''}>
-                  <td className="px-4 py-2 text-sm text-gray-900">{grid.price}</td>
-                  <td className="px-4 py-2 text-sm text-center text-gray-900">
+                  <td className="text-sm text-gray-900 font-medium">{grid.price}</td>
+                  <td className="text-sm text-center text-gray-900">
                     {grid.triggerCount}次
                   </td>
-                  <td className="px-4 py-2 text-sm text-right">
-                    <span className={grid.profitContribution > 0 ? 'text-green-600' : 'text-gray-600'}>
+                  <td className="text-sm text-right">
+                    <span className={`font-medium ${
+                      grid.profitContribution > 0 ? 'text-green-600' : 'text-gray-600'
+                    }`}>
                       {formatCurrency(grid.profitContribution)}
                     </span>
                   </td>
-                  <td className="px-4 py-2 text-sm text-center">
-                    <span className={`px-2 py-1 rounded text-xs ${
-                      grid.triggered
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-gray-100 text-gray-600'
+                  <td className="text-sm text-center">
+                    <span className={`status-indicator ${
+                      grid.triggered ? 'status-success' : 'status-warning'
                     }`}>
+                      {grid.triggered ? (
+                        <CheckCircle className="w-3 h-3 mr-1" />
+                      ) : (
+                        <XCircle className="w-3 h-3 mr-1" />
+                      )}
                       {grid.triggered ? '已触发' : '未触发'}
                     </span>
                   </td>
