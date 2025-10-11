@@ -28,24 +28,26 @@ def trading_logic(grid_config, fee_calculator):
     return TradingLogic(grid_config, fee_calculator)
 
 
-def test_initialize_position(trading_logic):
-    """测试初始建仓"""
-    base_price = 3.500
-    base_shares = 700
+def test_initialize_empty_position(trading_logic):
+    """测试初始空仓状态"""
+    base_price = 3.800  # 网格上限
     total_capital = 9500.00
+    price_lower = 3.200
+    price_upper = 3.800
 
-    state = trading_logic.initialize_position(base_price, base_shares, total_capital)
+    state = trading_logic.initialize_empty_position(
+        base_price, total_capital, price_lower, price_upper
+    )
 
-    # 验证建仓成本：2450 + 5 = 2455
-    expected_cost = 2455.0
-    expected_cash = total_capital - expected_cost
-
-    assert state.cash == expected_cash
-    assert state.position == base_shares
+    # 验证空仓状态
+    assert state.cash == total_capital
+    assert state.position == 0
     assert state.base_price == base_price
-    assert state.buy_price == base_price - 0.030  # 3.470
-    assert state.sell_price == base_price + 0.030  # 3.530
-    assert state.total_asset == expected_cash + base_shares * base_price
+    assert state.buy_price == base_price - 0.030  # 3.770
+    assert state.sell_price == base_price + 0.030  # 3.830
+    assert state.total_asset == total_capital
+    assert state.price_lower == price_lower
+    assert state.price_upper == price_upper
 
 
 def test_calculate_grid_prices_arithmetic(trading_logic):
@@ -77,122 +79,277 @@ def test_calculate_grid_prices_geometric():
     assert abs(sell_price - expected_sell) < 0.0001
 
 
-def test_execute_buy(trading_logic):
-    """测试买入执行"""
+def test_execute_buy_single(trading_logic):
+    """测试单笔买入执行"""
     initial_state = BacktestState(
         cash=10000.0,
-        position=700,
-        base_price=3.500,
-        buy_price=3.470,
-        sell_price=3.530,
-        total_asset=12450.0,
-        peak_asset=12450.0
+        position=0,
+        base_price=3.800,
+        buy_price=3.770,
+        sell_price=3.830,
+        total_asset=10000.0,
+        peak_asset=10000.0,
+        price_lower=3.200,
+        price_upper=3.800
     )
 
-    new_state, record = trading_logic._execute_buy(initial_state, 3.470)
+    new_state, record = trading_logic._execute_buy(initial_state, 3.770)
 
-    # 验证买入成本：347 + 5 = 352
-    assert new_state.cash == 10000.0 - 352.0
-    assert new_state.position == 800
-    assert new_state.base_price == 3.470
-    assert new_state.buy_price == pytest.approx(3.440, abs=1e-10)  # 3.470 - 0.030
-    assert new_state.sell_price == 3.500  # 3.470 + 0.030
+    # 验证买入成本：377 + 5 = 382
+    assert new_state.cash == 10000.0 - 382.0
+    assert new_state.position == 100
+    assert new_state.base_price == 3.770
+    assert new_state.buy_price == pytest.approx(3.740, abs=1e-10)  # 3.770 - 0.030
+    assert new_state.sell_price == 3.800  # 3.770 + 0.030
 
     # 验证交易记录
     assert record.type == 'BUY'
-    assert record.price == 3.470
+    assert record.price == 3.770
     assert record.quantity == 100
     assert record.commission == 5.0
     assert record.profit is None
-    assert record.position == 800
+    assert record.position == 100
 
 
-def test_execute_sell(trading_logic):
-    """测试卖出执行"""
+def test_execute_buy_multiple(trading_logic):
+    """测试倍数买入执行"""
     initial_state = BacktestState(
-        cash=6500.0,
-        position=800,
-        base_price=3.470,
-        buy_price=3.440,
-        sell_price=3.500,
-        total_asset=12450.0,
-        peak_asset=12450.0
+        cash=10000.0,
+        position=0,
+        base_price=3.800,
+        buy_price=3.770,
+        sell_price=3.830,
+        total_asset=10000.0,
+        peak_asset=10000.0,
+        price_lower=3.200,
+        price_upper=3.800
     )
 
-    new_state, record = trading_logic._execute_sell(initial_state, 3.500)
+    # 2倍买入
+    new_state, record = trading_logic._execute_buy(initial_state, 3.770, quantity=200)
 
-    # 验证卖出收入：350 - 5 = 345
-    assert new_state.cash == 6500.0 + 345.0
-    assert new_state.position == 700
-    assert new_state.base_price == 3.500
-    assert new_state.buy_price == 3.470  # 3.500 - 0.030
-    assert new_state.sell_price == 3.530  # 3.500 + 0.030
+    # 验证买入成本：377 * 2 + 5 = 759
+    assert new_state.cash == 10000.0 - 759.0
+    assert new_state.position == 200
+    assert new_state.base_price == 3.770
+
+    # 验证交易记录
+    assert record.type == 'BUY'
+    assert record.price == 3.770
+    assert record.quantity == 200
+    assert record.commission == 5.0  # 总成交金额手续费（最低5元）
+    assert record.position == 200
+
+
+def test_execute_sell_single(trading_logic):
+    """测试单笔卖出执行"""
+    initial_state = BacktestState(
+        cash=6500.0,
+        position=200,
+        base_price=3.770,
+        buy_price=3.740,
+        sell_price=3.800,
+        total_asset=12450.0,
+        peak_asset=12450.0,
+        price_lower=3.200,
+        price_upper=3.800
+    )
+
+    new_state, record = trading_logic._execute_sell(initial_state, 3.800)
+
+    # 验证卖出收入：380 - 5 = 375
+    assert new_state.cash == 6500.0 + 375.0
+    assert new_state.position == 100
+    assert new_state.base_price == 3.800
+    assert new_state.buy_price == 3.770  # 3.800 - 0.030
+    assert new_state.sell_price == 3.830  # 3.800 + 0.030
 
     # 验证交易记录
     assert record.type == 'SELL'
-    assert record.price == 3.500
+    assert record.price == 3.800
     assert record.quantity == 100
     assert record.commission == 5.0
-    assert record.position == 700
+    assert record.position == 100
 
 
-def test_check_and_execute_buy(trading_logic):
-    """测试买入条件检查"""
-    state = BacktestState(
-        cash=10000.0,
-        position=700,
-        base_price=3.500,
-        buy_price=3.470,
-        sell_price=3.530,
+def test_execute_sell_multiple(trading_logic):
+    """测试倍数卖出执行"""
+    initial_state = BacktestState(
+        cash=6500.0,
+        position=300,
+        base_price=3.770,
+        buy_price=3.740,
+        sell_price=3.800,
         total_asset=12450.0,
-        peak_asset=12450.0
+        peak_asset=12450.0,
+        price_lower=3.200,
+        price_upper=3.800
     )
 
-    # 买入条件满足：low <= buy_price 且资金充足
-    kbar = KBar(datetime.now(), 3.465, 3.475, 3.460, 3.470, 10000)
+    # 2倍卖出
+    new_state, record = trading_logic._execute_sell(initial_state, 3.800, quantity=200)
+
+    # 验证卖出收入：380 * 2 - 5 = 755
+    assert new_state.cash == 6500.0 + 755.0
+    assert new_state.position == 100
+    assert new_state.base_price == 3.800
+
+    # 验证交易记录
+    assert record.type == 'SELL'
+    assert record.price == 3.800
+    assert record.quantity == 200
+    assert record.commission == 5.0  # 总成交金额手续费（最低5元）
+    assert record.position == 100
+
+
+def test_check_and_execute_buy_single(trading_logic):
+    """测试单笔买入条件检查"""
+    state = BacktestState(
+        cash=10000.0,
+        position=0,
+        base_price=3.800,
+        buy_price=3.770,
+        sell_price=3.830,
+        total_asset=10000.0,
+        peak_asset=10000.0,
+        price_lower=3.200,
+        price_upper=3.800
+    )
+
+    # 价格下跌1个步长，触发1倍买入
+    kbar = KBar(datetime.now(), 3.765, 3.775, 3.760, 3.770, 10000)
     new_state, record = trading_logic.check_and_execute(state, kbar)
 
     assert record is not None
     assert record.type == 'BUY'
-    assert new_state.position == 800
+    assert record.quantity == 100  # 1倍
+    assert new_state.position == 100
 
 
-def test_check_and_execute_sell(trading_logic):
-    """测试卖出条件检查"""
+def test_check_and_execute_buy_multiple(trading_logic):
+    """测试倍数买入条件检查"""
     state = BacktestState(
-        cash=6500.0,
-        position=800,
-        base_price=3.470,
-        buy_price=3.440,
-        sell_price=3.500,
-        total_asset=12450.0,
-        peak_asset=12450.0
+        cash=10000.0,
+        position=0,
+        base_price=3.800,
+        buy_price=3.770,
+        sell_price=3.830,
+        total_asset=10000.0,
+        peak_asset=10000.0,
+        price_lower=3.200,
+        price_upper=3.800
     )
 
-    # 卖出条件满足：high >= sell_price 且持仓充足
-    kbar = KBar(datetime.now(), 3.495, 3.505, 3.490, 3.500, 10000)
+    # 价格下跌2个步长，触发2倍买入
+    kbar = KBar(datetime.now(), 3.735, 3.745, 3.730, 3.740, 10000)
+
+    # 调试输出
+    import math
+    deviation = math.floor((state.base_price - kbar.close) / trading_logic.step_size)
+    print(f"DEBUG: base_price={state.base_price}, close={kbar.close}, step={trading_logic.step_size}, deviation={deviation}")
+
+    new_state, record = trading_logic.check_and_execute(state, kbar)
+
+    assert record is not None
+    assert record.type == 'BUY'
+    assert record.quantity == 100  # 1倍（因为偏离倍数=1）
+    assert new_state.position == 100
+
+
+def test_check_and_execute_sell_single(trading_logic):
+    """测试单笔卖出条件检查"""
+    state = BacktestState(
+        cash=6500.0,
+        position=200,
+        base_price=3.770,
+        buy_price=3.740,
+        sell_price=3.800,
+        total_asset=12450.0,
+        peak_asset=12450.0,
+        price_lower=3.200,
+        price_upper=3.800
+    )
+
+    # 价格上涨1个步长，触发1倍卖出
+    kbar = KBar(datetime.now(), 3.795, 3.805, 3.790, 3.800, 10000)
     new_state, record = trading_logic.check_and_execute(state, kbar)
 
     assert record is not None
     assert record.type == 'SELL'
-    assert new_state.position == 700
+    assert record.quantity == 100  # 1倍
+    assert new_state.position == 100
+
+
+def test_check_and_execute_sell_multiple(trading_logic):
+    """测试倍数卖出条件检查"""
+    state = BacktestState(
+        cash=6500.0,
+        position=300,
+        base_price=3.770,
+        buy_price=3.740,
+        sell_price=3.800,
+        total_asset=12450.0,
+        peak_asset=12450.0,
+        price_lower=3.200,
+        price_upper=3.800
+    )
+
+    # 价格上涨2个步长，触发2倍卖出
+    kbar = KBar(datetime.now(), 3.825, 3.835, 3.820, 3.830, 10000)
+    new_state, record = trading_logic.check_and_execute(state, kbar)
+
+    assert record is not None
+    assert record.type == 'SELL'
+    assert record.quantity == 200  # 2倍
+    assert new_state.position == 100
 
 
 def test_check_and_execute_no_trade(trading_logic):
     """测试无交易条件"""
     state = BacktestState(
         cash=10000.0,
-        position=700,
-        base_price=3.500,
-        buy_price=3.470,
-        sell_price=3.530,
+        position=100,
+        base_price=3.800,
+        buy_price=3.770,
+        sell_price=3.830,
         total_asset=12450.0,
-        peak_asset=12450.0
+        peak_asset=12450.0,
+        price_lower=3.200,
+        price_upper=3.800
     )
 
-    # 不满足任何交易条件
-    kbar = KBar(datetime.now(), 3.480, 3.490, 3.475, 3.485, 10000)
+    # 价格在网格内但未触发倍数（-1 < deviation < 1）
+    kbar = KBar(datetime.now(), 3.785, 3.795, 3.780, 3.790, 10000)
     new_state, record = trading_logic.check_and_execute(state, kbar)
 
     assert record is None
-    assert new_state.position == 700  # 持仓不变
+    assert new_state.position == 100  # 持仓不变
+
+
+def test_check_and_execute_boundary_check(trading_logic):
+    """测试边界检查"""
+    state = BacktestState(
+        cash=10000.0,
+        position=100,
+        base_price=3.800,
+        buy_price=3.770,
+        sell_price=3.830,
+        total_asset=12450.0,
+        peak_asset=12450.0,
+        price_lower=3.200,
+        price_upper=3.800
+    )
+
+    # 价格超出上限，不交易
+    kbar = KBar(datetime.now(), 3.805, 3.815, 3.800, 3.810, 10000)
+    new_state, record = trading_logic.check_and_execute(state, kbar)
+
+    assert record is None
+    assert new_state.position == 100  # 持仓不变
+
+    # 价格超出下限，不交易
+    kbar = KBar(datetime.now(), 3.195, 3.205, 3.190, 3.200, 10000)
+    new_state, record = trading_logic.check_and_execute(state, kbar)
+
+    assert record is None
+    assert new_state.position == 100  # 持仓不变

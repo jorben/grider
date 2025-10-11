@@ -43,6 +43,8 @@ class BacktestState:
     sell_price: float             # 当前卖出点
     total_asset: float            # 总资产
     peak_asset: float             # 峰值资产
+    price_lower: float            # 价格下限
+    price_upper: float            # 价格上限
 
 
 @dataclass

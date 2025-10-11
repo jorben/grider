@@ -48,26 +48,16 @@ class BacktestEngine:
         if not kline_data:
             raise ValueError("K线数据为空")
 
-        # 1. 初始化建仓
+        # 1. 初始化空仓状态
         fund_alloc = self.grid_strategy['fund_allocation']
         total_capital = fund_alloc['base_position_amount'] + fund_alloc['grid_trading_amount']
 
-        self.state = self.trading_logic.initialize_position(
-            base_price=self.grid_strategy['current_price'],
-            base_shares=fund_alloc['base_position_shares'],
-            total_capital=total_capital
+        self.state = self.trading_logic.initialize_empty_position(
+            base_price=self.grid_strategy['price_range']['upper'],
+            total_capital=total_capital,
+            price_lower=self.grid_strategy['price_range']['lower'],
+            price_upper=self.grid_strategy['price_range']['upper']
         )
-
-        # 2. 处理价格偏离（如果存在）
-        first_price = kline_data[0].close
-        if abs(first_price - self.grid_strategy['current_price']) > 0.0:
-            self.state, deviation_trades = self.trading_logic.handle_price_deviation(
-                self.state, first_price
-            )
-            # 设置交易时间
-            for trade in deviation_trades:
-                trade.time = kline_data[0].time
-            self.trade_records.extend(deviation_trades)
 
         # 3. 逐K线扫描交易
         for kbar in kline_data:

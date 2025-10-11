@@ -22,25 +22,23 @@ class TradingLogic:
         self.step_ratio = grid_config.get('step_ratio', 0)
         self.single_quantity = grid_config['single_trade_quantity']
 
-    def initialize_position(self, base_price: float, base_shares: int,
-                           total_capital: float) -> BacktestState:
+    def initialize_empty_position(self, base_price: float, total_capital: float,
+                                 price_lower: float, price_upper: float) -> BacktestState:
         """
-        初始化底仓建仓
+        初始化空仓状态
 
         Args:
-            base_price: 基准价格
-            base_shares: 底仓股数
+            base_price: 基准价格（网格上限）
             total_capital: 总资金
+            price_lower: 价格下限
+            price_upper: 价格上限
 
         Returns:
-            初始状态
+            初始状态（空仓）
         """
-        # 计算建仓成本
-        base_cost = self.fee_calc.calculate_buy_cost(base_price, base_shares)
-
-        # 初始化状态
-        cash = total_capital - base_cost
-        position = base_shares
+        # 初始化状态：空仓，全部资金作为现金
+        cash = total_capital
+        position = 0
 
         # 计算初始买卖点
         buy_price, sell_price = self._calculate_grid_prices(base_price)
@@ -54,7 +52,9 @@ class TradingLogic:
             buy_price=buy_price,
             sell_price=sell_price,
             total_asset=total_asset,
-            peak_asset=total_asset
+            peak_asset=total_asset,
+            price_lower=price_lower,
+            price_upper=price_upper
         )
 
     def handle_price_deviation(self, state: BacktestState,
@@ -93,9 +93,9 @@ class TradingLogic:
         return state, records
 
     def check_and_execute(self, state: BacktestState,
-                         kbar: KBar) -> Tuple[BacktestState, Optional[TradeRecord]]:
+                          kbar: KBar) -> Tuple[BacktestState, Optional[TradeRecord]]:
         """
-        检查并执行交易
+        检查并执行交易（倍数委托逻辑）
 
         Args:
             state: 当前状态
@@ -104,29 +104,81 @@ class TradingLogic:
         Returns:
             (更新后的状态, 交易记录或None)
         """
-        # 检查买入条件
-        if kbar.low <= state.buy_price:
-            required_cash = self.fee_calc.calculate_buy_cost(
-                state.buy_price, self.single_quantity)
+        # 1. 边界检查：价格超出网格范围时停止交易
+        if kbar.close < state.price_lower or kbar.close > state.price_upper:
+            return state, None
+
+        # 2. 计算下一个网格买卖点
+        next_buy_price, next_sell_price = self._calculate_grid_prices(state.base_price)
+
+        # 3. 优先判断买入：K线最低价 <= 下一买点
+        if kbar.low <= next_buy_price:
+            # 计算买入倍数
+            if self.grid_type == '等差':
+                deviation = math.floor(abs(next_buy_price - kbar.low) / self.step_size)
+            else:  # 等比
+                if kbar.low > 0 and next_buy_price > 0:
+                    deviation = math.floor(
+                        abs(math.log(next_buy_price / kbar.low)) / math.log(1 + self.step_ratio)
+                    )
+                else:
+                    deviation = 0
+
+            # 交易价格
+            if self.grid_type == '等差':
+                trade_price = next_buy_price - deviation * self.step_size
+            else:
+                trade_price = next_buy_price / ((1 + self.step_ratio) ** deviation)
+
+            # 交易数量 = 单笔数量 × (1 + 倍数)
+            quantity = self.single_quantity * (1 + deviation)
+
+            # 检查资金是否充足
+            required_cash = self.fee_calc.calculate_buy_cost(trade_price, quantity)
             if state.cash >= required_cash:
-                return self._execute_buy(state, state.buy_price)
+                return self._execute_buy(state, trade_price, quantity)
 
-        # 检查卖出条件
-        if kbar.high >= state.sell_price:
-            if state.position >= self.single_quantity:
-                return self._execute_sell(state, state.sell_price)
+        # 4. 买入不满足，判断卖出：K线最高价 >= 下一卖点
+        elif kbar.high >= next_sell_price:
+            # 计算卖出倍数
+            if self.grid_type == '等差':
+                deviation = math.floor(abs(kbar.high - next_sell_price) / self.step_size)
+            else:  # 等比
+                if kbar.high > 0 and next_sell_price > 0:
+                    deviation = math.floor(
+                        abs(math.log(kbar.high / next_sell_price)) / math.log(1 + self.step_ratio)
+                    )
+                else:
+                    deviation = 0
 
+            # 交易价格
+            if self.grid_type == '等差':
+                trade_price = next_sell_price + deviation * self.step_size
+            else:
+                trade_price = next_sell_price * ((1 + self.step_ratio) ** deviation)
+
+            # 交易数量 = 单笔数量 × (1 + 倍数)
+            quantity = self.single_quantity * (1 + deviation)
+
+            # 检查持仓是否充足
+            if state.position >= quantity:
+                return self._execute_sell(state, trade_price, quantity)
+
+        # 未触发网格点，不交易
         return state, None
 
     def _execute_buy(self, state: BacktestState,
-                    price: float) -> Tuple[BacktestState, TradeRecord]:
-        """执行买入"""
-        cost = self.fee_calc.calculate_buy_cost(price, self.single_quantity)
-        commission = cost - price * self.single_quantity
+                    price: float, quantity: int = None) -> Tuple[BacktestState, TradeRecord]:
+        """执行买入（支持倍数委托）"""
+        if quantity is None:
+            quantity = self.single_quantity
+
+        cost = self.fee_calc.calculate_buy_cost(price, quantity)
+        commission = cost - price * quantity
 
         # 更新状态
         state.cash -= cost
-        state.position += self.single_quantity
+        state.position += quantity
         state.base_price = price
         state.buy_price, state.sell_price = self._calculate_grid_prices(price)
         state.total_asset = state.cash + state.position * price
@@ -137,7 +189,7 @@ class TradingLogic:
             time=datetime.now(),  # 实际使用K线时间
             type='BUY',
             price=price,
-            quantity=self.single_quantity,
+            quantity=quantity,
             commission=commission,
             profit=None,
             position=state.position,
@@ -147,19 +199,22 @@ class TradingLogic:
         return state, record
 
     def _execute_sell(self, state: BacktestState,
-                     price: float) -> Tuple[BacktestState, TradeRecord]:
-        """执行卖出"""
-        income = self.fee_calc.calculate_sell_income(price, self.single_quantity)
-        commission = price * self.single_quantity - income
+                      price: float, quantity: int = None) -> Tuple[BacktestState, TradeRecord]:
+        """执行卖出（支持倍数委托）"""
+        if quantity is None:
+            quantity = self.single_quantity
+
+        income = self.fee_calc.calculate_sell_income(price, quantity)
+        commission = price * quantity - income
 
         # 计算盈亏（需要找到对应的买入成本）
         # 简化处理：用平均成本估算
         avg_cost = (state.total_asset - state.cash) / state.position if state.position > 0 else price
-        profit = (price - avg_cost) * self.single_quantity - commission
+        profit = (price - avg_cost) * quantity - commission
 
         # 更新状态
         state.cash += income
-        state.position -= self.single_quantity
+        state.position -= quantity
         state.base_price = price
         state.buy_price, state.sell_price = self._calculate_grid_prices(price)
         state.total_asset = state.cash + state.position * price
@@ -170,7 +225,7 @@ class TradingLogic:
             time=datetime.now(),
             type='SELL',
             price=price,
-            quantity=self.single_quantity,
+            quantity=quantity,
             commission=commission,
             profit=profit,
             position=state.position,
@@ -182,10 +237,10 @@ class TradingLogic:
     def _calculate_grid_prices(self, base_price: float) -> Tuple[float, float]:
         """计算网格买卖点"""
         if self.grid_type == '等差':
-            buy_price = base_price - self.step_size
-            sell_price = base_price + self.step_size
+            buy_price = round(base_price - self.step_size, 4)
+            sell_price = round(base_price + self.step_size, 4)
         else:  # 等比
-            buy_price = base_price * (1 - self.step_ratio)
-            sell_price = base_price * (1 + self.step_ratio)
+            buy_price = round(base_price * (1 - self.step_ratio), 4)
+            sell_price = round(base_price * (1 + self.step_ratio), 4)
 
         return buy_price, sell_price
