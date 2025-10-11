@@ -156,12 +156,6 @@ export default function BacktestCharts({ priceCurve = [], equityCurve = [], trad
               strokeDasharray="5 5"
               label={{ value: '下限', position: 'insideBottomRight', fill: '#22c55e' }}
             />
-            <ReferenceLine
-              y={current_price}
-              stroke="#6b7280"
-              strokeDasharray="3 3"
-              label={{ value: '基准', position: 'insideTopLeft', fill: '#6b7280' }}
-            />
 
             {/* 收盘价折线 */}
             <Line

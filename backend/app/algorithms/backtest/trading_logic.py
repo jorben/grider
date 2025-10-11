@@ -124,11 +124,8 @@ class TradingLogic:
                 else:
                     deviation = 0
 
-            # 交易价格
-            if self.grid_type == '等差':
-                trade_price = next_buy_price - deviation * self.step_size
-            else:
-                trade_price = next_buy_price / ((1 + self.step_ratio) ** deviation)
+            # 交易价格：使用K线均价 (最高+最低+开盘+收盘)/4
+            trade_price = (kbar.high + kbar.low + kbar.open + kbar.close) / 4
 
             # 交易数量 = 单笔数量 × (1 + 倍数)
             quantity = self.single_quantity * (1 + deviation)
@@ -151,11 +148,8 @@ class TradingLogic:
                 else:
                     deviation = 0
 
-            # 交易价格
-            if self.grid_type == '等差':
-                trade_price = next_sell_price + deviation * self.step_size
-            else:
-                trade_price = next_sell_price * ((1 + self.step_ratio) ** deviation)
+            # 交易价格：使用K线均价 (最高+最低+开盘+收盘)/4
+            trade_price = (kbar.high + kbar.low + kbar.open + kbar.close) / 4
 
             # 交易数量 = 单笔数量 × (1 + 倍数)
             quantity = self.single_quantity * (1 + deviation)

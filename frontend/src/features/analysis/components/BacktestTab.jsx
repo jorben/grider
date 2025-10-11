@@ -19,7 +19,7 @@ export default function BacktestTab({ etfCode, exchangeCode, gridStrategy, type 
   const [backtestResult, setBacktestResult] = useState(null);
   const [backtestConfig, setBacktestConfig] = useState({
     commissionRate: 0.0002,
-    minCommission: 5.0,
+    minCommission: 0.01,
     riskFreeRate: 0.03,
     tradingDaysPerYear: 244,
   });
@@ -79,8 +79,7 @@ export default function BacktestTab({ etfCode, exchangeCode, gridStrategy, type 
 
   return (
     <div className="space-y-6">
-      {/* 功能引导 */}
-      <BacktestGuide />
+      
 
       {/* 参数编辑器 */}
       <BacktestConfigEditor
@@ -133,6 +132,9 @@ export default function BacktestTab({ etfCode, exchangeCode, gridStrategy, type 
           />
         </>
       )}
+
+      {/* 功能引导 */}
+      <BacktestGuide />
     </div>
   );
 }

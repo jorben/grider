@@ -33,14 +33,14 @@ export default function BacktestGuide() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div className="flex items-start gap-2">
               <BarChart3 className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-              <span className="text-blue-800">基于最近5个交易日的5分钟K线数据进行模拟回测</span>
+              <span className="text-blue-800">基于最近10个交易日的5分钟K线数据进行模拟回测</span>
             </div>
             <div className="flex items-start gap-2">
-              <Settings className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-              <span className="text-blue-800">严格按照网格策略参数执行交易逻辑</span>
+              <AlertTriangle className="w-4 h-4 text-orange-600 mt-0.5 flex-shrink-0" />
+              <span className="text-blue-800">由于非基于逐笔K线，成交价格采用K线均值</span>
             </div>
             <div className="flex items-start gap-2">
-              <BarChart3 className="w-4 h-4 text-purple-600 mt-0.5 flex-shrink-0" />
+              <Settings className="w-4 h-4 text-purple-600 mt-0.5 flex-shrink-0" />
               <span className="text-blue-800">可调整手续费率等参数查看不同情况下的表现</span>
             </div>
             <div className="flex items-start gap-2">

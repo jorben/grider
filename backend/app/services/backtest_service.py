@@ -42,7 +42,7 @@ class BacktestService:
 
             # 2. 获取交易日历
             trading_days = self.data_service.get_trading_calendar(
-                exchange_code, limit=5
+                exchange_code, limit=10
             )
 
             if not trading_days:
