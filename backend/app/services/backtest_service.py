@@ -93,7 +93,8 @@ class BacktestService:
                 start_date=start_date,
                 end_date=end_date,
                 trading_days=len(trading_days),
-                kline_data=kline_data
+                kline_data=kline_data,
+                grid_strategy=grid_strategy
             )
 
         except Exception as e:
@@ -114,9 +115,17 @@ class BacktestService:
 
 
     def _format_result(self, backtest_result: Dict, metrics, benchmark,
-                      start_date: str, end_date: str, trading_days: int,
-                      kline_data: list) -> Dict:
+                       start_date: str, end_date: str, trading_days: int,
+                       kline_data: list, grid_strategy: dict = None) -> Dict:
         """格式化回测结果"""
+        # 计算网格分析（如果提供了网格策略）
+        grid_analysis = None
+        if grid_strategy and 'price_levels' in grid_strategy:
+            grid_analysis = self._analyze_grid_performance(
+                backtest_result['trade_records'],
+                grid_strategy['price_levels']
+            )
+
         return {
             'backtest_period': {
                 'start_date': start_date,
@@ -148,6 +157,7 @@ class BacktestService:
             'equity_curve': self._format_equity_curve(backtest_result['equity_curve']),
             'price_curve': self._format_price_curve(kline_data),
             'trade_records': self._format_trade_records(backtest_result['trade_records']),
+            'grid_analysis': grid_analysis,
             'final_state': backtest_result['final_state']
         }
 
@@ -174,6 +184,41 @@ class BacktestService:
             }
             for k in kline_data
         ]
+
+    def _analyze_grid_performance(self, trade_records: list, price_levels: list) -> dict:
+        """分析网格表现"""
+        if not price_levels:
+            return None
+
+        grid_performance = []
+        triggered_grids = 0
+
+        for price in price_levels:
+            # 统计在该价格附近（±1%）的交易次数
+            price_tolerance = price * 0.01  # 1%的容差
+            trigger_count = 0
+            profit_contribution = 0.0
+
+            for trade in trade_records:
+                if abs(trade.price - price) <= price_tolerance:
+                    trigger_count += 1
+                    if trade.profit is not None:
+                        profit_contribution += trade.profit
+
+            grid_performance.append({
+                'price': round(price, 3),
+                'trigger_count': trigger_count,
+                'profit_contribution': round(profit_contribution, 2)
+            })
+
+            if trigger_count > 0:
+                triggered_grids += 1
+
+        return {
+            'grid_performance': grid_performance,
+            'triggered_grids': triggered_grids,
+            'total_grids': len(price_levels)
+        }
 
     def _format_trade_records(self, trade_records: list) -> list:
         """格式化交易记录"""

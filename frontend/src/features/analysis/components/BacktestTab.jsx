@@ -144,11 +144,12 @@ export default function BacktestTab({ etfCode, exchangeCode, gridStrategy, type 
           {/* 交易记录 */}
           <TradeList trades={backtestResult.trade_records} />
 
-          {/* 网格表现分析 */}
+          {/* 网格表现分析 
           <GridPerformance
             gridAnalysis={backtestResult.grid_analysis}
             priceLevels={gridStrategy.price_levels}
           />
+          */}
         </>
       )}
 

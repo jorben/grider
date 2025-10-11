@@ -46,7 +46,8 @@ def sample_request():
                 'base_position_amount': 2500.00,
                 'base_position_shares': 700,
                 'grid_trading_amount': 7000.00
-            }
+            },
+            'price_levels': [3.2, 3.23, 3.26, 3.29, 3.32, 3.35, 3.38, 3.41, 3.44, 3.47, 3.5, 3.53, 3.56, 3.59, 3.62, 3.65, 3.68, 3.71, 3.74, 3.77, 3.8]
         },
         'backtestConfig': {
             'commissionRate': 0.0002,
@@ -74,6 +75,17 @@ def test_backtest_api_success(client, sample_request):
     assert 'performance_metrics' in result
     assert 'trading_metrics' in result
     assert 'trade_records' in result
+    assert 'grid_analysis' in result
+
+    # 验证网格分析数据结构
+    grid_analysis = result['grid_analysis']
+    if grid_analysis:  # 只有当有price_levels时才会有grid_analysis
+        assert 'grid_performance' in grid_analysis
+        assert 'triggered_grids' in grid_analysis
+        assert 'total_grids' in grid_analysis
+        assert isinstance(grid_analysis['grid_performance'], list)
+        assert isinstance(grid_analysis['triggered_grids'], int)
+        assert isinstance(grid_analysis['total_grids'], int)
 
 
 def test_backtest_api_missing_params(client):
