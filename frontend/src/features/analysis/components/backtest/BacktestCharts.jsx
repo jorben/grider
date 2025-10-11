@@ -167,7 +167,7 @@ export default function BacktestCharts({ priceCurve = [], equityCurve = [], trad
             <Line
               type="monotone"
               dataKey="close"
-              stroke="#3b82f6"
+              stroke="#6f7784"
               strokeWidth={2}
               dot={false}
               name="价格"
@@ -177,7 +177,7 @@ export default function BacktestCharts({ priceCurve = [], equityCurve = [], trad
             <Scatter
               dataKey="buyPrice"
               fill="#ef4444"
-              shape="triangle"
+              shape="circle"
               name="买入"
             />
 
@@ -185,15 +185,13 @@ export default function BacktestCharts({ priceCurve = [], equityCurve = [], trad
             <Scatter
               dataKey="sellPrice"
               fill="#3b82f6"
-              shape="triangleDown"
+              shape="circle"
               name="卖出"
             />
           </ComposedChart>
         </ResponsiveContainer>
-      </div>
 
-      {/* 副图：收益曲线对比 */}
-      <div className="bg-white border border-gray-200 rounded-lg p-6">
+        {/* 副图：收益曲线对比 */}
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 bg-gradient-to-r from-green-100 to-blue-100 rounded-lg">
             <BarChart3 className="w-5 h-5 text-gradient-to-r from-green-600 to-blue-600" />
