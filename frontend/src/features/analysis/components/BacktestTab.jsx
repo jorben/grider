@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { runBacktest } from '@shared/services/api';
-import { LoadingSpinner } from '@shared/components/ui';
+import { hashString } from '@shared/utils';
 import BacktestGuide from './backtest/BacktestGuide';
 import BacktestConfigEditor from './backtest/BacktestConfigEditor';
 import BacktestMetrics from './backtest/BacktestMetrics';
@@ -24,9 +24,28 @@ export default function BacktestTab({ etfCode, exchangeCode, gridStrategy, type 
     tradingDaysPerYear: 244,
   });
 
+  // 从localStorage加载回测配置
+  useEffect(() => {
+    const saved = localStorage.getItem('backtestConfig');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setBacktestConfig(parsed);
+      } catch (e) {
+        console.error('加载缓存的回测配置失败', e);
+      }
+    }
+  }, []);
+
+  // 保存回测配置到localStorage
+  useEffect(() => {
+    localStorage.setItem('backtestConfig', JSON.stringify(backtestConfig));
+  }, [backtestConfig]);
+
   // 缓存回测结果的key
   const cacheKey = useMemo(() => {
-    return `backtest_${etfCode}_${exchangeCode}_${type}_${JSON.stringify(gridStrategy)}_${JSON.stringify(backtestConfig)}`;
+    const keyData = { etfCode, exchangeCode, type, gridStrategy, backtestConfig };
+    return `backtest_${hashString(JSON.stringify(keyData))}`;
   }, [etfCode, exchangeCode, type, gridStrategy, backtestConfig]);
 
   const handleRunBacktest = useCallback(async () => {
@@ -50,7 +69,7 @@ export default function BacktestTab({ etfCode, exchangeCode, gridStrategy, type 
     } finally {
       setLoading(false);
     }
-  }, [etfCode, exchangeCode, gridStrategy, backtestConfig, cacheKey]);
+  }, [etfCode, exchangeCode, gridStrategy, backtestConfig, type, cacheKey]);
 
   useEffect(() => {
     console.log('BacktestTab useEffect triggered:', { etfCode, exchangeCode, gridStrategy: !!gridStrategy, type });

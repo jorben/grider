@@ -6,3 +6,4 @@ export {
   generateAnalysisURL,
   encodeAnalysisParams,
 } from "./url";
+export { hashString } from "./hash";
