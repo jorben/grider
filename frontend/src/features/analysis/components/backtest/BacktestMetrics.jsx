@@ -93,7 +93,7 @@ export default function BacktestMetrics({ metrics = {}, tradingMetrics = {}, ben
       {/* 核心指标 */}
       <div className="bg-white border border-gray-200 rounded-lg p-6">
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 bg-gradient-to-r from-green-100 to-blue-100 rounded-lg">
+          <div className="p-2 bg-gradient-to-r from-purple-100 to-indigo-100 rounded-lg">
             <TrendingUp className="w-5 h-5 text-gradient-to-r from-green-600 to-blue-600" />
           </div>
           <div>

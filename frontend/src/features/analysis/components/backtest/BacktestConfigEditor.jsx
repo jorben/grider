@@ -45,7 +45,7 @@ export default function BacktestConfigEditor({ config, onConfigChange, onRunBack
           </div>
           <button
             onClick={() => setIsEditing(true)}
-            className="ml-auto btn btn-primary"
+            className="ml-auto btn btn-secondary"
           >
             <Settings className="w-4 h-4 mr-2" />
             编辑参数
