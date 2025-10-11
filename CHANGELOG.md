@@ -4,6 +4,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2025-10-11
+### :boom: BREAKING CHANGES
+- due to [`bb9b7c6`](https://github.com/jorben/grider/commit/bb9b7c620f12d77e0fed110bd72d5cad4bb5dab9) - enhance backtest components with icons and improved styling *(commit by [@jorben](https://github.com/jorben))*:
+
+  Updated CSS class names for buttons (e.g., "btn btn-primary") may require style adjustments in consuming components.
+
+- due to [`729587f`](https://github.com/jorben/grider/commit/729587f4acf0a685ba00a31c4ddaf5fe53be7637) - update trade price calculation to use K-line average *(commit by [@jorben](https://github.com/jorben))*:
+
+  Trade price calculation method changed, affecting backtest results and compatibility with previous grid-based pricing.
+
+
+### :sparkles: New Features
+- [`c338a13`](https://github.com/jorben/grider/commit/c338a1382add51ce40f722aa0edff5801a1e649a) - **logger**: add SafeTimedRotatingFileHandler for Windows compatibility *(commit by [@jorben](https://github.com/jorben))*
+- [`c131f5d`](https://github.com/jorben/grider/commit/c131f5d0a2e5ead1866d56c1b3409d7e51c37eb7) - **backtest**: add comprehensive backtest functionality for grid trading *(commit by [@jorben](https://github.com/jorben))*
+- [`a92d77e`](https://github.com/jorben/grider/commit/a92d77e947961c1cff4a00a7f2ee660e3df8c1ba) - **backtest**: add support for exchange code and security type in backtest *(commit by [@jorben](https://github.com/jorben))*
+- [`c623be9`](https://github.com/jorben/grider/commit/c623be98bd9072cee838095b4401aa0c23ec5ef2) - **backtest**: implement multiple order delegation in trading logic *(commit by [@jorben](https://github.com/jorben))*
+- [`729587f`](https://github.com/jorben/grider/commit/729587f4acf0a685ba00a31c4ddaf5fe53be7637) - **backtest**: update trade price calculation to use K-line average *(commit by [@jorben](https://github.com/jorben))*
+- [`abba1ce`](https://github.com/jorben/grider/commit/abba1ceab3939b378d3bdb280cff6a72d9eaa740) - **backtest**: update commission formatting in trade list *(commit by [@jorben](https://github.com/jorben))*
+- [`fd8a8f3`](https://github.com/jorben/grider/commit/fd8a8f306051c84d81866072e1359aeaf9375c2c) - **backtest**: add localStorage caching for backtest config and hash-based cache keys *(commit by [@jorben](https://github.com/jorben))*
+- [`4b2247e`](https://github.com/jorben/grider/commit/4b2247e69418c4da07586a8ba6a1d7e1f465d98f) - **backtest**: add grid performance analysis to backtest results *(commit by [@jorben](https://github.com/jorben))*
+
+### :recycle: Refactors
+- [`73fe4ae`](https://github.com/jorben/grider/commit/73fe4ae338a8c97e345370e36f2ce06958d8bc91) - **backtest**: update chart labels and add Y-axis tick formatting *(commit by [@jorben](https://github.com/jorben))*
+- [`bb9b7c6`](https://github.com/jorben/grider/commit/bb9b7c620f12d77e0fed110bd72d5cad4bb5dab9) - **ui**: enhance backtest components with icons and improved styling *(commit by [@jorben](https://github.com/jorben))*
+- [`36b686a`](https://github.com/jorben/grider/commit/36b686a1b54b39b1168378fb68671b408cf73b61) - **ui**: update backtest charts and metrics styling and layout *(commit by [@jorben](https://github.com/jorben))*
+- [`50d0073`](https://github.com/jorben/grider/commit/50d0073d56fda38e83db667c2172beeab7e578fa) - **ui**: swap gradient colors and button styles in backtest components *(commit by [@jorben](https://github.com/jorben))*
+
+### :wrench: Chores
+- [`bffaab1`](https://github.com/jorben/grider/commit/bffaab10906032f98723ac324a4b47cd3c8aaaff) - bump version to 1.2.0 *(commit by [@jorben](https://github.com/jorben))*
+
+
 ## [1.1.0] - 2025-10-05
 ### :wrench: Chores
 - [`92dbabb`](https://github.com/jorben/grider/commit/92dbabbe89af3b765fac92a8d8f3d0ea73828f48) - bump version to 1.1.0 and add version update script *(commit by [@jorben](https://github.com/jorben))*
@@ -63,3 +94,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [1.0.0]: https://github.com/jorben/Grider/compare/0.0.1...1.0.0
 [1.1.0]: https://github.com/jorben/grider/compare/1.0.0...1.1.0
+[1.2.0]: https://github.com/jorben/grider/compare/1.1.0...1.2.0
