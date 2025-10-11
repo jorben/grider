@@ -21,15 +21,17 @@ class BacktestService:
     def __init__(self):
         self.data_service = DataService()
 
-    def run_backtest(self, etf_code: str, grid_strategy: dict,
-                    backtest_config: Optional[dict] = None) -> Dict:
+    def run_backtest(self, etf_code: str, exchange_code: str, grid_strategy: dict,
+                     backtest_config: Optional[dict] = None, type: str = 'STOCK') -> Dict:
         """
         执行回测
 
         Args:
             etf_code: ETF代码
+            exchange_code: 交易所代码
             grid_strategy: 网格策略参数
             backtest_config: 回测配置（可选）
+            type: 证券类型 ('STOCK' 或 'ETF')
 
         Returns:
             回测结果
@@ -39,7 +41,6 @@ class BacktestService:
             config = self._prepare_config(backtest_config)
 
             # 2. 获取交易日历
-            exchange_code = self._get_exchange_code(etf_code)
             trading_days = self.data_service.get_trading_calendar(
                 exchange_code, limit=5
             )
@@ -52,7 +53,7 @@ class BacktestService:
 
             # 3. 获取K线数据
             kline_data = self.data_service.get_5min_kline(
-                etf_code, exchange_code, start_date, end_date
+                etf_code, exchange_code, start_date, end_date, type
             )
 
             if not kline_data:
@@ -111,14 +112,6 @@ class BacktestService:
             trading_days_per_year=backtest_config.get('tradingDaysPerYear', 244)
         )
 
-    def _get_exchange_code(self, etf_code: str) -> str:
-        """根据ETF代码获取交易所代码"""
-        if etf_code.startswith('5'):
-            return 'XSHG'  # 上海证券交易所
-        elif etf_code.startswith('1') or etf_code.startswith('15'):
-            return 'XSHE'  # 深圳证券交易所
-        else:
-            return 'XSHG'  # 默认上海证券交易所
 
     def _format_result(self, backtest_result: Dict, metrics, benchmark,
                       start_date: str, end_date: str, trading_days: int,

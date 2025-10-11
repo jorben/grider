@@ -77,8 +77,10 @@ def run_backtest():
     请求格式:
     {
         "etfCode": "510300",
+        "exchangeCode": "XSHG",
         "gridStrategy": {...},
-        "backtestConfig": {...}
+        "backtestConfig": {...},
+        "type": "ETF"  // 可选，默认为 "STOCK"
     }
     """
     try:
@@ -100,15 +102,19 @@ def run_backtest():
             }), HTTP_BAD_REQUEST
 
         etf_code = data.get('etfCode')
+        exchange_code = data.get('exchangeCode')
         grid_strategy = data.get('gridStrategy')
         backtest_config = data.get('backtestConfig')
+        type_param = data.get('type', 'STOCK')  # 默认 'STOCK'
 
         # 2. 执行回测
         backtest_service = BacktestService()
         result = backtest_service.run_backtest(
             etf_code=etf_code,
+            exchange_code=exchange_code,
             grid_strategy=grid_strategy,
-            backtest_config=backtest_config
+            backtest_config=backtest_config,
+            type=type_param
         )
 
         # 3. 返回结果

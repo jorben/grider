@@ -29,6 +29,7 @@ def client(app):
 def sample_request():
     return {
         'etfCode': '510300',
+        'exchangeCode': 'XSHG',
         'gridStrategy': {
             'current_price': 3.500,
             'price_range': {
@@ -149,16 +150,6 @@ def test_backtest_config_preparation():
     assert config.risk_free_rate == 0.04
 
 
-def test_exchange_code_detection():
-    """测试交易所代码检测"""
-    service = BacktestService()
-
-    # 上海ETF
-    assert service._get_exchange_code('510300') == 'XSHG'
-    # 深圳ETF
-    assert service._get_exchange_code('159919') == 'XSHE'
-    # 默认情况
-    assert service._get_exchange_code('000001') == 'XSHG'
 
 
 def test_result_format_structure():
@@ -234,6 +225,7 @@ def test_validation_function():
     # 有效请求
     valid_data = {
         'etfCode': '510300',
+        'exchangeCode': 'XSHG',
         'gridStrategy': {
             'current_price': 3.5,
             'price_range': {'lower': 3.2, 'upper': 3.8},
@@ -250,9 +242,16 @@ def test_validation_function():
     assert result['valid'] is False
     assert 'etfCode' in result['error']
 
+    # 缺少交易所代码
+    invalid_data = {'etfCode': '510300', 'gridStrategy': {}}
+    result = validate_backtest_request(invalid_data)
+    assert result['valid'] is False
+    assert 'exchangeCode' in result['error']
+
     # 无效手续费率
     invalid_data = {
         'etfCode': '510300',
+        'exchangeCode': 'XSHG',
         'gridStrategy': valid_data['gridStrategy'],
         'backtestConfig': {'commissionRate': 1.5}
     }

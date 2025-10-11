@@ -340,6 +340,10 @@ def validate_backtest_request(data: dict) -> dict:
     if 'etfCode' not in data:
         return {'valid': False, 'error': '缺少etfCode参数'}
 
+    # 验证交易所代码
+    if 'exchangeCode' not in data:
+        return {'valid': False, 'error': '缺少exchangeCode参数'}
+
     # 验证网格策略
     if 'gridStrategy' not in data:
         return {'valid': False, 'error': '缺少gridStrategy参数'}

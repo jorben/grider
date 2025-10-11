@@ -101,16 +101,20 @@ class ApiService {
   /**
    * 执行回测
    * @param {string} etfCode - ETF代码
+   * @param {string} exchangeCode - 交易所代码
    * @param {object} gridStrategy - 网格策略参数
    * @param {object} backtestConfig - 回测配置（可选）
+   * @param {string} type - 证券类型（'ETF' 或 'STOCK'）
    * @returns {Promise<object>} 回测结果
    */
-  async runBacktest(etfCode, gridStrategy, backtestConfig = null) {
-    console.log('API runBacktest called with:', { etfCode, gridStrategy: !!gridStrategy, backtestConfig });
+  async runBacktest(etfCode, exchangeCode, gridStrategy, backtestConfig = null, type = 'STOCK') {
+    console.log('API runBacktest called with:', { etfCode, exchangeCode, gridStrategy: !!gridStrategy, backtestConfig, type });
     const result = await this.post("/grid/backtest", {
       etfCode,
+      exchangeCode,
       gridStrategy,
       backtestConfig,
+      type,
     });
     console.log('API runBacktest result:', result);
     return result;
@@ -126,7 +130,7 @@ export const getETFInfo = (etfCode) => apiService.getETFInfo(etfCode);
 export const getPopularETFs = () => apiService.getPopularETFs();
 export const healthCheck = () => apiService.healthCheck();
 export const getVersion = () => apiService.getVersion();
-export const runBacktest = (etfCode, gridStrategy, backtestConfig) =>
-  apiService.runBacktest(etfCode, gridStrategy, backtestConfig);
+export const runBacktest = (etfCode, exchangeCode, gridStrategy, backtestConfig, type) =>
+  apiService.runBacktest(etfCode, exchangeCode, gridStrategy, backtestConfig, type);
 
 export default apiService;

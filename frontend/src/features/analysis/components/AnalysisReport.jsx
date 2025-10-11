@@ -175,7 +175,9 @@ const AnalysisReport = ({
             <Suspense fallback={<div className="text-center py-12">加载中...</div>}>
               <BacktestTab
                 etfCode={etf_info.code}
+                exchangeCode={etf_info.exchange_code}
                 gridStrategy={grid_strategy}
+                type={etf_info.type}
               />
             </Suspense>
           )}

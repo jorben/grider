@@ -98,7 +98,7 @@ class DataService:
             raise
 
     def get_5min_kline(self, ticker: str, exchange_code: str,
-                        start_date: str, end_date: str) -> List[KBar]:
+                        start_date: str, end_date: str, type: str = 'STOCK') -> List[KBar]:
         """
         获取5分钟K线数据
 
@@ -107,18 +107,19 @@ class DataService:
             exchange_code: 交易所代码
             start_date: 开始日期 (YYYY-MM-DD)
             end_date: 结束日期 (YYYY-MM-DD)
+            type: 证券类型 ('STOCK' 或 'ETF')
 
         Returns:
             K线数据列表
         """
         try:
-            # 判断标的类型（ETF或股票）
-            if ticker.startswith('5') or ticker.startswith('1'):
-                # ETF
+            # 根据类型调用相应API
+            if type == 'ETF':
                 response = self.provider.get_etf_5min(ticker, exchange_code, start_date, end_date)
-            else:
-                # 股票
+            elif type == 'STOCK':
                 response = self.provider.get_stock_5min(ticker, exchange_code, start_date, end_date)
+            else:
+                raise ValueError(f"不支持的证券类型: {type}")
 
             if response.get('code') == 200 and 'data' in response:
                 data = response['data']

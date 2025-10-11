@@ -109,7 +109,7 @@ describe('BacktestTab Integration', () => {
   });
 
   it('完整的回测流程', async () => {
-    render(<BacktestTab etfCode="510300" gridStrategy={mockGridStrategy} />);
+    render(<BacktestTab etfCode="510300" exchangeCode="XSHG" gridStrategy={mockGridStrategy} />);
 
     // 1. 显示功能引导
     expect(screen.getByText(/回测分析功能说明/i)).toBeInTheDocument();
@@ -141,7 +141,7 @@ describe('BacktestTab Integration', () => {
   });
 
   it('参数编辑和重新回测', async () => {
-    render(<BacktestTab etfCode="510300" gridStrategy={mockGridStrategy} />);
+    render(<BacktestTab etfCode="510300" exchangeCode="XSHG" gridStrategy={mockGridStrategy} />);
 
     await waitFor(() => {
       expect(screen.getByText(/核心指标/i)).toBeInTheDocument();
@@ -169,7 +169,7 @@ describe('BacktestTab Integration', () => {
   it('错误处理', async () => {
     api.runBacktest.mockRejectedValue(new Error('网络错误'));
 
-    render(<BacktestTab etfCode="510300" gridStrategy={mockGridStrategy} />);
+    render(<BacktestTab etfCode="510300" exchangeCode="XSHG" gridStrategy={mockGridStrategy} />);
 
     await waitFor(() => {
       expect(screen.getByText(/回测失败/i)).toBeInTheDocument();
@@ -184,14 +184,14 @@ describe('BacktestTab Integration', () => {
 
   it('数据缓存', async () => {
     // 第一次渲染
-    const { rerender } = render(<BacktestTab etfCode="510300" gridStrategy={mockGridStrategy} />);
+    const { rerender } = render(<BacktestTab etfCode="510300" exchangeCode="XSHG" gridStrategy={mockGridStrategy} />);
 
     await waitFor(() => {
       expect(screen.getByText(/核心指标/i)).toBeInTheDocument();
     });
 
     // 重新渲染相同参数
-    rerender(<BacktestTab etfCode="510300" gridStrategy={mockGridStrategy} />);
+    rerender(<BacktestTab etfCode="510300" exchangeCode="XSHG" gridStrategy={mockGridStrategy} />);
 
     // 应该从缓存加载，不重新调用API
     expect(api.runBacktest).toHaveBeenCalledTimes(1);

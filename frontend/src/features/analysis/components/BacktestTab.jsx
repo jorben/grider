@@ -13,7 +13,7 @@ import BacktestError from './backtest/BacktestError';
 /**
  * 回测分析标签页
  */
-export default function BacktestTab({ etfCode, gridStrategy }) {
+export default function BacktestTab({ etfCode, exchangeCode, gridStrategy, type }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [backtestResult, setBacktestResult] = useState(null);
@@ -26,8 +26,8 @@ export default function BacktestTab({ etfCode, gridStrategy }) {
 
   // 缓存回测结果的key
   const cacheKey = useMemo(() => {
-    return `backtest_${etfCode}_${JSON.stringify(gridStrategy)}_${JSON.stringify(backtestConfig)}`;
-  }, [etfCode, gridStrategy, backtestConfig]);
+    return `backtest_${etfCode}_${exchangeCode}_${type}_${JSON.stringify(gridStrategy)}_${JSON.stringify(backtestConfig)}`;
+  }, [etfCode, exchangeCode, type, gridStrategy, backtestConfig]);
 
   const handleRunBacktest = useCallback(async () => {
     console.log('handleRunBacktest called');
@@ -36,7 +36,7 @@ export default function BacktestTab({ etfCode, gridStrategy }) {
 
     try {
       console.log('Calling runBacktest API...');
-      const response = await runBacktest(etfCode, gridStrategy, backtestConfig);
+      const response = await runBacktest(etfCode, exchangeCode, gridStrategy, backtestConfig, type);
       console.log('API response received:', response);
       const result = response.data; // 提取实际数据
       console.log('Extracted result:', result);
@@ -50,11 +50,11 @@ export default function BacktestTab({ etfCode, gridStrategy }) {
     } finally {
       setLoading(false);
     }
-  }, [etfCode, gridStrategy, backtestConfig, cacheKey]);
+  }, [etfCode, exchangeCode, gridStrategy, backtestConfig, cacheKey]);
 
   useEffect(() => {
-    console.log('BacktestTab useEffect triggered:', { etfCode, gridStrategy: !!gridStrategy });
-    if (etfCode && gridStrategy) {
+    console.log('BacktestTab useEffect triggered:', { etfCode, exchangeCode, gridStrategy: !!gridStrategy, type });
+    if (etfCode && exchangeCode && gridStrategy) {
       console.log('Starting backtest for:', etfCode);
       // 尝试从缓存读取
       const cached = sessionStorage.getItem(cacheKey);
@@ -73,9 +73,9 @@ export default function BacktestTab({ etfCode, gridStrategy }) {
       console.log('Executing backtest...');
       handleRunBacktest();
     } else {
-      console.log('Backtest not triggered: missing etfCode or gridStrategy');
+      console.log('Backtest not triggered: missing etfCode, exchangeCode or gridStrategy');
     }
-  }, [etfCode, gridStrategy, cacheKey, handleRunBacktest]);
+  }, [etfCode, exchangeCode, type, gridStrategy, cacheKey, handleRunBacktest]);
 
   return (
     <div className="space-y-6">
