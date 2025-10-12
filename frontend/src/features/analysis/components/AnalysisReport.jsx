@@ -178,6 +178,7 @@ const AnalysisReport = ({
                 exchangeCode={etf_info.exchange_code}
                 gridStrategy={grid_strategy}
                 type={etf_info.type}
+                totalCapital={input_parameters.total_capital}
               />
             </Suspense>
           )}

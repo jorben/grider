@@ -1,19 +1,39 @@
 import React, { useState, useMemo } from 'react';
 import { formatCurrency } from '@shared/utils/format';
-import { TrendingUp, TrendingDown, Filter, Calendar, DollarSign, Hash, Percent, Activity, ChevronLeft, ChevronRight } from 'lucide-react';
+import { TrendingUp, TrendingDown, Filter, Calendar, DollarSign, Hash, Percent, Activity, ChevronLeft, ChevronRight, BarChart3 } from 'lucide-react';
 
 /**
  * 交易记录列表
  */
-export default function TradeList({ trades = [] }) {
+export default function TradeList({ trades = [], gridStrategy, totalCapital }) {
   const [filter, setFilter] = useState('ALL'); // 'ALL' | 'BUY' | 'SELL'
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
 
+  // 计算增强的交易记录（包含市值、总资产、总盈亏额）
+  const enhancedTrades = useMemo(() => {
+    if (!gridStrategy || !totalCapital) return trades;
+
+    const reserveAmount = gridStrategy.fund_allocation?.reserve_amount || 0;
+
+    return trades.map((trade) => {
+      const marketValue = trade.price * trade.position; // 市值 = 交易价格 × 持仓
+      const totalAsset = marketValue + trade.cash + reserveAmount; // 总资产 = 市值 + 资金余额 + 预留资金
+      const totalProfitLoss = totalAsset - totalCapital; // 总盈亏额 = 总资产 - 初始资产
+
+      return {
+        ...trade,
+        marketValue: Math.round(marketValue * 100) / 100,
+        totalAsset: Math.round(totalAsset * 100) / 100,
+        totalProfitLoss: Math.round(totalProfitLoss * 100) / 100,
+      };
+    });
+  }, [trades, gridStrategy, totalCapital]);
+
   const filteredTrades = useMemo(() => {
-    if (filter === 'ALL') return trades;
-    return trades.filter((t) => t.type === filter);
-  }, [trades, filter]);
+    if (filter === 'ALL') return enhancedTrades;
+    return enhancedTrades.filter((t) => t.type === filter);
+  }, [enhancedTrades, filter]);
 
   // 分页计算
   const totalPages = Math.ceil(filteredTrades.length / pageSize);
@@ -89,9 +109,21 @@ export default function TradeList({ trades = [] }) {
                 <Percent className="w-3 h-3 inline mr-1" />
                 手续费
               </th>
-              <th className="text-right">盈亏</th>
+              {/*<th className="text-right">盈亏</th>*/}
               <th className="text-right">持仓</th>
               <th className="text-right">资金余额</th>
+              <th className="text-right">
+                <BarChart3 className="w-3 h-3 inline mr-1" />
+                持仓市值
+              </th>
+              <th className="text-right">
+                <DollarSign className="w-3 h-3 inline mr-1" />
+                总资产
+              </th>
+              <th className="text-right">
+                <TrendingUp className="w-3 h-3 inline mr-1" />
+                总盈亏
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -135,7 +167,7 @@ export default function TradeList({ trades = [] }) {
                 <td className="text-sm text-right text-gray-600">
                   {formatCurrency(trade.commission, 'CHN', { maximumFractionDigits: 3 })}
                 </td>
-                <td className="text-sm text-right">
+                {/*<td className="text-sm text-right">
                   {trade.profit !== null ? (
                     <span
                       className={`font-medium ${
@@ -152,12 +184,36 @@ export default function TradeList({ trades = [] }) {
                   ) : (
                     <span className="text-gray-400">-</span>
                   )}
-                </td>
+                </td>*/}
                 <td className="text-sm text-right text-gray-900">
                   {trade.position}股
                 </td>
                 <td className="text-sm text-right text-gray-900 font-medium">
                   {formatCurrency(trade.cash)}
+                </td>
+                <td className="text-sm text-right text-gray-900">
+                  {trade.marketValue !== undefined ? formatCurrency(trade.marketValue) : '-'}
+                </td>
+                <td className="text-sm text-right text-gray-900 font-medium">
+                  {trade.totalAsset !== undefined ? formatCurrency(trade.totalAsset) : '-'}
+                </td>
+                <td className="text-sm text-right">
+                  {trade.totalProfitLoss !== undefined ? (
+                    <span
+                      className={`font-medium ${
+                        trade.totalProfitLoss > 0
+                          ? 'text-red-600'
+                          : trade.totalProfitLoss < 0
+                          ? 'text-green-600'
+                          : 'text-gray-600'
+                      }`}
+                    >
+                      {trade.totalProfitLoss > 0 ? '+' : ''}
+                      {formatCurrency(trade.totalProfitLoss)}
+                    </span>
+                  ) : (
+                    <span className="text-gray-400">-</span>
+                  )}
                 </td>
               </tr>
             ))}
