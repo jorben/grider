@@ -20,7 +20,7 @@ import { TrendingUp, BarChart3, DollarSign, Target, Calendar } from 'lucide-reac
  */
 export default function BacktestCharts({ priceCurve = [], equityCurve = [], tradeRecords = [], gridStrategy = {} }) {
   // 数据抽样函数
-  const sampleData = (data, maxPoints = 500) => {
+  const sampleData = (data, maxPoints = 800) => {
     if (data.length <= maxPoints) return data;
 
     const step = Math.ceil(data.length / maxPoints);
