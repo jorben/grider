@@ -19,7 +19,7 @@ export default function BacktestTab({ etfCode, exchangeCode, gridStrategy, type,
   const [backtestResult, setBacktestResult] = useState(null);
   const [backtestConfig, setBacktestConfig] = useState({
     commissionRate: 0.0002,
-    minCommission: 0.01,
+    minCommission: 5,
     riskFreeRate: 0.03,
     tradingDaysPerYear: 244,
   });
