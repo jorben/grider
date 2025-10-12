@@ -22,7 +22,7 @@ providers:
       calendar:
         path: "/fin/stock/{exchange_code}/market/calendar?token={token}"
         method: "GET"
-        cache_ttl: 31536000 # 缓存1年
+        cache_ttl: 86400 # 缓存1天
         tokens:
           - token: "{TSANGHI_TOKEN_01}"
             priority: 1
