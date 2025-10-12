@@ -111,7 +111,7 @@ export default function TradeList({ trades = [], gridStrategy, totalCapital }) {
               </th>
               {/*<th className="text-right">盈亏</th>*/}
               <th className="text-right">持仓</th>
-              <th className="text-right">资金余额</th>
+              <th className="text-right">网格余额</th>
               <th className="text-right">
                 <BarChart3 className="w-3 h-3 inline mr-1" />
                 持仓市值
