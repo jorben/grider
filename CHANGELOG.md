@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.3] - 2025-10-12
+### :sparkles: New Features
+- [`b84bdd8`](https://github.com/jorben/grider/commit/b84bdd86d6a13d39554e54b1e0bd2cbddf2ba035) - **backtest**: enhance trade list with additional financial metrics *(commit by [@jorben](https://github.com/jorben))*
+- [`638db74`](https://github.com/jorben/grider/commit/638db7454415ea558bc3828eda881f6fb8e68467) - **backtest**: extend backtest data period from 10 to 30 trading days *(commit by [@jorben](https://github.com/jorben))*
+- [`1ee1ab6`](https://github.com/jorben/grider/commit/1ee1ab62ef2cd33972d6af169b00b63d306adf2a) - **backtest**: update trade list column header to grid balance *(commit by [@jorben](https://github.com/jorben))*
+- [`dad2963`](https://github.com/jorben/grider/commit/dad2963a55267f2945286c474bf97912b97f7bdb) - **backtest**: implement initial position purchase logic *(commit by [@jorben](https://github.com/jorben))*
+
+### :wrench: Chores
+- [`18ad402`](https://github.com/jorben/grider/commit/18ad40254b3985677d9de5da2423a60612894104) - **release**: bump version to 1.2.3 *(commit by [@jorben](https://github.com/jorben))*
+
+
 ## [1.2.2] - 2025-10-12
 ### :sparkles: New Features
 - [`ab3a599`](https://github.com/jorben/grider/commit/ab3a5999bfe4a8916377eb78fe8b15a344426266) - **backtest**: add pagination to trade list *(commit by [@jorben](https://github.com/jorben))*
@@ -117,3 +128,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.2.0]: https://github.com/jorben/grider/compare/1.1.0...1.2.0
 [1.2.1]: https://github.com/jorben/grider/compare/1.2.0...1.2.1
 [1.2.2]: https://github.com/jorben/grider/compare/1.2.1...1.2.2
+[1.2.3]: https://github.com/jorben/grider/compare/1.2.2...1.2.3
