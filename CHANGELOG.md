@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2025-10-12
+### :zap: Performance Improvements
+- [`2b5c957`](https://github.com/jorben/grider/commit/2b5c9577e2cafa671ef119e40736e252df7ee093) - **backtest**: increase max data points for chart sampling from 500 to 800 *(commit by [@jorben](https://github.com/jorben))*
+
+### :wrench: Chores
+- [`e14494a`](https://github.com/jorben/grider/commit/e14494af82f008db02edd66a6752fb7898b92d1f) - bump version to 1.2.1 *(commit by [@jorben](https://github.com/jorben))*
+
+
 ## [1.2.0] - 2025-10-11
 ### :boom: BREAKING CHANGES
 - due to [`bb9b7c6`](https://github.com/jorben/grider/commit/bb9b7c620f12d77e0fed110bd72d5cad4bb5dab9) - enhance backtest components with icons and improved styling *(commit by [@jorben](https://github.com/jorben))*:
@@ -95,3 +103,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.0.0]: https://github.com/jorben/Grider/compare/0.0.1...1.0.0
 [1.1.0]: https://github.com/jorben/grider/compare/1.0.0...1.1.0
 [1.2.0]: https://github.com/jorben/grider/compare/1.1.0...1.2.0
+[1.2.1]: https://github.com/jorben/grider/compare/1.2.0...1.2.1
