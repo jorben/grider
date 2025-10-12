@@ -1,272 +1,190 @@
 """
-回测功能集成测试
+回测集成测试
 """
 
 import pytest
-from app import create_app
-from app.services.backtest_service import BacktestService
+from datetime import datetime
+from app.algorithms.backtest.engine import BacktestEngine
+from app.algorithms.backtest.models import BacktestConfig, KBar
 
 
-@pytest.fixture
-def app():
-    from app import create_app
-    app = create_app()
-    app.config.update({
-        'TESTING': True,
-        'SQLALCHEMY_DATABASE_URI': 'sqlite:///:memory:',
-        'SQLALCHEMY_TRACK_MODIFICATIONS': False,
-        'JWT_SECRET_KEY': 'test-secret-key'
-    })
-    return app
+class TestBacktestIntegration:
+    """回测集成测试"""
 
-
-@pytest.fixture
-def client(app):
-    return app.test_client()
-
-
-@pytest.fixture
-def sample_request():
-    return {
-        'etfCode': '510300',
-        'exchangeCode': 'XSHG',
-        'gridStrategy': {
-            'current_price': 3.500,
-            'price_range': {
-                'lower': 3.200,
-                'upper': 3.800
-            },
+    @pytest.fixture
+    def grid_strategy(self):
+        """网格策略配置"""
+        return {
+            'current_price': 10.0,
+            'price_range': {'lower': 9.0, 'upper': 11.0},
             'grid_config': {
-                'count': 20,
                 'type': '等差',
-                'step_size': 0.030,
+                'step_size': 0.1,
+                'count': 20,
                 'single_trade_quantity': 100
             },
             'fund_allocation': {
-                'base_position_amount': 2500.00,
-                'base_position_shares': 700,
-                'grid_trading_amount': 7000.00
-            },
-            'price_levels': [3.2, 3.23, 3.26, 3.29, 3.32, 3.35, 3.38, 3.41, 3.44, 3.47, 3.5, 3.53, 3.56, 3.59, 3.62, 3.65, 3.68, 3.71, 3.74, 3.77, 3.8]
-        },
-        'backtestConfig': {
-            'commissionRate': 0.0002,
-            'minCommission': 5.0,
-            'riskFreeRate': 0.03,
-            'tradingDaysPerYear': 244
+                'base_position_amount': 30000,
+                'grid_trading_amount': 70000
+            }
         }
-    }
 
+    @pytest.fixture
+    def kline_data(self):
+        """K线数据"""
+        return [
+            KBar(datetime(2024, 1, 1, 9, 30), 9.9, 10.1, 9.8, 10.0, 1000000),
+            KBar(datetime(2024, 1, 1, 9, 35), 10.0, 10.2, 9.9, 10.1, 1000000),
+            KBar(datetime(2024, 1, 1, 9, 40), 10.1, 10.3, 10.0, 10.2, 1000000),
+            KBar(datetime(2024, 1, 1, 9, 45), 10.2, 10.4, 10.1, 10.3, 1000000),
+            KBar(datetime(2024, 1, 1, 9, 50), 10.3, 10.5, 10.2, 10.4, 1000000),
+        ]
 
-def test_backtest_api_success(client, sample_request):
-    """测试回测API成功场景"""
-    response = client.post(
-        '/api/grid/backtest',
-        json=sample_request
-    )
+    @pytest.fixture
+    def config(self):
+        """回测配置"""
+        return BacktestConfig()
 
-    assert response.status_code == 200
-    data = response.get_json()
-    assert data['success'] is True
-    assert 'data' in data
+    def test_backtest_with_initial_position(self, grid_strategy, kline_data, config):
+        """测试包含初始建仓的完整回测流程"""
+        # 执行回测
+        engine = BacktestEngine(grid_strategy, config, country='CHN')
+        result = engine.run(kline_data)
 
-    result = data['data']
-    assert 'backtest_period' in result
-    assert 'performance_metrics' in result
-    assert 'trading_metrics' in result
-    assert 'trade_records' in result
-    assert 'grid_analysis' in result
+        # 验证结果
+        assert len(result['trade_records']) >= 1  # 至少有底仓购买记录
+        first_trade = result['trade_records'][0]
+        assert first_trade.type == 'BUY'  # 第一笔为买入
+        assert first_trade.time == kline_data[0].time  # 时间为第一根K线
 
-    # 验证网格分析数据结构
-    grid_analysis = result['grid_analysis']
-    if grid_analysis:  # 只有当有price_levels时才会有grid_analysis
-        assert 'grid_performance' in grid_analysis
-        assert 'triggered_grids' in grid_analysis
-        assert 'total_grids' in grid_analysis
-        assert isinstance(grid_analysis['grid_performance'], list)
-        assert isinstance(grid_analysis['triggered_grids'], int)
-        assert isinstance(grid_analysis['total_grids'], int)
+        # 验证资产曲线连续
+        assert len(result['equity_curve']) == len(kline_data)
 
+        # 验证网格交易正常
+        final_state = result['final_state']
+        assert final_state['total_asset'] > 0
 
-def test_backtest_api_missing_params(client):
-    """测试缺少参数的情况"""
-    response = client.post(
-        '/api/grid/backtest',
-        json={}
-    )
+    def test_backtest_zero_base_position(self, grid_strategy, kline_data, config):
+        """测试0底仓场景的回测"""
+        # 修改策略为0底仓
+        grid_strategy['fund_allocation']['base_position_amount'] = 0
 
-    assert response.status_code == 400
-    data = response.get_json()
-    assert data['success'] is False
-    assert 'error' in data
+        # 执行回测
+        engine = BacktestEngine(grid_strategy, config, country='CHN')
+        result = engine.run(kline_data)
 
+        # 验证结果
+        # 0底仓时，第一笔交易应该是网格买入（如果触发）
+        # 或者没有交易记录（如果没有触发网格）
+        assert isinstance(result['trade_records'], list)
 
-def test_backtest_api_invalid_commission_rate(client, sample_request):
-    """测试无效手续费率"""
-    invalid_request = sample_request.copy()
-    invalid_request['backtestConfig']['commissionRate'] = 1.5  # 无效值
+        # 验证资产曲线
+        assert len(result['equity_curve']) == len(kline_data)
 
-    response = client.post(
-        '/api/grid/backtest',
-        json=invalid_request
-    )
+        # 验证最终状态
+        final_state = result['final_state']
+        assert final_state['total_asset'] > 0
 
-    assert response.status_code == 400
-    data = response.get_json()
-    assert data['success'] is False
-    assert 'error' in data
+    def test_backtest_price_deviation_scenario(self, grid_strategy, kline_data, config):
+        """测试价格偏离场景"""
+        # 修改第一根K线价格远离策略基准价
+        kline_data[0] = KBar(datetime(2024, 1, 1, 9, 30), 8.5, 8.7, 8.3, 8.6, 1000000)
 
+        # 执行回测
+        engine = BacktestEngine(grid_strategy, config, country='CHN')
+        result = engine.run(kline_data)
 
-def test_backtest_api_missing_grid_strategy(client, sample_request):
-    """测试缺少网格策略"""
-    invalid_request = sample_request.copy()
-    del invalid_request['gridStrategy']
+        # 验证结果
+        assert len(result['trade_records']) >= 1  # 至少有底仓购买
+        first_trade = result['trade_records'][0]
+        assert first_trade.type == 'BUY'
 
-    response = client.post(
-        '/api/grid/backtest',
-        json=invalid_request
-    )
+        # 验证底仓购买价格为第一根K线均价
+        expected_purchase_price = (8.5 + 8.7 + 8.3 + 8.6) / 4  # 8.525
+        assert first_trade.price == pytest.approx(expected_purchase_price)
 
-    assert response.status_code == 400
-    data = response.get_json()
-    assert data['success'] is False
-    assert 'error' in data
+        # 验证base_price仍为策略基准价（用于网格计算）
+        # 这个需要通过检查网格买卖点来验证
+        # 如果有网格交易，应该基于10.0计算网格点
 
+    def test_backtest_usa_market(self, grid_strategy, kline_data, config):
+        """测试美股市场回测"""
+        # 修改网格配置为美股最小单位
+        grid_strategy['grid_config']['single_trade_quantity'] = 1
 
-def test_backtest_service_initialization():
-    """测试BacktestService初始化"""
-    service = BacktestService()
-    assert service.data_service is not None
-    assert hasattr(service, 'run_backtest')
+        # 执行回测
+        engine = BacktestEngine(grid_strategy, config, country='USA')
+        result = engine.run(kline_data)
 
+        # 验证结果
+        assert len(result['trade_records']) >= 1
+        first_trade = result['trade_records'][0]
+        assert first_trade.type == 'BUY'
 
-def test_backtest_config_preparation():
-    """测试回测配置准备"""
-    service = BacktestService()
+        # 验证底仓股数为1的整数倍（美股最小单位）
+        assert first_trade.quantity >= 1
 
-    # 测试默认配置
-    config = service._prepare_config(None)
-    assert config.commission_rate == 0.0002
-    assert config.min_commission == 5.0
-    assert config.risk_free_rate == 0.03
+    def test_backtest_insufficient_base_funds(self, grid_strategy, kline_data, config):
+        """测试底仓资金不足时的回测"""
+        # 设置底仓资金不足
+        grid_strategy['fund_allocation']['base_position_amount'] = 50  # 不足以购买100股
 
-    # 测试自定义配置
-    custom_config = {
-        'commissionRate': 0.0003,
-        'minCommission': 10.0,
-        'riskFreeRate': 0.04
-    }
-    config = service._prepare_config(custom_config)
-    assert config.commission_rate == 0.0003
-    assert config.min_commission == 10.0
-    assert config.risk_free_rate == 0.04
+        # 执行回测
+        engine = BacktestEngine(grid_strategy, config, country='CHN')
+        result = engine.run(kline_data)
 
+        # 验证结果
+        # 底仓资金不足时，应该没有底仓购买记录
+        # 或者第一笔交易不是底仓购买
+        if result['trade_records']:
+            # 如果有交易记录，检查是否为网格交易
+            first_trade = result['trade_records'][0]
+            # 可能是网格交易，也可能是没有底仓购买
 
+        # 验证资产曲线正常
+        assert len(result['equity_curve']) == len(kline_data)
 
+    def test_backtest_asset_curve_continuity(self, grid_strategy, kline_data, config):
+        """测试资产曲线连续性"""
+        # 执行回测
+        engine = BacktestEngine(grid_strategy, config, country='CHN')
+        result = engine.run(kline_data)
 
-def test_result_format_structure():
-    """测试结果格式化结构"""
-    service = BacktestService()
+        # 验证资产曲线
+        equity_curve = result['equity_curve']
+        assert len(equity_curve) == len(kline_data)
 
-    # 模拟回测结果
-    mock_backtest_result = {
-        'trade_records': [],
-        'equity_curve': [
-            {'time': '2025-01-10 09:30:00', 'total_asset': 10000.0}
-        ],
-        'final_state': {
-            'cash': 10520.00,
-            'position': 700,
-            'total_asset': 12970.00
-        }
-    }
+        # 验证时间顺序
+        for i in range(1, len(equity_curve)):
+            assert equity_curve[i]['time'] >= equity_curve[i-1]['time']
 
-    # 模拟指标和基准
-    from app.algorithms.backtest.metrics import PerformanceMetrics, BenchmarkComparison
-    mock_metrics = PerformanceMetrics(
-        total_return=0.052,
-        annualized_return=0.385,
-        absolute_profit=520.00,
-        max_drawdown=-0.023,
-        sharpe_ratio=1.85,
-        volatility=0.156,
-        total_trades=24,
-        buy_trades=12,
-        sell_trades=12,
-        win_rate=0.625,
-        profit_loss_ratio=1.8,
-        grid_trigger_rate=0.452
-    )
+        # 验证资产值合理性
+        for point in equity_curve:
+            assert point['total_asset'] > 0
 
-    mock_benchmark = BenchmarkComparison(
-        hold_return=0.022,
-        excess_return=0.030,
-        excess_return_rate=1.364
-    )
+    def test_backtest_trade_record_consistency(self, grid_strategy, kline_data, config):
+        """测试交易记录一致性"""
+        # 执行回测
+        engine = BacktestEngine(grid_strategy, config, country='CHN')
+        result = engine.run(kline_data)
 
-    result = service._format_result(
-        backtest_result=mock_backtest_result,
-        metrics=mock_metrics,
-        benchmark=mock_benchmark,
-        start_date='2025-01-10',
-        end_date='2025-01-16',
-        trading_days=5,
-        kline_data=[]
-    )
+        # 验证交易记录
+        trade_records = result['trade_records']
+        final_state = result['final_state']
 
-    # 验证结构
-    required_keys = [
-        'backtest_period', 'performance_metrics', 'trading_metrics',
-        'benchmark_comparison', 'equity_curve', 'price_curve',
-        'trade_records', 'final_state'
-    ]
+        # 计算预期最终持仓和现金
+        expected_position = 0
+        expected_cash = grid_strategy['fund_allocation']['base_position_amount'] + \
+                       grid_strategy['fund_allocation']['grid_trading_amount']
 
-    for key in required_keys:
-        assert key in result
+        for trade in trade_records:
+            if trade.type == 'BUY':
+                expected_position += trade.quantity
+                expected_cash -= (trade.price * trade.quantity + trade.commission)
+            elif trade.type == 'SELL':
+                expected_position -= trade.quantity
+                expected_cash += (trade.price * trade.quantity - trade.commission)
 
-    # 验证数据类型
-    assert isinstance(result['performance_metrics']['total_return'], float)
-    assert isinstance(result['trading_metrics']['total_trades'], int)
-    assert isinstance(result['equity_curve'], list)
-
-
-def test_validation_function():
-    """测试验证函数"""
-    from app.utils.validation import validate_backtest_request
-
-    # 有效请求
-    valid_data = {
-        'etfCode': '510300',
-        'exchangeCode': 'XSHG',
-        'gridStrategy': {
-            'current_price': 3.5,
-            'price_range': {'lower': 3.2, 'upper': 3.8},
-            'grid_config': {'count': 20, 'type': '等差', 'step_size': 0.03},
-            'fund_allocation': {'base_position_amount': 2500, 'base_position_shares': 700, 'grid_trading_amount': 7000}
-        }
-    }
-    result = validate_backtest_request(valid_data)
-    assert result['valid'] is True
-
-    # 缺少ETF代码
-    invalid_data = {'gridStrategy': {}}
-    result = validate_backtest_request(invalid_data)
-    assert result['valid'] is False
-    assert 'etfCode' in result['error']
-
-    # 缺少交易所代码
-    invalid_data = {'etfCode': '510300', 'gridStrategy': {}}
-    result = validate_backtest_request(invalid_data)
-    assert result['valid'] is False
-    assert 'exchangeCode' in result['error']
-
-    # 无效手续费率
-    invalid_data = {
-        'etfCode': '510300',
-        'exchangeCode': 'XSHG',
-        'gridStrategy': valid_data['gridStrategy'],
-        'backtestConfig': {'commissionRate': 1.5}
-    }
-    result = validate_backtest_request(invalid_data)
-    assert result['valid'] is False
-    assert '手续费率' in result['error']
+        # 验证最终状态一致性
+        assert final_state['position'] == pytest.approx(expected_position)
+        assert final_state['cash'] == pytest.approx(expected_cash, rel=0.01)

@@ -16,7 +16,7 @@ export default function TradeList({ trades = [], gridStrategy, totalCapital }) {
 
     const reserveAmount = gridStrategy.fund_allocation?.reserve_amount || 0;
 
-    return trades.map((trade) => {
+    return trades.map((trade, index) => {
       const marketValue = trade.price * trade.position; // 市值 = 交易价格 × 持仓
       const totalAsset = marketValue + trade.cash + reserveAmount; // 总资产 = 市值 + 资金余额 + 预留资金
       const totalProfitLoss = totalAsset - totalCapital; // 总盈亏额 = 总资产 - 初始资产
@@ -26,6 +26,7 @@ export default function TradeList({ trades = [], gridStrategy, totalCapital }) {
         marketValue: Math.round(marketValue * 100) / 100,
         totalAsset: Math.round(totalAsset * 100) / 100,
         totalProfitLoss: Math.round(totalProfitLoss * 100) / 100,
+        isFirstTrade: index === 0,
       };
     });
   }, [trades, gridStrategy, totalCapital]);
@@ -155,7 +156,7 @@ export default function TradeList({ trades = [], gridStrategy, totalCapital }) {
                     ) : (
                       <TrendingDown className="w-3 h-3 mr-1" />
                     )}
-                    {trade.type === 'BUY' ? '买入' : '卖出'}
+                    {trade.type === 'BUY' ? (trade.isFirstTrade ? '建仓' : '买入') : '卖出'}
                   </span>
                 </td>
                 <td className="text-sm text-right text-gray-900 font-medium">
