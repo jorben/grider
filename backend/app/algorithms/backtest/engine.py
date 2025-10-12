@@ -14,9 +14,10 @@ from .fee_calculator import FeeCalculator
 class BacktestEngine:
     """回测引擎核心"""
 
-    def __init__(self, grid_strategy: dict, backtest_config: BacktestConfig):
+    def __init__(self, grid_strategy: dict, backtest_config: BacktestConfig, country: str = 'CHN'):
         self.grid_strategy = grid_strategy
         self.config = backtest_config
+        self.country = country
 
         # 初始化手续费计算器
         self.fee_calc = FeeCalculator(
@@ -24,10 +25,11 @@ class BacktestEngine:
             min_commission=backtest_config.min_commission
         )
 
-        # 初始化交易逻辑
+        # 初始化交易逻辑（传递country参数）
         self.trading_logic = TradingLogic(
             grid_config=grid_strategy['grid_config'],
-            fee_calculator=self.fee_calc
+            fee_calculator=self.fee_calc,
+            country=country  # 传递country参数
         )
 
         # 状态追踪
@@ -48,18 +50,26 @@ class BacktestEngine:
         if not kline_data:
             raise ValueError("K线数据为空")
 
-        # 1. 初始化空仓状态
+        # 1. 获取资金配置
         fund_alloc = self.grid_strategy['fund_allocation']
         total_capital = fund_alloc['base_position_amount'] + fund_alloc['grid_trading_amount']
 
-        self.state = self.trading_logic.initialize_empty_position(
-            base_price=self.grid_strategy['price_range']['upper'],
+        # 2. 执行初始底仓购买（使用第一根K线）
+        first_kbar = kline_data[0]
+        self.state, initial_trade = self.trading_logic.execute_initial_position(
+            first_kbar=first_kbar,
+            base_position_amount=fund_alloc['base_position_amount'],
             total_capital=total_capital,
+            strategy_base_price=self.grid_strategy['current_price'],
             price_lower=self.grid_strategy['price_range']['lower'],
             price_upper=self.grid_strategy['price_range']['upper']
         )
 
-        # 3. 逐K线扫描交易
+        # 记录初始建仓交易
+        if initial_trade:
+            self.trade_records.append(initial_trade)
+
+        # 3. 逐K线扫描交易（从第一根K线开始，不跳过）
         for kbar in kline_data:
             # 更新总资产（按收盘价）
             self.state.total_asset = self.state.cash + self.state.position * kbar.close

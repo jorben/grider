@@ -14,7 +14,7 @@ from datetime import datetime
 class TradingLogic:
     """网格交易逻辑"""
 
-    def __init__(self, grid_config: dict, fee_calculator: FeeCalculator):
+    def __init__(self, grid_config: dict, fee_calculator: FeeCalculator, country: str = 'CHN'):
         self.grid_config = grid_config
         self.fee_calc = fee_calculator
         self.grid_type = grid_config['type']
@@ -22,20 +22,22 @@ class TradingLogic:
         self.step_ratio = grid_config.get('step_ratio', 0)
         self.single_quantity = grid_config['single_trade_quantity']
 
+        # 获取最小交易单位（复用GridOptimizer的逻辑）
+        self.min_trade_unit = 1 if country == 'USA' else 100
+
     def initialize_empty_position(self, base_price: float, total_capital: float,
                                  price_lower: float, price_upper: float) -> BacktestState:
         """
         初始化空仓状态
 
-        Args:
-            base_price: 基准价格（网格上限）
-            total_capital: 总资金
-            price_lower: 价格下限
-            price_upper: 价格上限
-
-        Returns:
-            初始状态（空仓）
+        @deprecated: 使用 execute_initial_position() 替代
         """
+        import warnings
+        warnings.warn(
+            "initialize_empty_position() 已废弃，请使用 execute_initial_position()",
+            DeprecationWarning,
+            stacklevel=2
+        )
         # 初始化状态：空仓，全部资金作为现金
         cash = total_capital
         position = 0
@@ -238,3 +240,118 @@ class TradingLogic:
             sell_price = round(base_price * (1 + self.step_ratio), 4)
 
         return buy_price, sell_price
+
+    def execute_initial_position(self, first_kbar: KBar, base_position_amount: float,
+                                total_capital: float, strategy_base_price: float,
+                                price_lower: float, price_upper: float) -> Tuple[BacktestState, Optional[TradeRecord]]:
+        """
+        执行初始底仓购买
+
+        Args:
+            first_kbar: 第一根K线数据
+            base_position_amount: 底仓资金
+            total_capital: 总资金
+            strategy_base_price: 策略基准价（用于计算网格点）
+            price_lower: 价格下限
+            price_upper: 价格上限
+
+        Returns:
+            (初始状态, 底仓交易记录或None)
+        """
+        # 1. 计算第一根K线均价
+        purchase_price = (first_kbar.high + first_kbar.low +
+                         first_kbar.open + first_kbar.close) / 4
+
+        # 2. 计算可购买股数（使用self.min_trade_unit）
+        theoretical_shares = base_position_amount / purchase_price
+        shares = int(theoretical_shares / self.min_trade_unit) * self.min_trade_unit
+
+        # 3. 检查资金充足性
+        if shares < self.min_trade_unit:
+            # 资金不足，降级为0底仓
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"底仓资金{base_position_amount}不足以购买最小单位{self.min_trade_unit}股，调整为0底仓")
+            return self._initialize_zero_position(
+                total_capital, strategy_base_price, price_lower, price_upper, first_kbar.close
+            )
+
+        # 4. 计算实际成本（含手续费）
+        cost = self.fee_calc.calculate_buy_cost(purchase_price, shares)
+
+        # 5. 验证资金安全
+        if cost > total_capital:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"底仓成本{cost}超过总资金{total_capital}，调整为0底仓")
+            return self._initialize_zero_position(
+                total_capital, strategy_base_price, price_lower, price_upper, first_kbar.close
+            )
+
+        # 6. 创建初始状态
+        cash = total_capital - cost
+        position = shares
+
+        # 计算网格点（使用策略基准价，不是购买价）
+        buy_price, sell_price = self._calculate_grid_prices(strategy_base_price)
+
+        total_asset = cash + position * first_kbar.close
+
+        state = BacktestState(
+            cash=cash,
+            position=position,
+            base_price=strategy_base_price,  # ❗使用策略基准价
+            buy_price=buy_price,
+            sell_price=sell_price,
+            total_asset=total_asset,
+            peak_asset=total_asset,
+            price_lower=price_lower,
+            price_upper=price_upper
+        )
+
+        # 7. 创建交易记录
+        commission = cost - purchase_price * shares
+        record = TradeRecord(
+            time=first_kbar.time,
+            type='BUY',
+            price=purchase_price,
+            quantity=shares,
+            commission=commission,
+            profit=None,
+            position=position,
+            cash=cash
+        )
+
+        return state, record
+
+    def _initialize_zero_position(self, total_capital: float, strategy_base_price: float,
+                                 price_lower: float, price_upper: float,
+                                 first_kbar_close: float) -> Tuple[BacktestState, None]:
+        """
+        初始化0底仓状态（资金不足时的降级方案）
+
+        Args:
+            total_capital: 总资金
+            strategy_base_price: 策略基准价
+            price_lower: 价格下限
+            price_upper: 价格上限
+            first_kbar_close: 第一根K线收盘价
+
+        Returns:
+            (初始状态, None)
+        """
+        buy_price, sell_price = self._calculate_grid_prices(strategy_base_price)
+
+        state = BacktestState(
+            cash=total_capital,
+            position=0,
+            base_price=strategy_base_price,
+            buy_price=buy_price,
+            sell_price=sell_price,
+            total_asset=total_capital,
+            peak_asset=total_capital,
+            price_lower=price_lower,
+            price_upper=price_upper
+        )
+
+        return state, None

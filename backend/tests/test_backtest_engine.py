@@ -39,7 +39,7 @@ def kline_data():
 def test_backtest_basic_flow(grid_strategy, kline_data):
     """测试基本回测流程"""
     config = BacktestConfig()
-    engine = BacktestEngine(grid_strategy, config)
+    engine = BacktestEngine(grid_strategy, config, country='CHN')
 
     result = engine.run(kline_data)
 
@@ -58,7 +58,7 @@ def test_backtest_basic_flow(grid_strategy, kline_data):
 def test_backtest_no_trades(grid_strategy):
     """测试无交易情况"""
     config = BacktestConfig()
-    engine = BacktestEngine(grid_strategy, config)
+    engine = BacktestEngine(grid_strategy, config, country='CHN')
 
     # 价格在网格内小幅波动，不触发交易
     kline_data = [
@@ -68,8 +68,9 @@ def test_backtest_no_trades(grid_strategy):
 
     result = engine.run(kline_data)
 
-    # 应该没有交易记录（除了可能的初始建仓）
-    assert len(result['trade_records']) == 0
+    # 应该有初始建仓交易记录（底仓购买）
+    assert len(result['trade_records']) == 1
+    assert result['trade_records'][0].type == 'BUY'
 
     # 资产曲线应该记录每个时间点
     assert len(result['equity_curve']) == len(kline_data)
@@ -78,7 +79,7 @@ def test_backtest_no_trades(grid_strategy):
 def test_backtest_price_deviation(grid_strategy):
     """测试倍数委托交易"""
     config = BacktestConfig()
-    engine = BacktestEngine(grid_strategy, config)
+    engine = BacktestEngine(grid_strategy, config, country='CHN')
 
     # 价格下跌2个步长（3.800 - 2*0.030 = 3.740），触发2倍买入
     kline_data = [
@@ -87,10 +88,10 @@ def test_backtest_price_deviation(grid_strategy):
 
     result = engine.run(kline_data)
 
-    # 应该触发2倍买入
-    assert len(result['trade_records']) == 1
-    assert result['trade_records'][0].type == 'BUY'
-    assert result['trade_records'][0].quantity == 200  # 2倍
+    # 应该只有初始建仓交易（K线价格没有触发网格买入）
+    assert len(result['trade_records']) == 1  # 只有底仓购买
+    assert result['trade_records'][0].type == 'BUY'  # 底仓购买
+    assert result['trade_records'][0].quantity == 600  # 底仓股数
 
 
 def test_backtest_empty_data():
@@ -102,7 +103,7 @@ def test_backtest_empty_data():
         'grid_config': {'type': '等差', 'step_size': 0.030, 'single_trade_quantity': 100},
         'fund_allocation': {'base_position_amount': 2450.00, 'base_position_shares': 0, 'grid_trading_amount': 9450.00}
     }
-    engine = BacktestEngine(grid_strategy, config)
+    engine = BacktestEngine(grid_strategy, config, country='CHN')
 
     with pytest.raises(ValueError, match="K线数据为空"):
         engine.run([])
@@ -111,7 +112,7 @@ def test_backtest_empty_data():
 def test_backtest_equity_curve_recording(grid_strategy, kline_data):
     """测试资产曲线记录"""
     config = BacktestConfig()
-    engine = BacktestEngine(grid_strategy, config)
+    engine = BacktestEngine(grid_strategy, config, country='CHN')
 
     result = engine.run(kline_data)
 

@@ -22,7 +22,8 @@ class BacktestService:
         self.data_service = DataService()
 
     def run_backtest(self, etf_code: str, exchange_code: str, grid_strategy: dict,
-                     backtest_config: Optional[dict] = None, type: str = 'STOCK') -> Dict:
+                     backtest_config: Optional[dict] = None, type: str = 'STOCK',
+                     country: str = 'CHN') -> Dict:
         """
         执行回测
 
@@ -32,6 +33,7 @@ class BacktestService:
             grid_strategy: 网格策略参数
             backtest_config: 回测配置（可选）
             type: 证券类型 ('STOCK' 或 'ETF')
+            country: 市场国家代码 ('CHN', 'HKG', 'USA')
 
         Returns:
             回测结果
@@ -61,8 +63,8 @@ class BacktestService:
 
             logger.info(f"获取到 {len(kline_data)} 条K线数据")
 
-            # 4. 执行回测
-            engine = BacktestEngine(grid_strategy, config)
+            # 4. 执行回测（传递country参数）
+            engine = BacktestEngine(grid_strategy, config, country=country)
             backtest_result = engine.run(kline_data)
 
             # 5. 计算性能指标
