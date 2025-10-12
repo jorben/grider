@@ -33,7 +33,7 @@ export default function BacktestGuide() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div className="flex items-start gap-2">
               <BarChart3 className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-              <span className="text-blue-800">基于最近10个交易日的5分钟K线数据进行模拟回测</span>
+              <span className="text-blue-800">基于最近30个交易日的5分钟K线数据进行模拟回测</span>
             </div>
             <div className="flex items-start gap-2">
               <AlertTriangle className="w-4 h-4 text-orange-600 mt-0.5 flex-shrink-0" />
