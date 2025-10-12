@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.2] - 2025-10-12
+### :sparkles: New Features
+- [`ab3a599`](https://github.com/jorben/grider/commit/ab3a5999bfe4a8916377eb78fe8b15a344426266) - **backtest**: add pagination to trade list *(commit by [@jorben](https://github.com/jorben))*
+- [`94992cd`](https://github.com/jorben/grider/commit/94992cd65e26d6f3889c9280cf29a816cc10b08f) - **providers**: add pre_close column to stock and etf history data *(commit by [@jorben](https://github.com/jorben))*
+
+### :zap: Performance Improvements
+- [`b3bd5ca`](https://github.com/jorben/grider/commit/b3bd5cace045616a6cab0beb8766bd15e08207fd) - **config**: reduce cache TTL for calendar endpoint from 1 year to 1 day *(commit by [@jorben](https://github.com/jorben))*
+
+### :wrench: Chores
+- [`8358520`](https://github.com/jorben/grider/commit/8358520c74a821d010219ed5640f2d946d4b2286) - bump version to 1.2.2 *(commit by [@jorben](https://github.com/jorben))*
+
+
 ## [1.2.1] - 2025-10-12
 ### :zap: Performance Improvements
 - [`2b5c957`](https://github.com/jorben/grider/commit/2b5c9577e2cafa671ef119e40736e252df7ee093) - **backtest**: increase max data points for chart sampling from 500 to 800 *(commit by [@jorben](https://github.com/jorben))*
@@ -104,3 +116,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.1.0]: https://github.com/jorben/grider/compare/1.0.0...1.1.0
 [1.2.0]: https://github.com/jorben/grider/compare/1.1.0...1.2.0
 [1.2.1]: https://github.com/jorben/grider/compare/1.2.0...1.2.1
+[1.2.2]: https://github.com/jorben/grider/compare/1.2.1...1.2.2
