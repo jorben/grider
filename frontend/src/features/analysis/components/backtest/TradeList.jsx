@@ -1,17 +1,37 @@
 import React, { useState, useMemo } from 'react';
 import { formatCurrency } from '@shared/utils/format';
-import { TrendingUp, TrendingDown, Filter, Calendar, DollarSign, Hash, Percent, Activity } from 'lucide-react';
+import { TrendingUp, TrendingDown, Filter, Calendar, DollarSign, Hash, Percent, Activity, ChevronLeft, ChevronRight } from 'lucide-react';
 
 /**
  * 交易记录列表
  */
 export default function TradeList({ trades = [] }) {
   const [filter, setFilter] = useState('ALL'); // 'ALL' | 'BUY' | 'SELL'
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
 
   const filteredTrades = useMemo(() => {
     if (filter === 'ALL') return trades;
     return trades.filter((t) => t.type === filter);
   }, [trades, filter]);
+
+  // 分页计算
+  const totalPages = Math.ceil(filteredTrades.length / pageSize);
+  const currentPageData = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    return filteredTrades.slice(startIndex, endIndex);
+  }, [filteredTrades, currentPage, pageSize]);
+
+  // 重置页码当筛选条件改变时
+  const handleFilterChange = (newFilter) => {
+    setFilter(newFilter);
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-6">
@@ -33,7 +53,7 @@ export default function TradeList({ trades = [] }) {
             {['ALL', 'BUY', 'SELL'].map((type) => (
               <button
                 key={type}
-                onClick={() => setFilter(type)}
+                onClick={() => handleFilterChange(type)}
                 className={`px-3 py-1 rounded text-sm transition-colors ${
                   filter === type
                     ? 'bg-blue-600 text-white'
@@ -75,7 +95,7 @@ export default function TradeList({ trades = [] }) {
             </tr>
           </thead>
           <tbody>
-            {filteredTrades.map((trade, index) => (
+            {currentPageData.map((trade, index) => (
               <tr
                 key={index}
                 className={`transition-colors ${
@@ -144,6 +164,36 @@ export default function TradeList({ trades = [] }) {
           </tbody>
         </table>
       </div>
+
+      {/* 分页控件 */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-4 px-4">
+          <div className="text-sm text-gray-600">
+            显示第 {(currentPage - 1) * pageSize + 1} - {Math.min(currentPage * pageSize, filteredTrades.length)} 条，共 {filteredTrades.length} 条记录
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="flex items-center gap-1 px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              上一页
+            </button>
+            <span className="text-sm text-gray-600">
+              {currentPage} / {totalPages}
+            </span>
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="flex items-center gap-1 px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              下一页
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {filteredTrades.length === 0 && (
         <div className="text-center py-8 text-gray-500">
