@@ -67,7 +67,7 @@ class TsanghiProvider(BaseProvider):
                 "start_date": start_date,
                 "end_date":end_date,
                 "order":2,
-                "columns": "ticker,date,open,high,low,close,volume,amount"
+                "columns": "ticker,date,open,high,low,close,volume,amount,pre_close"
                 }
         )
     
@@ -102,7 +102,7 @@ class TsanghiProvider(BaseProvider):
                 "start_date": start_date,
                 "end_date":end_date,
                 "order":2,
-                "columns": "ticker,date,open,high,low,close,volume,amount"
+                "columns": "ticker,date,open,high,low,close,volume,amount,pre_close"
                 }
         )
     
