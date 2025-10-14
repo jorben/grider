@@ -73,10 +73,10 @@ export default function AdjustmentCoefficientSlider({ value, onChange }) {
         </div>
 
         {/* 详细说明 */}
-        <div className="text-xs text-gray-500 mt-2">
-          <p>• 系数越大，频率偏好的结果差异越明显</p>
-          <p>• 系数越小，频率偏好的结果趋于一致</p>
-          <p>• 可以通过调节该系数获得更多差异化的方案（比如，调到最大系数后选择低频+高频的组合网格）</p>
+        <div className="text-xs text-gray-500 mt-2 space-y-1">
+          <div>• 系数越大，频率偏好的结果差异越明显</div>
+          <div>• 系数越小，频率偏好的结果趋于一致</div>
+          <div>• 可以通过调节该系数获得更多差异化的方案（比如，调到最大系数后选择低频+高频的组合网格）</div>
         </div>
       </div>
     </div>

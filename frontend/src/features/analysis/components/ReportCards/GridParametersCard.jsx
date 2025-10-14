@@ -161,11 +161,11 @@ const GridParametersCard = ({
             </div>
           </div>
 
-          <div className="text-center p-4 bg-red-50 rounded-lg">
-            <div className="text-2xl font-bold text-red-600 mb-1">
+          <div className="text-center p-4 bg-up-50 rounded-lg">
+            <div className="text-2xl font-bold text-up-600 mb-1">
               {formatCurrency(price_range.upper, etfInfo?.country, { maximumFractionDigits: 3 })}
             </div>
-            <div className="text-sm text-red-700 font-medium">上边界</div>
+            <div className="text-sm text-up-700 font-medium">上边界</div>
             <div className="text-xs text-gray-600 mt-1">卖出区间上限</div>
           </div>
         </div>
@@ -342,9 +342,9 @@ const GridParametersCard = ({
                         key={index}
                         className={`p-2 text-center rounded text-sm ${
                           price < current_price
-                            ? "bg-red-50 text-red-700 border border-red-200"
+                            ? "bg-up-50 text-up-700 border border-up-200"  /* 低于当前价 - 买入价，用红色 */
                             : price > current_price
-                              ? "bg-green-50 text-green-700 border border-green-200"
+                              ? "bg-down-50 text-down-700 border border-down-200"  /* 高于当前价 - 卖出价，用绿色 */
                               : "bg-yellow-50 text-yellow-700 border border-yellow-200"
                         }`}
                       >
@@ -392,9 +392,9 @@ const GridParametersCard = ({
                       key={startIndex + index}
                       className={`p-2 text-center rounded text-sm ${
                         price < current_price
-                          ? "bg-red-50 text-red-700 border border-red-200"
+                          ? "bg-up-50 text-up-700 border border-up-200"  /* 低于当前价 - 买入价，用红色 */
                           : price > current_price
-                            ? "bg-green-50 text-green-700 border border-green-200"
+                            ? "bg-down-50 text-down-700 border border-down-200"  /* 高于当前价 - 卖出价，用绿色 */
                             : "bg-yellow-50 text-yellow-700 border border-yellow-200"
                       }`}
                     >

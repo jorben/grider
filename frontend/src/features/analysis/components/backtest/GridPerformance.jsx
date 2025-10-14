@@ -119,7 +119,7 @@ export default function GridPerformance({ gridAnalysis = null, priceLevels = [] 
                       <p className="text-sm font-semibold text-gray-900 mb-2">网格价格: {data.price}</p>
                       <div className="space-y-1 text-sm">
                         <p className="text-gray-700">触发次数: <span className="font-medium">{data.triggerCount}</span></p>
-                        <p className="text-green-600 font-medium">
+                        <p className="text-up-600 font-medium">
                           盈利贡献: {formatCurrency(data.profitContribution)}
                         </p>
                       </div>
@@ -165,7 +165,7 @@ export default function GridPerformance({ gridAnalysis = null, priceLevels = [] 
                   </td>
                   <td className="text-sm text-right">
                     <span className={`font-medium ${
-                      grid.profitContribution > 0 ? 'text-green-600' : 'text-gray-600'
+                      grid.profitContribution > 0 ? 'text-up-600' : 'text-gray-600'
                     }`}>
                       {formatCurrency(grid.profitContribution)}
                     </span>

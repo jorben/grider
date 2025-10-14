@@ -10,16 +10,16 @@ export default function BacktestMetrics({ metrics = {}, tradingMetrics = {}, ben
     {
       label: '区间收益率',
       value: formatPercent(metrics.total_return),
-      color: (metrics.total_return ?? 0) >= 0 ? 'text-red-600' : 'text-green-600',
+      color: (metrics.total_return ?? 0) >= 0 ? 'text-up-600' : 'text-down-600',
       icon: TrendingUp,
-      bgColor: (metrics.total_return ?? 0) >= 0 ? 'bg-red-100' : 'bg-green-100',
+      bgColor: (metrics.total_return ?? 0) >= 0 ? 'bg-up-100' : 'bg-down-100',
       extra: `超额${formatPercent(benchmark.excess_return)}`,
-      extraColor: (benchmark.excess_return ?? 0) >= 0 ? 'text-red-500' : 'text-green-500',
+      extraColor: (benchmark.excess_return ?? 0) >= 0 ? 'text-up-500' : 'text-down-500',
     },
     {
       label: '最大回撤',
       value: formatPercent(metrics.max_drawdown),
-      color: 'text-green-600',
+      color: 'text-down-600',  // 最大回撤，负值表示亏损，用下跌颜色
       icon: TrendingDown,
       bgColor: 'bg-green-100',
     },
@@ -33,9 +33,9 @@ export default function BacktestMetrics({ metrics = {}, tradingMetrics = {}, ben
     {
       label: '年化收益',
       value: formatPercent(metrics.annualized_return),
-      color: (metrics.annualized_return ?? 0) >= 0 ? 'text-red-600' : 'text-green-600',
+      color: (metrics.annualized_return ?? 0) >= 0 ? 'text-up-600' : 'text-down-600',
       icon: TrendingUp,
-      bgColor: (metrics.annualized_return ?? 0) >= 0 ? 'bg-red-100' : 'bg-green-100',
+      bgColor: (metrics.annualized_return ?? 0) >= 0 ? 'bg-up-100' : 'bg-down-100',
     },
   ];
 
@@ -50,9 +50,9 @@ export default function BacktestMetrics({ metrics = {}, tradingMetrics = {}, ben
     {
       label: '胜率',
       value: formatPercent(tradingMetrics.win_rate),
-      color: (tradingMetrics.win_rate ?? 0) >= 0.5 ? 'text-red-600' : 'text-gray-600',
+      color: (tradingMetrics.win_rate ?? 0) >= 0.5 ? 'text-up-600' : 'text-gray-600',
       icon: Target,
-      bgColor: (tradingMetrics.win_rate ?? 0) >= 0.5 ? 'bg-red-100' : 'bg-gray-100',
+      bgColor: (tradingMetrics.win_rate ?? 0) >= 0.5 ? 'bg-up-100' : 'bg-gray-100',
     },
     {
       label: '盈亏比',
@@ -142,15 +142,15 @@ export default function BacktestMetrics({ metrics = {}, tradingMetrics = {}, ben
           </div>
           <div className="text-center p-4 bg-gradient-to-r from-green-50 to-red-50 rounded-lg">
             <div className={`flex items-center justify-center w-10 h-10 mx-auto mb-2 ${
-              (benchmark.excess_return ?? 0) >= 0 ? 'bg-red-100' : 'bg-green-100'
+              (benchmark.excess_return ?? 0) >= 0 ? 'bg-up-100' : 'bg-down-100'
             } rounded-full`}>
-              <Target className={`w-5 h-5 ${
-                (benchmark.excess_return ?? 0) >= 0 ? 'text-red-600' : 'text-green-600'
-              }`} />
+            <Target className={`w-5 h-5 ${
+              (benchmark.excess_return ?? 0) >= 0 ? 'text-up-600' : 'text-down-600'
+            }`} />
             </div>
             <p className="text-sm text-gray-600 mb-1">超额收益</p>
             <p className={`text-lg font-bold ${
-              (benchmark.excess_return ?? 0) >= 0 ? 'text-red-600' : 'text-green-600'
+              (benchmark.excess_return ?? 0) >= 0 ? 'text-up-600' : 'text-down-600'
             }`}>
               {formatPercent(benchmark.excess_return)}
             </p>
