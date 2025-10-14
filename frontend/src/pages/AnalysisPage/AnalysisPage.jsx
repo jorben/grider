@@ -253,37 +253,86 @@ const AnalysisPage = () => {
       <div className="space-y-6">
         {/* 页面头部 */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-4">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            {/* 小屏幕：第一行 - 按钮行 */}
+            <div className="flex items-center justify-between lg:hidden">
+              {/* 返回按钮 */}
               <button
                 onClick={handleBackToHome}
-                className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                className="btn btn-secondary btn-sm flex items-center gap-2"
+                title="返回首页"
               >
                 <ArrowLeft className="w-4 h-4" />
-                返回首页
+                <span className="hidden sm:inline">返回首页</span>
               </button>
 
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">
-                  {analysisData?.etf_info?.name || `ETF`}({etfCode})
-                  网格策略分析
-                </h1>
-                <p className="text-sm text-gray-600">
-                  投资金额：{currentParams?.totalCapital?.toLocaleString()}元 |
-                  网格类型：{currentParams?.gridType} | 频率偏好：
-                  {currentParams?.riskPreference} | 调节系数：{currentParams?.adjustmentCoefficient}
-                </p>
+              {/* 分享按钮 */}
+              <button
+                onClick={handleShare}
+                className="btn btn-primary btn-sm flex items-center gap-2"
+                title="分享报告"
+              >
+                <Share2 className="w-4 h-4" />
+                <span className="hidden sm:inline">分享报告</span>
+              </button>
+            </div>
+
+            {/* 小屏幕：第二行 - 标题和参数信息 */}
+            <div className="lg:hidden">
+              <h1 className="text-lg sm:text-xl font-bold text-gray-900 truncate">
+                {analysisData?.etf_info?.name || `ETF`}({etfCode})
+                网格策略分析
+              </h1>
+              
+              {/* 移动端参数信息显示 */}
+              <div className="mt-2">
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-600">
+                  <span>投资金额：{currentParams?.totalCapital?.toLocaleString()}元</span>
+                  <span>网格类型：{currentParams?.gridType}</span>
+                  <span>频率偏好：{currentParams?.riskPreference}</span>
+                  <span>调节系数：{currentParams?.adjustmentCoefficient}</span>
+                </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <button
-                onClick={handleShare}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                <Share2 className="w-4 h-4" />
-                分享报告
-              </button>
+            {/* 桌面端布局 */}
+            <div className="hidden lg:flex lg:items-center lg:justify-between lg:flex-1">
+              {/* 左侧：返回按钮和标题信息 */}
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={handleBackToHome}
+                  className="btn btn-secondary btn-sm flex items-center gap-2"
+                  title="返回首页"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  返回首页
+                </button>
+
+                <div className="flex-1 min-w-0">
+                  <h1 className="text-xl font-bold text-gray-900 truncate">
+                    {analysisData?.etf_info?.name || `ETF`}({etfCode})
+                    网格策略分析
+                  </h1>
+                  <p className="text-sm text-gray-600 truncate">
+                    投资金额：{currentParams?.totalCapital?.toLocaleString()}元 |
+                    网格类型：{currentParams?.gridType} |
+                    频率偏好：{currentParams?.riskPreference} |
+                    调节系数：{currentParams?.adjustmentCoefficient}
+                  </p>
+                </div>
+              </div>
+
+              {/* 右侧：分享按钮 */}
+              <div className="flex items-center">
+                <button
+                  onClick={handleShare}
+                  className="btn btn-primary btn-sm flex items-center gap-2"
+                  title="分享报告"
+                >
+                  <Share2 className="w-4 h-4" />
+                  分享报告
+                </button>
+              </div>
             </div>
           </div>
 

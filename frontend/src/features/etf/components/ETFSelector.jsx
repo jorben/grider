@@ -30,7 +30,7 @@ export default function ETFSelector({
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-3">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-3">
         <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
           <Search className="w-4 h-4" />
           标的选择
@@ -38,7 +38,7 @@ export default function ETFSelector({
 
         {/* 热门ETF */}
         <div className="flex items-center">
-          <span className="text-xs text-gray-500 mr-2">热门标的：</span>
+          <span className="hidden sm:inline text-xs text-gray-500 mr-2">热门标的：</span>
           <div className="flex flex-wrap gap-2">
             {hotETFs.map((code) => {
               const etf = popularETFs.find((e) => e.code === code);

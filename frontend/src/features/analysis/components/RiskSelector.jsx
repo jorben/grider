@@ -7,9 +7,9 @@ import { Activity } from "lucide-react";
  */
 export default function RiskSelector({ value, onChange }) {
   const riskOptions = [
-    { value: "低频", label: "低频型", desc: "潜心等待机会浮现", color: "green" },
+    { value: "低频", label: "低频型", desc: "潜心等待机会浮现", color: "blue" },
     { value: "均衡", label: "均衡型", desc: "稳中求进平衡布局", color: "blue" },
-    { value: "高频", label: "高频型", desc: "频繁出手波浪穿梭", color: "red" },
+    { value: "高频", label: "高频型", desc: "频繁出手波浪穿梭", color: "blue" },
   ];
 
   return (
