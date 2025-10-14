@@ -91,8 +91,8 @@ export default function ETFSelector({
                   <span
                     className={
                       etfInfo.change_pct >= 0
-                        ? "text-red-600"
-                        : "text-green-600"
+                        ? "text-up-600"  /* 红色 - 上涨 */
+                        : "text-down-600"  /* 绿色 - 下跌 */
                     }
                   >
                     ({etfInfo.change_pct >= 0 ? "+" : ""}

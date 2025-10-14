@@ -125,12 +125,12 @@ export default function BacktestCharts({ priceCurve = [], equityCurve = [], trad
                         <p className="text-gray-700">最高: <span className="font-medium">{data.high.toFixed(3)}</span></p>
                         <p className="text-gray-700">最低: <span className="font-medium">{data.low.toFixed(3)}</span></p>
                         {data.buyPrice && (
-                          <p className="text-red-600 font-medium">
+                          <p className="text-up-600 font-medium">
                             ↑ 买入: {data.buyPrice.toFixed(3)}
                           </p>
                         )}
                         {data.sellPrice && (
-                          <p className="text-blue-600 font-medium">
+                          <p className="text-down-600 font-medium">
                             ↓ 卖出: {data.sellPrice.toFixed(3)}
                           </p>
                         )}
@@ -146,15 +146,15 @@ export default function BacktestCharts({ priceCurve = [], equityCurve = [], trad
             {/* 价格上下限参考线 */}
             <ReferenceLine
               y={price_range.upper}
-              stroke="#ef4444"
+              stroke="#ef4444"  /* 红色 - 上边界价格 */
               strokeDasharray="5 5"
               label={{ value: '上限', position: 'insideTopRight', fill: '#ef4444' }}
             />
             <ReferenceLine
               y={price_range.lower}
-              stroke="#22c55e"
+              stroke="#10b981"  /* 绿色 - 下边界价格 */
               strokeDasharray="5 5"
-              label={{ value: '下限', position: 'insideBottomRight', fill: '#22c55e' }}
+              label={{ value: '下限', position: 'insideBottomRight', fill: '#10b981' }}
             />
 
             {/* 收盘价折线 */}
@@ -219,7 +219,7 @@ export default function BacktestCharts({ priceCurve = [], equityCurve = [], trad
                           持有不动: {data.holdReturn.toFixed(2)}%
                         </p>
                         <p className={`font-medium ${
-                          data.excess >= 0 ? 'text-green-600' : 'text-red-600'
+                          data.excess >= 0 ? 'text-up-600' : 'text-down-600'
                         }`}>
                           超额收益: {data.excess.toFixed(2)}%
                         </p>

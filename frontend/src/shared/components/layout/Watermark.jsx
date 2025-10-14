@@ -177,7 +177,7 @@ const Watermark = ({
   }, [text, fontSize, opacity, angle, color, spacing]);
 
   return (
-    <div ref={containerRef} className="watermark-container">
+    <div ref={containerRef} className="watermark">
       <canvas ref={canvasRef} className="watermark-canvas" />
     </div>
   );

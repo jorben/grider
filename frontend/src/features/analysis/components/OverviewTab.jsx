@@ -87,7 +87,7 @@ export default function OverviewTab({
             </div>
             <h3 className="font-semibold text-green-900">网格价格区间</h3>
           </div>
-          <div className="text-2xl font-bold text-green-900 mb-1">
+          <div className="text-2xl font-bold text-down-900 mb-1">
             {formatCurrency(gridStrategy?.price_range?.lower, etfInfo?.country, { maximumFractionDigits: 3 })} - {gridStrategy?.price_range?.upper.toFixed(3)}
           </div>
           <p className="text-green-700 text-sm">网格交易价格范围</p>

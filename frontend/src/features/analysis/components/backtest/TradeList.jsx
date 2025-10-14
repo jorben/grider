@@ -171,13 +171,7 @@ export default function TradeList({ trades = [], gridStrategy, totalCapital }) {
                 {/*<td className="text-sm text-right">
                   {trade.profit !== null ? (
                     <span
-                      className={`font-medium ${
-                        trade.profit > 0
-                          ? 'text-red-600'
-                          : trade.profit < 0
-                          ? 'text-green-600'
-                          : 'text-gray-600'
-                      }`}
+                      className="font-medium"
                     >
                       {trade.profit > 0 ? '+' : ''}
                       {formatCurrency(trade.profit)}
@@ -203,10 +197,10 @@ export default function TradeList({ trades = [], gridStrategy, totalCapital }) {
                     <span
                       className={`font-medium ${
                         trade.totalProfitLoss > 0
-                          ? 'text-red-600'
+                          ? 'text-up-600'  /* 红色 - 盈利 */
                           : trade.totalProfitLoss < 0
-                          ? 'text-green-600'
-                          : 'text-gray-600'
+                            ? 'text-down-600'  /* 绿色 - 亏损 */
+                            : 'text-gray-600'
                       }`}
                     >
                       {trade.totalProfitLoss > 0 ? '+' : ''}

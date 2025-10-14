@@ -191,11 +191,11 @@
 }
 
 .price-up {
-  @apply text-danger-600;
+  @apply text-up-600; /* 红色 - 上涨 */
 }
 
 .price-down {
-  @apply text-success-600;
+  @apply text-down-600; /* 绿色 - 下跌 */
 }
 
 .price-neutral {
