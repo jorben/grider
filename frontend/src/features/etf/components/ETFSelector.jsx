@@ -14,7 +14,7 @@ export default function ETFSelector({
   etfInfo,
   loading,
 }) {
-  const hotETFs = ["510300", "510500", "159915", "588000", "3032" , "SPY"];
+  const hotETFs = ["510300", "159915", "588000", "512170", "3032" , "SPY"];
 
   // 获取热门ETF列表
   useEffect(() => {
