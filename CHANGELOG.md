@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.7] - 2025-10-15
+### :sparkles: New Features
+- [`3cff100`](https://github.com/jorben/grider/commit/3cff10087a4dc42fad6841ee5d47f1ec688ff876) - **ui**: 优化分析组件视觉设计和信息层级 *(commit by [@jorben](https://github.com/jorben))*
+- [`89a47ee`](https://github.com/jorben/grider/commit/89a47eeda4063a36b241cfc42eb4f0c8339d1f93) - **ui**: 优化适宜度卡片布局和响应式设计 *(commit by [@jorben](https://github.com/jorben))*
+
+### :recycle: Refactors
+- [`054b254`](https://github.com/jorben/grider/commit/054b254e6e330081f2a5bce0571f65234bed7e92) - **ui**: 优化语义化HTML结构和标题层级 *(commit by [@jorben](https://github.com/jorben))*
+
+### :wrench: Chores
+- [`21bfda3`](https://github.com/jorben/grider/commit/21bfda30137a749807679ce8daf921ee9c0bd0e2) - **release**: bump version to 1.2.7 *(commit by [@jorben](https://github.com/jorben))*
+
+
 ## [1.2.6] - 2025-10-15
 ### :boom: BREAKING CHANGES
 - due to [`ff1c487`](https://github.com/jorben/grider/commit/ff1c4879b8d4f475806c2c5e856ce878ba605a47) - add safe sessionStorage utilities with quota handling *(commit by [@jorben](https://github.com/jorben))*:
@@ -167,3 +179,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.2.4]: https://github.com/jorben/grider/compare/1.2.3...1.2.4
 [1.2.5]: https://github.com/jorben/grider/compare/1.2.4...1.2.5
 [1.2.6]: https://github.com/jorben/grider/compare/1.2.5...1.2.6
+[1.2.7]: https://github.com/jorben/grider/compare/1.2.6...1.2.7
