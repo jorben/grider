@@ -255,7 +255,7 @@ const AnalysisPage = () => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             {/* 小屏幕：第一行 - 按钮行 */}
-            <div className="flex items-center justify-between lg:hidden">
+            <div className="hidden sm:flex items-center justify-between lg:hidden">
               {/* 返回按钮 */}
               <button
                 onClick={handleBackToHome}
@@ -323,7 +323,7 @@ const AnalysisPage = () => {
               </div>
 
               {/* 右侧：分享按钮 */}
-              <div className="flex items-center">
+              <div className="hidden sm:flex items-center">
                 <button
                   onClick={handleShare}
                   className="btn btn-primary btn-sm flex items-center gap-2"

@@ -55,7 +55,7 @@ export default function TradeList({ trades = [], gridStrategy, totalCapital }) {
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6">
+    <div className="bg-white border border-gray-200 rounded-lg p-6 hidden md:block">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-gradient-to-r from-green-100 to-blue-100 rounded-lg">

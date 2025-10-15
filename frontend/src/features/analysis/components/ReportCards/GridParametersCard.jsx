@@ -330,7 +330,7 @@ const GridParametersCard = ({
             </div>
 
             <div className="max-h-64 overflow-y-auto">
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2">
+              <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-2">
                 {(() => {
                   const maxDisplay = 21;
                   const priceLevels = gridStrategy.price_levels;
