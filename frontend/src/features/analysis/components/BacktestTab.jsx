@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { runBacktest } from '@shared/services/api';
-import { hashString } from '@shared/utils';
+import { hashString, safeSetSessionStorage, safeGetSessionStorage } from '@shared/utils';
 import BacktestGuide from './backtest/BacktestGuide';
 import BacktestConfigEditor from './backtest/BacktestConfigEditor';
 import BacktestMetrics from './backtest/BacktestMetrics';
@@ -60,7 +60,10 @@ export default function BacktestTab({ etfCode, exchangeCode, gridStrategy, type,
       const result = response.data; // 提取实际数据
       console.log('Extracted result:', result);
       // 缓存结果
-      sessionStorage.setItem(cacheKey, JSON.stringify(result));
+      const success = safeSetSessionStorage(cacheKey, JSON.stringify(result));
+      if (!success) {
+        console.warn('Failed to cache backtest result due to storage quota');
+      }
       setBacktestResult(result);
       console.log('Backtest result set successfully');
     } catch (err) {
@@ -76,16 +79,11 @@ export default function BacktestTab({ etfCode, exchangeCode, gridStrategy, type,
     if (etfCode && exchangeCode && gridStrategy) {
       console.log('Starting backtest for:', etfCode);
       // 尝试从缓存读取
-      const cached = sessionStorage.getItem(cacheKey);
-      if (cached) {
-        try {
-          const cachedData = JSON.parse(cached);
-          setBacktestResult(cachedData);
-          console.log('Loaded from cache');
-          return;
-        } catch (e) {
-          console.error('缓存解析失败', e);
-        }
+      const cachedData = safeGetSessionStorage(cacheKey);
+      if (cachedData) {
+        setBacktestResult(cachedData);
+        console.log('Loaded from cache');
+        return;
       }
 
       // 执行回测

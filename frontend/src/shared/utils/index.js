@@ -7,3 +7,9 @@ export {
   encodeAnalysisParams,
 } from "./url";
 export { hashString } from "./hash";
+export {
+  clearStorageByPrefix,
+  safeSetSessionStorage,
+  safeGetSessionStorage,
+  getStorageStats
+} from "./storage";
