@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.5] - 2025-10-15
+### :recycle: Refactors
+- [`b1fc5b2`](https://github.com/jorben/grider/commit/b1fc5b255605ede18e9f61493091a74e4b1c870e) - **algorithms**: 简化ATR分析器并调整网格优化器参数 *(commit by [@jorben](https://github.com/jorben))*
+
+### :wrench: Chores
+- [`4068b66`](https://github.com/jorben/grider/commit/4068b66384ec8d13307a4888ac2753a615b93ad3) - 更新项目版本号至1.2.5 *(commit by [@jorben](https://github.com/jorben))*
+
+
 ## [1.2.4] - 2025-10-15
 ### :bug: Bug Fixes
 - [`71fe1f1`](https://github.com/jorben/grider/commit/71fe1f1657f73f3c07ccccf8b317a0465de98d7d) - **backtest**: adjust minimum commission from 0.01 to 5 *(commit by [@jorben](https://github.com/jorben))*
@@ -141,3 +149,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.2.2]: https://github.com/jorben/grider/compare/1.2.1...1.2.2
 [1.2.3]: https://github.com/jorben/grider/compare/1.2.2...1.2.3
 [1.2.4]: https://github.com/jorben/grider/compare/1.2.3...1.2.4
+[1.2.5]: https://github.com/jorben/grider/compare/1.2.4...1.2.5
