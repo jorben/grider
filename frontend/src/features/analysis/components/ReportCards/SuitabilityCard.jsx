@@ -251,52 +251,64 @@ const SuitabilityCard = ({ evaluation, dataQuality, showDetailed = false }) => {
 
       {/* 评分标准说明 */}
       {showDetailed && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <h4 className="font-semibold text-blue-900 mb-4 flex items-center gap-2">
-            <Info className="w-5 h-5" />
-            评分标准说明
-          </h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
-            <div>
-              <span className="font-medium text-blue-800 mb-2">
-                振幅评估 (35分)
-              </span>
-              <ul className="space-y-1 text-blue-700">
-                <li>• ATR比率 ≥ 2.0%: 35分 (振幅充足)</li>
-                <li>• ATR比率 1.5%-2.0%: 25分 (振幅适中)</li>
-                <li>• ATR比率 &lt; 1.5%: 0分 (振幅不足)</li>
-              </ul>
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0">
+              <div className="p-2 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-lg">
+                <Info className="w-5 h-5 text-blue-600" />
+              </div>
             </div>
-            <div>
-              <span className="font-medium text-blue-800 mb-2">
-                波动率评估 (30分)
-              </span>
-              <ul className="space-y-1 text-blue-700">
-                <li>• 波动率 15%-45%: 30分 (理想区间)</li>
-                <li>• 波动率 &lt; 15%: 18分 (波动偏低)</li>
-                <li>• 波动率 &gt; 45%: 12分 (波动过高)</li>
-              </ul>
-            </div>
-            <div>
-              <span className="font-medium text-blue-800 mb-2">
-                市场特征评估 (25分)
-              </span>
-              <ul className="space-y-1 text-blue-700">
-                <li>• ADX &lt; 20: 25分 (震荡市，适合网格)</li>
-                <li>• ADX 20-40: 18分 (弱趋势)</li>
-                <li>• ADX &gt; 40: 6分 (强趋势，不推荐)</li>
-              </ul>
-            </div>
-            <div>
-              <span className="font-medium text-blue-800 mb-2">
-                流动性评估 (10分)
-              </span>
-              <ul className="space-y-1 text-blue-700">
-                <li>• 日均成交额 &gt; 1亿: 10分 (流动性充足)</li>
-                <li>• 日均成交额 5000万-1亿: 6分 (尚可)</li>
-                <li>• 日均成交额 2000万-5000万: 3分 (一般)</li>
-                <li>• 日均成交额 &lt; 2000万: 1分 (不足)</li>
-              </ul>
+            <div className="flex-1">
+              <h4 className="font-semibold text-blue-900 mb-3">
+                评分标准说明
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div className="flex items-start gap-2">
+                  <TrendingUp className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <span className="font-medium text-blue-900">振幅评估 (35分)</span>
+                    <div className="mt-1 space-y-0.5 text-blue-800">
+                      <div>• ATR比率 ≥ 2.0%: 35分 (振幅充足)</div>
+                      <div>• ATR比率 1.5%-2.0%: 25分 (振幅适中)</div>
+                      <div>• ATR比率 &lt; 1.5%: 0分 (振幅不足)</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <BarChart3 className="w-4 h-4 text-purple-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <span className="font-medium text-blue-900">波动率评估 (30分)</span>
+                    <div className="mt-1 space-y-0.5 text-blue-800">
+                      <div>• 波动率 15%-45%: 30分 (理想区间)</div>
+                      <div>• 波动率 &lt; 15%: 18分 (波动偏低)</div>
+                      <div>• 波动率 &gt; 45%: 12分 (波动过高)</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Activity className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <span className="font-medium text-blue-900">市场特征评估 (25分)</span>
+                    <div className="mt-1 space-y-0.5 text-blue-800">
+                      <div>• ADX &lt; 20: 25分 (震荡市，适合网格)</div>
+                      <div>• ADX 20-40: 18分 (弱趋势)</div>
+                      <div>• ADX &gt; 40: 6分 (强趋势，不推荐)</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Droplets className="w-4 h-4 text-orange-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <span className="font-medium text-blue-900">流动性评估 (10分)</span>
+                    <div className="mt-1 space-y-0.5 text-blue-800">
+                      <div>• 日均成交额 &gt; 1亿: 10分 (流动性充足)</div>
+                      <div>• 日均成交额 5000万-1亿: 6分 (尚可)</div>
+                      <div>• 日均成交额 2000万-5000万: 3分 (一般)</div>
+                      <div>• 日均成交额 &lt; 2000万: 1分 (不足)</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

@@ -219,57 +219,44 @@ export default function OverviewTab({
         </div>
       </div>
 
-      {/* 快速摘要 */}
-      <div className="bg-blue-50 border border-blue-200 p-6 rounded-lg">
-        <h4 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
-          <Info className="w-5 h-5" />
-          策略摘要
-        </h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <span className="font-medium text-blue-800 mb-2">投资配置</span>
-            <ul className="space-y-1 text-sm text-blue-600">
-              <li>
-                • 总投资资金：
-                {formatCurrency(inputParameters?.total_capital, etfInfo?.country)}
-              </li>
-              <li>
-                • 底仓资金：{formatCurrency(gridStrategy?.fund_allocation?.base_position_amount, etfInfo?.country)}
-              </li>
-              <li>
-                • 网格资金：{formatCurrency(gridStrategy?.fund_allocation?.grid_trading_amount, etfInfo?.country)}
-              </li>
-              <li>
-                • 网格资金利用率：
-                {(
-                  (gridStrategy?.fund_allocation?.grid_fund_utilization_rate ||
-                    0) * 100
-                ).toFixed(1)}
-                %
-              </li>
-            </ul>
+      {/* 策略摘要 */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
+        <div className="flex items-start gap-4">
+          <div className="flex-shrink-0">
+            <div className="p-2 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-lg">
+              <Info className="w-5 h-5 text-blue-600" />
+            </div>
           </div>
-          <div>
-            <span className="font-medium text-blue-800 mb-2">策略特征</span>
-            <ul className="space-y-1 text-sm text-blue-600">
-              <li>
-                • 价格区间：
-                {formatCurrency(gridStrategy?.price_range?.lower, etfInfo?.country, { maximumFractionDigits: 3 })} - {(gridStrategy?.price_range?.upper || 0).toFixed(3)}
-              </li>
-              <li>
-                • 网格步长：
-                {formatCurrency(gridStrategy?.grid_config?.step_size, etfInfo?.country, { maximumFractionDigits: 3 })}
-                ({((gridStrategy?.grid_config?.step_ratio || 0) * 100).toFixed(2)}%)
-              </li>
-              <li>
-                • 单笔股数：
-                {gridStrategy?.fund_allocation?.single_trade_quantity || 0}股
-              </li>
-              <li>
-                • 预估单笔收益：
-                {formatCurrency(gridStrategy?.fund_allocation?.expected_profit_per_trade, etfInfo?.country, { maximumFractionDigits: 2 })}
-              </li>
-            </ul>
+          <div className="flex-1">
+            <h4 className="font-semibold text-blue-900 mb-3">
+              策略摘要
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div className="flex items-start gap-2">
+                <DollarSign className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <span className="font-medium text-blue-900">投资配置</span>
+                  <div className="mt-1 space-y-0.5 text-blue-800">
+                    <div>• 总投资资金：{formatCurrency(inputParameters?.total_capital, etfInfo?.country)}</div>
+                    <div>• 底仓资金：{formatCurrency(gridStrategy?.fund_allocation?.base_position_amount, etfInfo?.country)}</div>
+                    <div>• 网格资金：{formatCurrency(gridStrategy?.fund_allocation?.grid_trading_amount, etfInfo?.country)}</div>
+                    <div>• 网格资金利用率：{((gridStrategy?.fund_allocation?.grid_fund_utilization_rate || 0) * 100).toFixed(1)}%</div>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-start gap-2">
+                <Target className="w-4 h-4 text-purple-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <span className="font-medium text-blue-900">策略特征</span>
+                  <div className="mt-1 space-y-0.5 text-blue-800">
+                    <div>• 价格区间：{formatCurrency(gridStrategy?.price_range?.lower, etfInfo?.country, { maximumFractionDigits: 3 })} - {(gridStrategy?.price_range?.upper || 0).toFixed(3)}</div>
+                    <div>• 网格步长：{formatCurrency(gridStrategy?.grid_config?.step_size, etfInfo?.country, { maximumFractionDigits: 3 })} ({((gridStrategy?.grid_config?.step_ratio || 0) * 100).toFixed(2)}%)</div>
+                    <div>• 单笔股数：{gridStrategy?.fund_allocation?.single_trade_quantity || 0}股</div>
+                    <div>• 预估单笔收益：{formatCurrency(gridStrategy?.fund_allocation?.expected_profit_per_trade, etfInfo?.country, { maximumFractionDigits: 2 })}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
