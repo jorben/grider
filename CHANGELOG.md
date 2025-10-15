@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.4] - 2025-10-15
+### :bug: Bug Fixes
+- [`71fe1f1`](https://github.com/jorben/grider/commit/71fe1f1657f73f3c07ccccf8b317a0465de98d7d) - **backtest**: adjust minimum commission from 0.01 to 5 *(commit by [@jorben](https://github.com/jorben))*
+
+### :recycle: Refactors
+- [`b8e769f`](https://github.com/jorben/grider/commit/b8e769f4b0883ceedd06562a2fa5468144752489) - 调整风险系数计算逻辑 *(commit by [@jorben](https://github.com/jorben))*
+
+### :wrench: Chores
+- [`219928f`](https://github.com/jorben/grider/commit/219928f307a9567ea096a4193c22821557bbfceb) - 更新项目版本号至1.2.4 *(commit by [@jorben](https://github.com/jorben))*
+
+
 ## [1.2.3] - 2025-10-12
 ### :sparkles: New Features
 - [`b84bdd8`](https://github.com/jorben/grider/commit/b84bdd86d6a13d39554e54b1e0bd2cbddf2ba035) - **backtest**: enhance trade list with additional financial metrics *(commit by [@jorben](https://github.com/jorben))*
@@ -129,3 +140,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.2.1]: https://github.com/jorben/grider/compare/1.2.0...1.2.1
 [1.2.2]: https://github.com/jorben/grider/compare/1.2.1...1.2.2
 [1.2.3]: https://github.com/jorben/grider/compare/1.2.2...1.2.3
+[1.2.4]: https://github.com/jorben/grider/compare/1.2.3...1.2.4
