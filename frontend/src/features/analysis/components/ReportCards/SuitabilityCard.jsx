@@ -100,11 +100,11 @@ const SuitabilityCard = ({ evaluation, dataQuality, showDetailed = false }) => {
             <h3 className="text-xl font-bold text-green-900">
               标的网格交易适宜度评估
             </h3>
-            <p className="text-green-700">从四个维度量化评分体系，总分100分</p>
+            <p className="text-green-700">四维度量化评分体系</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-white p-4 rounded-lg">
             <div className="flex items-center gap-2 mb-2">
               <ThermometerSun className="w-4 h-4 text-green-600" />
@@ -161,14 +161,14 @@ const SuitabilityCard = ({ evaluation, dataQuality, showDetailed = false }) => {
               {has_fatal_flaw ? "存在严重缺陷" : "无严重缺陷"}
             </div>
           </div>
-        </div>
 
-        <div className="mt-4 bg-white p-4 rounded-lg">
-          <div className="flex items-start gap-2">
-            <Info className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="font-medium text-gray-900 mb-1">综合结论</p>
-              <p className="text-gray-700">{recommendation}</p>
+          <div className="bg-white p-4 rounded-lg col-span-2 md:col-span-4">
+            <div className="flex items-start gap-2">
+              <Info className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="font-medium text-gray-900 mb-1">综合结论</p>
+                <p className="text-gray-700">{recommendation}</p>
+              </div>
             </div>
           </div>
         </div>
