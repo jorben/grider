@@ -1,6 +1,6 @@
 [project]
 name = "Grider"
-version = "1.2.5"
+version = "1.2.6"
 description = "Grid Trading Assistant."
 readme = "README.md"
 requires-python = ">=3.13"
