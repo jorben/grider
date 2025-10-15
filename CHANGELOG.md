@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.6] - 2025-10-15
+### :boom: BREAKING CHANGES
+- due to [`ff1c487`](https://github.com/jorben/grider/commit/ff1c4879b8d4f475806c2c5e856ce878ba605a47) - add safe sessionStorage utilities with quota handling *(commit by [@jorben](https://github.com/jorben))*:
+
+  BacktestTab now uses safeSetSessionStorage and safeGetSessionStorage instead of direct sessionStorage access, changing caching behavior to be more resilient to storage limitations.
+
+
+### :sparkles: New Features
+- [`ff1c487`](https://github.com/jorben/grider/commit/ff1c4879b8d4f475806c2c5e856ce878ba605a47) - **storage**: add safe sessionStorage utilities with quota handling *(commit by [@jorben](https://github.com/jorben))*
+- [`188fe3b`](https://github.com/jorben/grider/commit/188fe3bf32c6fafb1bc1df7be63d4fbd2a31ff83) - **ui**: 增强报告标签页的响应式设计和滚动交互 *(commit by [@jorben](https://github.com/jorben))*
+- [`2a00a34`](https://github.com/jorben/grider/commit/2a00a34cb14d715046458fa38680725c16529a23) - **ui**: 增强前端响应式布局和移动端适配 *(commit by [@jorben](https://github.com/jorben))*
+
+### :wrench: Chores
+- [`2077fa5`](https://github.com/jorben/grider/commit/2077fa55823a3913f54a106ddc4158f2ce778991) - **release**: bump version to 1.2.6 *(commit by [@jorben](https://github.com/jorben))*
+
+
 ## [1.2.5] - 2025-10-15
 ### :recycle: Refactors
 - [`b1fc5b2`](https://github.com/jorben/grider/commit/b1fc5b255605ede18e9f61493091a74e4b1c870e) - **algorithms**: 简化ATR分析器并调整网格优化器参数 *(commit by [@jorben](https://github.com/jorben))*
@@ -150,3 +166,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.2.3]: https://github.com/jorben/grider/compare/1.2.2...1.2.3
 [1.2.4]: https://github.com/jorben/grider/compare/1.2.3...1.2.4
 [1.2.5]: https://github.com/jorben/grider/compare/1.2.4...1.2.5
+[1.2.6]: https://github.com/jorben/grider/compare/1.2.5...1.2.6
