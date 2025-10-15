@@ -458,6 +458,81 @@
   background: #94a3b8;
 }
 
+/* 滚动条隐藏 */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
+
+/* 滚动边缘阴影效果 */
+.scroll-shadow-left {
+  position: relative;
+}
+
+.scroll-shadow-left::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 16px;
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.08), transparent);
+  pointer-events: none;
+  z-index: 10;
+  border-top-left-radius: 8px;
+}
+
+.scroll-shadow-right {
+  position: relative;
+}
+
+.scroll-shadow-right::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 16px;
+  background: linear-gradient(to left, rgba(0, 0, 0, 0.08), transparent);
+  pointer-events: none;
+  z-index: 10;
+  border-top-right-radius: 8px;
+}
+
+.scroll-shadow-both {
+  position: relative;
+}
+
+.scroll-shadow-both::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 16px;
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.08), transparent);
+  pointer-events: none;
+  z-index: 10;
+  border-top-left-radius: 8px;
+}
+
+.scroll-shadow-both::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 16px;
+  background: linear-gradient(to left, rgba(0, 0, 0, 0.08), transparent);
+  pointer-events: none;
+  z-index: 10;
+  border-top-right-radius: 8px;
+}
+
 /* 表格组件优化 */
 .responsive-table {
   @apply min-w-full divide-y divide-gray-200 rounded-xl overflow-hidden shadow-sm;
