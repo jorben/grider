@@ -79,27 +79,8 @@ class ATRAnalyzer:
             (下边界, 上边界) 价格区间
         """
         try:
-            # 默认风险系数映射
-            default_risk_multipliers = {
-                '低频': 4,
-                '均衡': 3,
-                '高频': 2,
-            }
-            
-            # 应用调节系数
-            risk_multipliers = {}
-            for risk_level, default_value in default_risk_multipliers.items():
-                # 计算与中间值(4)的差异
-                diff_from_mid = default_value - 3
-                # 应用调节系数：系数越大差异放大，系数越小差异缩小
-                adjusted_diff = diff_from_mid * adjustment_coefficient
-                # 计算调整后的风险系数
-                risk_multipliers[risk_level] = 3 + adjusted_diff
-            
-            multiplier = risk_multipliers.get(risk_preference, 3)
-            
-            # 计算价格区间比例
-            price_range_ratio = atr_ratio * multiplier
+            # 计算价格区间比例，简化为 +-（1+3倍ATR）
+            price_range_ratio = atr_ratio * 3
             
             # 计算上下边界
             price_lower = current_price * (1 - price_range_ratio)
