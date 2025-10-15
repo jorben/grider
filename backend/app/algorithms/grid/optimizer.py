@@ -55,8 +55,8 @@ class GridOptimizer:
         try:
             # ATR 基础步长系数（根据频率偏好）
             default_risk_multipliers = {
-                '低频': 0.8,   # 0.8倍ATR作为步长，步长较大，交易频次较低
-                '均衡': 0.5,   # 0.5倍ATR作为步长，平衡交易频次
+                '低频': 1.2,   # 0.8倍ATR作为步长，步长较大，交易频次较低
+                '均衡': 0.7,   # 0.5倍ATR作为步长，平衡交易频次
                 '高频': 0.3,    # 0.2倍ATR作为步长，步长较小，交易频次较高
             }
             
@@ -64,13 +64,13 @@ class GridOptimizer:
             risk_multipliers = {}
             for risk_level, default_value in default_risk_multipliers.items():
                 # 计算与中间值(4)的差异
-                diff_from_mid = default_value - 0.3
+                diff_from_mid = default_value - 0.7
                 # 应用调节系数：系数越大差异放大，系数越小差异缩小
                 adjusted_diff = diff_from_mid * adjustment_coefficient
                 # 计算调整后的风险系数
-                risk_multipliers[risk_level] = 0.3 + adjusted_diff
+                risk_multipliers[risk_level] = 0.7 + adjusted_diff
             
-            risk_multiplier = risk_multipliers.get(risk_preference, 0.3)
+            risk_multiplier = risk_multipliers.get(risk_preference, 0.7)
             
             # 计算基于ATR的步长
             atr_value = atr_ratio * current_price
