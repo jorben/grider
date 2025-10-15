@@ -258,9 +258,9 @@ const SuitabilityCard = ({ evaluation, dataQuality, showDetailed = false }) => {
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
             <div>
-              <h5 className="font-medium text-blue-800 mb-2">
+              <span className="font-medium text-blue-800 mb-2">
                 振幅评估 (35分)
-              </h5>
+              </span>
               <ul className="space-y-1 text-blue-700">
                 <li>• ATR比率 ≥ 2.0%: 35分 (振幅充足)</li>
                 <li>• ATR比率 1.5%-2.0%: 25分 (振幅适中)</li>
@@ -268,9 +268,9 @@ const SuitabilityCard = ({ evaluation, dataQuality, showDetailed = false }) => {
               </ul>
             </div>
             <div>
-              <h5 className="font-medium text-blue-800 mb-2">
+              <span className="font-medium text-blue-800 mb-2">
                 波动率评估 (30分)
-              </h5>
+              </span>
               <ul className="space-y-1 text-blue-700">
                 <li>• 波动率 15%-45%: 30分 (理想区间)</li>
                 <li>• 波动率 &lt; 15%: 18分 (波动偏低)</li>
@@ -278,9 +278,9 @@ const SuitabilityCard = ({ evaluation, dataQuality, showDetailed = false }) => {
               </ul>
             </div>
             <div>
-              <h5 className="font-medium text-blue-800 mb-2">
+              <span className="font-medium text-blue-800 mb-2">
                 市场特征评估 (25分)
-              </h5>
+              </span>
               <ul className="space-y-1 text-blue-700">
                 <li>• ADX &lt; 20: 25分 (震荡市，适合网格)</li>
                 <li>• ADX 20-40: 18分 (弱趋势)</li>
@@ -288,9 +288,9 @@ const SuitabilityCard = ({ evaluation, dataQuality, showDetailed = false }) => {
               </ul>
             </div>
             <div>
-              <h5 className="font-medium text-blue-800 mb-2">
+              <span className="font-medium text-blue-800 mb-2">
                 流动性评估 (10分)
-              </h5>
+              </span>
               <ul className="space-y-1 text-blue-700">
                 <li>• 日均成交额 &gt; 1亿: 10分 (流动性充足)</li>
                 <li>• 日均成交额 5000万-1亿: 6分 (尚可)</li>

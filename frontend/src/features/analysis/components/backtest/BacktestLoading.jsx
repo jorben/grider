@@ -57,9 +57,9 @@ export default function BacktestLoading({ stage = 'loading' }) {
 
         {/* 状态文字 */}
         <div className="text-center mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          <h4 className="text-lg font-semibold text-gray-900 mb-2">
             {currentStage.title}
-          </h3>
+          </h4>
           <p className="text-sm text-gray-600">基于ATR算法进行智能回测分析，请稍候...</p>
         </div>
 

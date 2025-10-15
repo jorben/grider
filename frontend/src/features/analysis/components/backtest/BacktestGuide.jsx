@@ -20,8 +20,8 @@ export default function BacktestGuide() {
         </div>
         <div className="flex-1">
           <div className="flex items-center justify-between mb-3">
-            <h4 className="text-sm font-semibold text-blue-900">
-              回测分析功能说明
+            <h4 className="font-semibold text-blue-900">
+              回测说明
             </h4>
             <button
               onClick={() => setShowGuide(false)}

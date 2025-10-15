@@ -47,7 +47,7 @@ export default function GridPerformance({ gridAnalysis = null, priceLevels = [] 
             <Grid3X3 className="w-5 h-5 text-gradient-to-r from-purple-600 to-indigo-600" />
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900">网格表现分析</h3>
+            <h4 className="font-semibold text-gray-900">网格表现分析</h4>
             <p className="text-sm text-gray-600">各网格点位的触发频率和盈利贡献</p>
           </div>
         </div>

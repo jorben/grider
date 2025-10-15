@@ -62,7 +62,7 @@ export default function TradeList({ trades = [], gridStrategy, totalCapital }) {
             <Activity className="w-5 h-5 text-gradient-to-r from-green-600 to-blue-600" />
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900">交易记录</h3>
+            <h4 className="font-semibold text-gray-900">交易记录</h4>
             <p className="text-sm text-gray-600">网格策略执行详情</p>
           </div>
         </div>

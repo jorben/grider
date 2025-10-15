@@ -221,16 +221,16 @@ export default function OverviewTab({
 
       {/* 快速摘要 */}
       <div className="bg-blue-50 border border-blue-200 p-6 rounded-lg">
-        <h3 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
+        <h4 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
           <Info className="w-5 h-5" />
           策略摘要
-        </h3>
+        </h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <h4 className="font-medium text-blue-800 mb-2">投资配置</h4>
+            <span className="font-medium text-blue-800 mb-2">投资配置</span>
             <ul className="space-y-1 text-sm text-blue-600">
               <li>
-                • 总投资资金：¥
+                • 总投资资金：
                 {formatCurrency(inputParameters?.total_capital, etfInfo?.country)}
               </li>
               <li>
@@ -250,7 +250,7 @@ export default function OverviewTab({
             </ul>
           </div>
           <div>
-            <h4 className="font-medium text-blue-800 mb-2">策略特征</h4>
+            <span className="font-medium text-blue-800 mb-2">策略特征</span>
             <ul className="space-y-1 text-sm text-blue-600">
               <li>
                 • 价格区间：

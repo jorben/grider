@@ -97,7 +97,7 @@ export default function BacktestMetrics({ metrics = {}, tradingMetrics = {}, ben
             <TrendingUp className="w-5 h-5 text-gradient-to-r from-green-600 to-blue-600" />
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900">核心指标</h3>
+            <h4 className="font-semibold text-gray-900">核心指标</h4>
             <p className="text-sm text-gray-600">策略表现的关键评估指标</p>
           </div>
         </div>
@@ -126,7 +126,7 @@ export default function BacktestMetrics({ metrics = {}, tradingMetrics = {}, ben
             <BarChart3 className="w-5 h-5 text-gradient-to-r from-gray-600 to-green-600" />
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900">基准对比</h3>
+            <h4 className="font-semibold text-gray-900">基准对比</h4>
             <p className="text-sm text-gray-600">与持有不动策略的收益对比</p>
           </div>
         </div>
@@ -171,7 +171,7 @@ export default function BacktestMetrics({ metrics = {}, tradingMetrics = {}, ben
             <Activity className="w-5 h-5 text-gradient-to-r from-purple-600 to-indigo-600" />
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900">交易统计</h3>
+            <h4 className="font-semibold text-gray-900">交易统计</h4>
             <p className="text-sm text-gray-600">网格交易的执行情况分析</p>
           </div>
         </div>

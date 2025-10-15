@@ -96,7 +96,7 @@ export default function BacktestCharts({ priceCurve = [], equityCurve = [], trad
             <TrendingUp className="w-5 h-5 text-gradient-to-r from-blue-600 to-purple-600" />
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900">行情与交易</h3>
+            <h4 className="font-semibold text-gray-900">行情与交易</h4>
             <p className="text-sm text-gray-600">价格走势与网格交易点位</p>
           </div>
         </div>
@@ -191,7 +191,7 @@ export default function BacktestCharts({ priceCurve = [], equityCurve = [], trad
             <BarChart3 className="w-5 h-5 text-gradient-to-r from-green-600 to-blue-600" />
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900">收益对比</h3>
+            <h4 className="font-semibold text-gray-900">收益对比</h4>
             <p className="text-sm text-gray-600">网格策略与持有不动策略收益对比</p>
           </div>
         </div>

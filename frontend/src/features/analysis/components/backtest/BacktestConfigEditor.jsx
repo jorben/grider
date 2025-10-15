@@ -42,7 +42,7 @@ export default function BacktestConfigEditor({ config, onConfigChange, onRunBack
               <Settings className="w-5 h-5 text-blue-600" />
             </div>
             <div className="flex-1">
-              <h3 className="font-semibold text-gray-900">回测参数设置</h3>
+              <h4 className="font-semibold text-gray-900">回测参数设置</h4>
               <p className="text-sm text-gray-600">手续费、无风险利率等参数配置</p>
             </div>
           </div>

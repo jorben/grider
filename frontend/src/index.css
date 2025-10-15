@@ -77,7 +77,7 @@
   }
 
   li {
-    @apply text-base leading-relaxed;
+    @apply text-sm leading-relaxed;
   }
 }
 
