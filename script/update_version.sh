@@ -30,22 +30,41 @@ fi
 
 echo "Updating version to $NEW_VERSION..."
 
+# 检测操作系统并设置sed命令参数
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    # macOS
+    SED_IN_PLACE="-i ''"
+else
+    # Linux/Windows (Git Bash, etc.)
+    SED_IN_PLACE="-i"
+fi
+
 # 更新 backend/app/constants.py 中的 APP_VERSION
-sed -i '' 's/APP_VERSION: str = ".*"/APP_VERSION: str = "'"$NEW_VERSION"'"/' backend/app/constants.py
+sed $SED_IN_PLACE 's/APP_VERSION: str = ".*"/APP_VERSION: str = "'"$NEW_VERSION"'"/' backend/app/constants.py
 
 # 更新 backend/pyproject.toml 中的 version
-sed -i '' 's/version = ".*"/version = "'"$NEW_VERSION"'"/' backend/pyproject.toml
+sed $SED_IN_PLACE 's/version = ".*"/version = "'"$NEW_VERSION"'"/' backend/pyproject.toml
 
 # 更新 frontend/package.json 中的 version
-sed -i '' 's/"version": ".*"/"version": "'"$NEW_VERSION"'"/' frontend/package.json
+sed $SED_IN_PLACE 's/"version": ".*"/"version": "'"$NEW_VERSION"'"/' frontend/package.json
 
 echo "Version updated successfully to $NEW_VERSION in all files."
 
 # 更新依赖
 echo "Updating backend dependencies..."
-cd backend && uv sync && uv pip compile pyproject.toml --no-deps -o requirements.txt
+cd backend
+if which uv >/dev/null 2>&1; then
+    uv sync && uv pip compile pyproject.toml --no-deps -o requirements.txt
+else
+    echo "Warning: uv not found, skipping backend dependency update"
+fi
 
 echo "Updating frontend dependencies..."
-cd ../frontend && npm install
+cd ../frontend
+if which npm >/dev/null 2>&1; then
+    npm install
+else
+    echo "Warning: npm not found, skipping frontend dependency update"
+fi
 
 echo "All updates completed."
