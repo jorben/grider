@@ -31,13 +31,13 @@ fi
 echo "Updating version to $NEW_VERSION..."
 
 # 更新 backend/app/constants.py 中的 APP_VERSION
-sed -i 's/APP_VERSION: str = ".*"/APP_VERSION: str = "'"$NEW_VERSION"'"/' backend/app/constants.py
+sed -i '' 's/APP_VERSION: str = ".*"/APP_VERSION: str = "'"$NEW_VERSION"'"/' backend/app/constants.py
 
 # 更新 backend/pyproject.toml 中的 version
-sed -i 's/version = ".*"/version = "'"$NEW_VERSION"'"/' backend/pyproject.toml
+sed -i '' 's/version = ".*"/version = "'"$NEW_VERSION"'"/' backend/pyproject.toml
 
 # 更新 frontend/package.json 中的 version
-sed -i 's/"version": ".*"/"version": "'"$NEW_VERSION"'"/' frontend/package.json
+sed -i '' 's/"version": ".*"/"version": "'"$NEW_VERSION"'"/' frontend/package.json
 
 echo "Version updated successfully to $NEW_VERSION in all files."
 
