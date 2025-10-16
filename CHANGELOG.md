@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.8] - 2025-10-16
+### :sparkles: New Features
+- [`9c55846`](https://github.com/jorben/grider/commit/9c5584686dcebfac23bef083df1bc18fe6bcf945) - **metrics**: 实现配对交易胜率计算 *(commit by [@jorben](https://github.com/jorben))*
+- [`9f413c4`](https://github.com/jorben/grider/commit/9f413c4f3746c05403c5f21d5b3bb78af2c3b3b2) - **metrics**: 添加资金利用率计算指标 *(commit by [@jorben](https://github.com/jorben))*
+
+### :wrench: Chores
+- [`3161dc9`](https://github.com/jorben/grider/commit/3161dc922d9ce466d039c666b9a74852355090ab) - 更新项目版本至1.2.8 *(commit by [@jorben](https://github.com/jorben))*
+
+
 ## [1.2.7] - 2025-10-15
 ### :sparkles: New Features
 - [`3cff100`](https://github.com/jorben/grider/commit/3cff10087a4dc42fad6841ee5d47f1ec688ff876) - **ui**: 优化分析组件视觉设计和信息层级 *(commit by [@jorben](https://github.com/jorben))*
@@ -180,3 +189,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.2.5]: https://github.com/jorben/grider/compare/1.2.4...1.2.5
 [1.2.6]: https://github.com/jorben/grider/compare/1.2.5...1.2.6
 [1.2.7]: https://github.com/jorben/grider/compare/1.2.6...1.2.7
+[1.2.8]: https://github.com/jorben/grider/compare/1.2.7...1.2.8
