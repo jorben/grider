@@ -159,6 +159,77 @@ def test_grid_trigger_rate_calculation():
     assert trigger_rate == 2/20
 
 
+def test_capital_utilization_rate_calculation():
+    """测试资金利用率计算"""
+    calc = MetricsCalculator()
+    
+    # 模拟交易记录数据
+    base_time = datetime.now()
+    trade_records = [
+        TradeRecord(base_time, 'BUY', 3.50, 100, 0.70, None, 100, 6500),  # 现金6500
+        TradeRecord(base_time + timedelta(minutes=1), 'SELL', 3.55, 100, 0.71, 4.59, 0, 10004),  # 现金10004
+        TradeRecord(base_time + timedelta(minutes=2), 'BUY', 3.45, 200, 1.38, None, 200, 3100),  # 现金3100
+    ]
+    
+    initial_capital = 10000
+    equity_curve = []  # 不使用equity_curve
+    
+    utilization_rate = calc._calculate_capital_utilization_rate(trade_records, equity_curve, initial_capital)
+    
+    # 现金样本: [10000(初始), 6500, 10004, 3100]
+    # 平均现金 = (10000 + 6500 + 10004 + 3100) / 4 = 7401
+    # 资金利用率 = 1 - (7401 / 10000) = 1 - 0.7401 = 0.2599 ≈ 26%
+    cash_samples = [10000, 6500, 10004, 3100]
+    avg_cash = sum(cash_samples) / len(cash_samples)
+    expected_rate = 1 - (avg_cash / 10000)
+    assert abs(utilization_rate - expected_rate) < 0.01
+
+
+def test_capital_utilization_rate_edge_cases():
+    """测试资金利用率边界情况"""
+    calc = MetricsCalculator()
+    
+    # 空交易记录
+    equity_curve = []
+    assert calc._calculate_capital_utilization_rate([], equity_curve, 10000) == 0.0
+    
+    # 初始资金为0
+    trade_records = [TradeRecord(datetime.now(), 'BUY', 3.50, 100, 0.70, None, 100, 5000)]
+    assert calc._calculate_capital_utilization_rate(trade_records, [], 0) == 0.0
+    
+    # 负现金情况（使用杠杆或借贷）
+    trade_records = [TradeRecord(datetime.now(), 'BUY', 3.50, 500, 3.50, None, 500, -2000)]  # 负现金-2000
+    utilization_rate = calc._calculate_capital_utilization_rate(trade_records, [], 10000)
+    # 现金样本: [10000(初始), -2000]
+    # 平均现金 = (10000 + (-2000)) / 2 = 4000
+    # 资金利用率 = 1 - (4000 / 10000) = 0.6 = 60%
+    expected_rate = 1 - (4000 / 10000)
+    assert abs(utilization_rate - expected_rate) < 0.01
+    
+    # 全部现金情况（无交易）
+    utilization_rate = calc._calculate_capital_utilization_rate([], [], 10000)
+    # 无交易记录，平均现金 = 初始资金 = 10000
+    # 资金利用率 = 1 - (10000 / 10000) = 0
+    assert utilization_rate == 0.0
+
+
+def test_capital_utilization_rate_missing_fields():
+    """测试资金利用率缺失字段处理"""
+    calc = MetricsCalculator()
+    
+    # 单笔交易记录
+    trade_records = [
+        TradeRecord(datetime.now(), 'BUY', 3.50, 200, 1.40, None, 200, 3000),  # 现金3000
+    ]
+    
+    utilization_rate = calc._calculate_capital_utilization_rate(trade_records, [], 10000)
+    # 现金样本: [10000(初始), 3000]
+    # 平均现金 = (10000 + 3000) / 2 = 6500
+    # 资金利用率 = 1 - (6500 / 10000) = 0.35 = 35%
+    expected_rate = 1 - (6500 / 10000)
+    assert abs(utilization_rate - expected_rate) < 0.01
+
+
 def test_benchmark_comparison_calculation(price_curve):
     """测试基准对比计算"""
     calc = MetricsCalculator()

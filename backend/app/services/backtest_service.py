@@ -149,7 +149,8 @@ class BacktestService:
                 'sell_trades': metrics.sell_trades,
                 'win_rate': round(metrics.win_rate, 4),
                 'profit_loss_ratio': round(metrics.profit_loss_ratio, 2) if metrics.profit_loss_ratio else None,
-                'grid_trigger_rate': round(metrics.grid_trigger_rate, 4)
+                'grid_trigger_rate': round(metrics.grid_trigger_rate, 4),
+                'capital_utilization_rate': round(metrics.capital_utilization_rate, 4)
             },
             'benchmark_comparison': {
                 'hold_return': round(benchmark.hold_return, 4),

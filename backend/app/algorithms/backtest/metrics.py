@@ -6,6 +6,7 @@
 
 from typing import List, Dict, Optional
 from dataclasses import dataclass
+from datetime import timedelta
 import numpy as np
 from .models import TradeRecord
 
@@ -30,6 +31,7 @@ class PerformanceMetrics:
     win_rate: float
     profit_loss_ratio: Optional[float]
     grid_trigger_rate: float
+    capital_utilization_rate: float
 
 
 @dataclass
@@ -86,6 +88,7 @@ class MetricsCalculator:
         win_rate = self._calculate_win_rate(trade_records)
         profit_loss_ratio = self._calculate_profit_loss_ratio(trade_records)
         grid_trigger_rate = self._calculate_grid_trigger_rate(trade_records, grid_count)
+        capital_utilization_rate = self._calculate_capital_utilization_rate(trade_records, equity_curve, initial_capital)
 
         # 计算基准对比
         benchmark = self._calculate_benchmark(price_curve, total_return)
@@ -102,7 +105,8 @@ class MetricsCalculator:
             sell_trades=sell_trades,
             win_rate=win_rate,
             profit_loss_ratio=profit_loss_ratio,
-            grid_trigger_rate=grid_trigger_rate
+            grid_trigger_rate=grid_trigger_rate,
+            capital_utilization_rate=capital_utilization_rate
         )
 
         return metrics, benchmark
@@ -274,6 +278,108 @@ class MetricsCalculator:
         """计算网格触发率"""
         triggered_prices = set(t.price for t in trade_records)
         return len(triggered_prices) / grid_count if grid_count > 0 else 0.0
+
+    def _calculate_capital_utilization_rate(self, trade_records: List[TradeRecord],
+                                          equity_curve: List[Dict], 
+                                          initial_capital: float) -> float:
+        """
+        计算时间加权的资金利用率
+        
+        资金利用率 = 1 - (时间加权平均现金余额 / 总资金)
+        
+        使用时间加权方式计算平均现金余额，考虑每个现金状态持续的时间长度。
+        时间单位按天计算，同一天内的交易取平均值。
+        
+        Args:
+            trade_records: 交易记录，包含每次交易后的现金余额
+            equity_curve: 资产曲线，用于确定回测时间范围
+            initial_capital: 初始资金
+            
+        Returns:
+            float: 资金利用率 (0.0 - 1.0)
+        """
+        if initial_capital <= 0:
+            return 0.0
+        
+        # 如果没有交易记录，利用率为0（未投资）
+        if not trade_records:
+            return 0.0
+        
+        # 如果没有资产曲线，无法确定时间范围，回退到简单平均
+        if not equity_curve:
+            cash_samples = [initial_capital] + [trade.cash for trade in trade_records]
+            avg_cash = sum(cash_samples) / len(cash_samples)
+            return max(0.0, min(1.0, 1 - (avg_cash / initial_capital)))
+        
+        # 确定回测时间范围
+        start_time = equity_curve[0]['time']
+        end_time = equity_curve[-1]['time']
+        
+        # 按时间排序交易记录
+        sorted_trades = sorted(trade_records, key=lambda x: x.time)
+        
+        # 构建现金余额时间序列：[(日期, 现金余额)]
+        cash_timeline = []
+        
+        # 添加初始状态（回测开始时的现金）
+        start_date = start_time.date()
+        cash_timeline.append((start_date, initial_capital))
+        
+        # 按天聚合交易记录，同一天内取最后的现金余额
+        daily_cash = {}
+        for trade in sorted_trades:
+            trade_date = trade.time.date()
+            daily_cash[trade_date] = trade.cash
+        
+        # 将每日现金余额添加到时间序列
+        for date, cash in sorted(daily_cash.items()):
+            # 如果与起始日期相同，更新起始现金；否则添加新记录
+            if date == start_date:
+                cash_timeline[0] = (date, cash)
+            else:
+                cash_timeline.append((date, cash))
+        
+        # 计算时间加权平均现金余额
+        if len(cash_timeline) == 1:
+            # 只有一个时间点，直接使用该现金余额
+            time_weighted_avg_cash = cash_timeline[0][1]
+        else:
+            total_weighted_cash = 0.0
+            end_date = end_time.date()
+            total_days = (end_date - start_date).days + 1
+            
+            if total_days <= 0:
+                # 时间范围异常，回退到简单平均
+                cash_values = [cash for _, cash in cash_timeline]
+                time_weighted_avg_cash = sum(cash_values) / len(cash_values)
+            else:
+                # 计算每个时间段的加权现金
+                for i in range(len(cash_timeline)):
+                    current_date, current_cash = cash_timeline[i]
+                    
+                    # 确定当前状态的结束日期
+                    if i < len(cash_timeline) - 1:
+                        next_date = cash_timeline[i + 1][0]
+                        period_end = next_date
+                    else:
+                        # 最后一个状态持续到回测结束
+                        period_end = end_date + timedelta(days=1)  # 包含结束日期
+                    
+                    # 计算持续天数
+                    duration_days = (period_end - current_date).days
+                    
+                    # 确保持续天数为正
+                    if duration_days > 0:
+                        weight = duration_days / total_days
+                        total_weighted_cash += current_cash * weight
+                
+                time_weighted_avg_cash = total_weighted_cash
+        
+        # 资金利用率 = 1 - (时间加权平均现金余额 / 总资金)
+        utilization_rate = 1 - (time_weighted_avg_cash / initial_capital)
+        
+        # 确保利用率在合理范围内 (0-1)
+        return max(0.0, min(1.0, utilization_rate))
 
     def _calculate_benchmark(self, price_curve: List[Dict],
                            grid_return: float) -> BenchmarkComparison:

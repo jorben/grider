@@ -55,20 +55,18 @@ export default function BacktestMetrics({ metrics = {}, tradingMetrics = {}, ben
       bgColor: (tradingMetrics.win_rate ?? 0) >= 0.5 ? 'bg-up-100' : 'bg-gray-100',
     },
     {
-      label: '盈亏比',
-      value: tradingMetrics.profit_loss_ratio != null
-        ? tradingMetrics.profit_loss_ratio.toFixed(2)
-        : 'N/A',
-      icon: DollarSign,
-      bgColor: 'bg-orange-100',
-      color: 'text-orange-600',
-    },
-    {
       label: '网格触发率',
       value: formatPercent(tradingMetrics.grid_trigger_rate),
       icon: Percent,
       bgColor: 'bg-indigo-100',
       color: 'text-indigo-600',
+    },
+    {
+      label: '资金利用率',
+      value: formatPercent(tradingMetrics.capital_utilization_rate),
+      icon: TrendingUp,
+      bgColor: 'bg-green-100',
+      color: 'text-green-600',
     },
   ];
 
