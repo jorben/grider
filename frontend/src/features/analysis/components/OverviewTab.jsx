@@ -55,9 +55,9 @@ export default function OverviewTab({
             <div className="p-2 bg-orange-200 rounded-lg">
               <Target className="w-5 h-5 text-orange-700" />
             </div>
-            <h3 className="font-semibold text-orange-900">所选标的</h3>
+            <h4 className="font-semibold text-orange-900">所选标的</h4>
           </div>
-          <div className="text-2xl font-bold text-orange-900 mb-1">
+          <div className="text-xl font-bold text-orange-900 mb-1">
             {etfInfo?.code || "未知"}
           </div>
           <p className="text-orange-700 text-sm">
@@ -70,9 +70,9 @@ export default function OverviewTab({
             <div className="p-2 bg-blue-200 rounded-lg">
               <ThermometerSun className="w-5 h-5 text-blue-700" />
             </div>
-            <h3 className="font-semibold text-blue-900">适宜度评估</h3>
+            <h4 className="font-semibold text-blue-900">适宜度评估</h4>
           </div>
-          <div className="text-2xl font-bold text-blue-900 mb-1">
+          <div className="text-xl font-bold text-blue-900 mb-1">
             {suitabilityEvaluation?.total_score || 0}/100分
           </div>
           <p className="text-blue-700 text-sm">
@@ -85,9 +85,9 @@ export default function OverviewTab({
             <div className="p-2 bg-green-200 rounded-lg">
               <TrendingUp className="w-5 h-5 text-green-700" />
             </div>
-            <h3 className="font-semibold text-green-900">网格价格区间</h3>
+            <h4 className="font-semibold text-green-900">网格价格区间</h4>
           </div>
-          <div className="text-2xl font-bold text-down-900 mb-1">
+          <div className="text-xl font-bold text-down-900 mb-1">
             {formatCurrency(gridStrategy?.price_range?.lower, etfInfo?.country, { maximumFractionDigits: 3 })} - {gridStrategy?.price_range?.upper.toFixed(3)}
           </div>
           <p className="text-green-700 text-sm">网格交易价格范围</p>
@@ -98,12 +98,12 @@ export default function OverviewTab({
             <div className="p-2 bg-purple-200 rounded-lg">
               <BarChart3 className="w-5 h-5 text-purple-700" />
             </div>
-            <h3 className="font-semibold text-purple-900">网格步长</h3>
+            <h4 className="font-semibold text-purple-900">网格步长</h4>
           </div>
           {/* 根据网格类型动态展示重点 */}
           {gridStrategy?.grid_config?.type === "等比" ? (
             <>
-              <div className="text-2xl font-bold text-purple-900 mb-1">
+              <div className="text-xl font-bold text-purple-900 mb-1">
                 {((gridStrategy?.grid_config?.step_ratio || 0) * 100).toFixed(
                   2,
                 )}
@@ -115,7 +115,7 @@ export default function OverviewTab({
             </>
           ) : (
             <>
-              <div className="text-2xl font-bold text-purple-900 mb-1">
+              <div className="text-xl font-bold text-purple-900 mb-1">
                 {formatCurrency(gridStrategy?.grid_config?.step_size, etfInfo?.country, { maximumFractionDigits: 3 })}
               </div>
               <p className="text-purple-700 text-sm">

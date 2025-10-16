@@ -28,7 +28,7 @@ export default function AppFooter() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* 系统信息 */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-4">系统特点</h3>
+            <h4 className="font-semibold text-gray-900 mb-4">系统特点</h4>
             <ul className="space-y-2 text-sm text-gray-600">
               <li>• 基于ATR算法的科学分析</li>
               <li>• 4维度量化评分体系</li>
@@ -39,7 +39,7 @@ export default function AppFooter() {
 
           {/* 风险提示 */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-4">风险提示</h3>
+            <h4 className="font-semibold text-gray-900 mb-4">风险提示</h4>
             <ul className="space-y-2 text-sm text-gray-600">
               <li>• 历史数据不代表未来表现</li>
               <li>• 投资有风险，入市需谨慎</li>
@@ -50,7 +50,7 @@ export default function AppFooter() {
 
           {/* 技术支持 */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-4">技术信息</h3>
+            <h4 className="font-semibold text-gray-900 mb-4">技术信息</h4>
             <ul className="space-y-2 text-sm text-gray-600">
               <li>• 数据源：可靠金融数据源</li>
               <li>• 算法：ATR + ADX + 统计分析</li>
