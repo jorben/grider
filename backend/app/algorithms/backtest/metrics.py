@@ -163,12 +163,98 @@ class MetricsCalculator:
         return returns
 
     def _calculate_win_rate(self, trade_records: List[TradeRecord]) -> float:
-        """计算胜率"""
-        profitable_trades = sum(1 for t in trade_records
-                               if t.profit is not None and t.profit > 0)
-        total_trades = sum(1 for t in trade_records if t.profit is not None)
-
-        return profitable_trades / total_trades if total_trades > 0 else 0.0
+        """
+        计算配对交易胜率
+        
+        基于FIFO原则匹配买入和卖出交易，计算配对交易的胜率。
+        这种方法更适合网格交易策略，能够真实反映策略的盈利能力。
+        
+        Returns:
+            float: 配对交易胜率 (0.0 - 1.0)
+        """
+        return self._calculate_paired_win_rate(trade_records)
+    
+    def _calculate_paired_win_rate(self, trade_records: List[TradeRecord]) -> float:
+        """
+        配对交易胜率计算
+        
+        使用FIFO（先进先出）原则匹配买入和卖出交易：
+        1. 按时间排序所有交易
+        2. 维护买入队列，每次卖出时从最早的买入开始匹配
+        3. 计算每个配对的净盈亏（包含双向手续费）
+        4. 统计盈利配对的比例
+        
+        Args:
+            trade_records: 交易记录列表
+            
+        Returns:
+            float: 配对交易胜率
+        """
+        if not trade_records:
+            return 0.0
+        
+        # 按时间排序交易记录
+        sorted_trades = sorted(trade_records, key=lambda x: x.time)
+        
+        # 买入队列：存储 (买入价格, 数量, 手续费)
+        buy_queue = []
+        paired_profits = []
+        
+        for trade in sorted_trades:
+            if trade.type == 'BUY':
+                # 买入交易加入队列
+                buy_queue.append({
+                    'price': trade.price,
+                    'quantity': trade.quantity,
+                    'commission': trade.commission,
+                    'time': trade.time
+                })
+            
+            elif trade.type == 'SELL' and buy_queue:
+                # 卖出交易，与买入队列配对
+                sell_quantity = trade.quantity
+                sell_price = trade.price
+                sell_commission = trade.commission
+                
+                # 从最早的买入开始匹配
+                while sell_quantity > 0 and buy_queue:
+                    buy_record = buy_queue[0]
+                    
+                    # 确定本次配对的数量
+                    paired_quantity = min(sell_quantity, buy_record['quantity'])
+                    
+                    # 计算配对交易的净盈亏
+                    buy_cost = buy_record['price'] * paired_quantity
+                    sell_revenue = sell_price * paired_quantity
+                    
+                    # 按比例分摊手续费
+                    buy_commission_portion = (buy_record['commission'] * 
+                                            paired_quantity / buy_record['quantity'])
+                    sell_commission_portion = (sell_commission * 
+                                             paired_quantity / trade.quantity)
+                    
+                    # 净盈亏 = 卖出收入 - 买入成本 - 总手续费
+                    net_profit = (sell_revenue - buy_cost - 
+                                buy_commission_portion - sell_commission_portion)
+                    
+                    paired_profits.append(net_profit)
+                    
+                    # 更新队列和剩余数量
+                    buy_record['quantity'] -= paired_quantity
+                    sell_quantity -= paired_quantity
+                    
+                    # 如果买入记录已完全匹配，从队列中移除
+                    if buy_record['quantity'] == 0:
+                        buy_queue.pop(0)
+        
+        # 计算胜率
+        if not paired_profits:
+            return 0.0
+        
+        profitable_pairs = sum(1 for profit in paired_profits if profit > 0)
+        total_pairs = len(paired_profits)
+        
+        return profitable_pairs / total_pairs
 
     def _calculate_profit_loss_ratio(self, trade_records: List[TradeRecord]) -> Optional[float]:
         """计算盈亏比"""

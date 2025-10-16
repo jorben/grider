@@ -48,15 +48,87 @@ def test_max_drawdown_calculation(equity_curve):
 
 
 def test_win_rate_calculation():
-    """测试胜率计算"""
+    """测试配对交易胜率计算"""
     calc = MetricsCalculator()
+    
+    # 创建配对交易序列：买入 -> 卖出
+    base_time = datetime.now()
     trades = [
-        TradeRecord(datetime.now(), 'SELL', 3.5, 100, 0.35, 10, 700, 10000),
-        TradeRecord(datetime.now(), 'SELL', 3.5, 100, 0.35, -5, 700, 10000),
-        TradeRecord(datetime.now(), 'SELL', 3.5, 100, 0.35, 8, 700, 10000),
+        # 第一对：买入100股@3.45，卖出100股@3.55 (盈利)
+        TradeRecord(base_time, 'BUY', 3.45, 100, 0.69, None, 100, 9655),
+        TradeRecord(base_time + timedelta(minutes=1), 'SELL', 3.55, 100, 0.71, 8.6, 0, 10000),
+        
+        # 第二对：买入100股@3.50，卖出100股@3.48 (亏损)
+        TradeRecord(base_time + timedelta(minutes=2), 'BUY', 3.50, 100, 0.70, None, 100, 9650),
+        TradeRecord(base_time + timedelta(minutes=3), 'SELL', 3.48, 100, 0.70, -2.4, 0, 9998),
+        
+        # 第三对：买入100股@3.40，卖出100股@3.60 (盈利)
+        TradeRecord(base_time + timedelta(minutes=4), 'BUY', 3.40, 100, 0.68, None, 100, 9660),
+        TradeRecord(base_time + timedelta(minutes=5), 'SELL', 3.60, 100, 0.72, 18.6, 0, 10000),
     ]
+    
     win_rate = calc._calculate_win_rate(trades)
-    assert win_rate == 2/3  # 66.67%
+    assert win_rate == 2/3  # 2个盈利配对 / 3个总配对 = 66.67%
+
+
+def test_paired_win_rate_partial_matching():
+    """测试部分匹配的配对交易胜率"""
+    calc = MetricsCalculator()
+    
+    base_time = datetime.now()
+    trades = [
+        # 买入200股@3.50
+        TradeRecord(base_time, 'BUY', 3.50, 200, 1.40, None, 200, 9300),
+        
+        # 分两次卖出：100股@3.60 (盈利), 100股@3.45 (亏损)
+        TradeRecord(base_time + timedelta(minutes=1), 'SELL', 3.60, 100, 0.72, 8.88, 100, 9650),
+        TradeRecord(base_time + timedelta(minutes=2), 'SELL', 3.45, 100, 0.69, -6.09, 0, 9995),
+    ]
+    
+    win_rate = calc._calculate_win_rate(trades)
+    assert win_rate == 0.5  # 1个盈利配对 / 2个总配对 = 50%
+
+
+def test_paired_win_rate_no_pairs():
+    """测试无配对交易的情况"""
+    calc = MetricsCalculator()
+    
+    # 只有买入，没有卖出
+    trades = [
+        TradeRecord(datetime.now(), 'BUY', 3.50, 100, 0.70, None, 100, 9650),
+        TradeRecord(datetime.now(), 'BUY', 3.45, 100, 0.69, None, 200, 9305),
+    ]
+    
+    win_rate = calc._calculate_win_rate(trades)
+    assert win_rate == 0.0
+
+
+def test_paired_win_rate_complex_scenario():
+    """测试复杂配对场景"""
+    calc = MetricsCalculator()
+    
+    base_time = datetime.now()
+    trades = [
+        # 买入150股@3.50
+        TradeRecord(base_time, 'BUY', 3.50, 150, 1.05, None, 150, 9475),
+        
+        # 买入100股@3.45  
+        TradeRecord(base_time + timedelta(minutes=1), 'BUY', 3.45, 100, 0.69, None, 250, 9130),
+        
+        # 卖出200股@3.55 (应该先匹配150股@3.50，再匹配50股@3.45)
+        TradeRecord(base_time + timedelta(minutes=2), 'SELL', 3.55, 200, 1.42, 8.03, 50, 9840),
+        
+        # 卖出50股@3.40 (匹配剩余50股@3.45，亏损)
+        TradeRecord(base_time + timedelta(minutes=3), 'SELL', 3.40, 50, 0.34, -2.84, 0, 9998),
+    ]
+    
+    win_rate = calc._calculate_win_rate(trades)
+    # 应该有3个配对：
+    # 1. 150股 3.50->3.55 (盈利)
+    # 2. 50股 3.45->3.55 (盈利) 
+    # 3. 50股 3.45->3.40 (亏损)
+    # 胜率 = 2/3
+    assert abs(win_rate - 2/3) < 0.01
 
 
 def test_profit_loss_ratio_calculation():
