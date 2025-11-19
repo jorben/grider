@@ -39,7 +39,8 @@
     "react-dom": "^18.2.0",
     "react-helmet-async": "^2.0.5",
     "react-router-dom": "^7.9.1",
-    "recharts": "^3.2.1"
+    "recharts": "^3.2.1",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/react": "^18.2.43",

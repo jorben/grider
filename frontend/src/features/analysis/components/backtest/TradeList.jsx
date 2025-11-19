@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { formatCurrency } from '@shared/utils/format';
-import { TrendingUp, TrendingDown, Filter, Calendar, DollarSign, Hash, Percent, Activity, ChevronLeft, ChevronRight, BarChart3 } from 'lucide-react';
+import { TrendingUp, TrendingDown, Filter, Calendar, DollarSign, Hash, Percent, Activity, ChevronLeft, ChevronRight, BarChart3, Download } from 'lucide-react';
+import * as XLSX from 'xlsx';
 
 /**
  * 交易记录列表
@@ -54,6 +55,83 @@ export default function TradeList({ trades = [], gridStrategy, totalCapital }) {
     setCurrentPage(page);
   };
 
+  const handleExportExcel = () => {
+    try {
+      // 准备导出数据
+      const exportData = filteredTrades.map((trade, index) => ({
+        '序号': index + 1,
+        '时间': new Date(trade.time).toLocaleString('zh-CN', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        }),
+        '类型': trade.type === 'BUY' ? (trade.isFirstTrade ? '建仓' : '买入') : '卖出',
+        '价格': trade.price.toFixed(3),
+        '数量': trade.quantity,
+        '手续费': trade.commission.toFixed(3),
+        '持仓': trade.position,
+        '网格余额': trade.cash,
+        '持仓市值': trade.marketValue !== undefined ? trade.marketValue : '',
+        '总资产': trade.totalAsset !== undefined ? trade.totalAsset : '',
+        '总盈亏': trade.totalProfitLoss !== undefined ? trade.totalProfitLoss : ''
+      }));
+
+      // 创建工作簿
+      const wb = XLSX.utils.book_new();
+
+      // 创建工作表
+      const ws = XLSX.utils.json_to_sheet(exportData, {
+        header: [
+          '序号',
+          '时间',
+          '类型',
+          '价格',
+          '数量',
+          '手续费',
+          '持仓',
+          '网格余额',
+          '持仓市值',
+          '总资产',
+          '总盈亏'
+        ]
+      });
+
+      // 设置列宽
+      const colWidths = [
+        { wch: 8 },  // 序号
+        { wch: 20 }, // 时间
+        { wch: 8 },  // 类型
+        { wch: 12 }, // 价格
+        { wch: 12 }, // 数量
+        { wch: 12 }, // 手续费
+        { wch: 12 }, // 持仓
+        { wch: 15 }, // 网格余额
+        { wch: 15 }, // 持仓市值
+        { wch: 15 }, // 总资产
+        { wch: 15 }  // 总盈亏
+      ];
+      ws['!cols'] = colWidths;
+
+      // 添加工作表到工作簿
+      XLSX.utils.book_append_sheet(wb, ws, '交易记录');
+
+      // 生成文件名（包含当前时间）
+      const now = new Date();
+      const timestamp = now.toISOString().slice(0, 19).replace(/[:]/g, '-');
+      const filename = `交易记录_${timestamp}.xlsx`;
+
+      // 导出Excel文件
+      XLSX.writeFile(wb, filename);
+
+    } catch (error) {
+      console.error('导出Excel失败:', error);
+      alert('导出Excel失败，请稍后重试');
+    }
+  };
+
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-6 hidden md:block">
       <div className="flex items-center justify-between mb-4">
@@ -67,24 +145,38 @@ export default function TradeList({ trades = [], gridStrategy, totalCapital }) {
           </div>
         </div>
 
-        {/* 筛选器 */}
-        <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-gray-500" />
-          <div className="flex space-x-1">
-            {['ALL', 'BUY', 'SELL'].map((type) => (
-              <button
-                key={type}
-                onClick={() => handleFilterChange(type)}
-                className={`px-3 py-1 rounded text-sm transition-colors ${
-                  filter === type
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                {type === 'ALL' ? '全部' : type === 'BUY' ? '买入' : '卖出'}
-              </button>
-            ))}
+        {/* 筛选器和导出按钮 */}
+        <div className="flex items-center gap-3">
+          {/* 筛选器 */}
+          <div className="flex items-center gap-2">
+            <Filter className="w-4 h-4 text-gray-500" />
+            <div className="flex space-x-1">
+              {['ALL', 'BUY', 'SELL'].map((type) => (
+                <button
+                  key={type}
+                  onClick={() => handleFilterChange(type)}
+                  className={`px-3 py-1 rounded text-sm transition-colors ${
+                    filter === type
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {type === 'ALL' ? '全部' : type === 'BUY' ? '买入' : '卖出'}
+                </button>
+              ))}
+            </div>
           </div>
+
+          {/* 导出按钮 */}
+          <button
+            onClick={handleExportExcel}
+            disabled={filteredTrades.length === 0}
+            className="flex items-center gap-2 px-3 py-1.5 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+            title="导出Excel文件"
+          >
+            <Download className="w-4 h-4" />
+            导出
+          </button>
         </div>
       </div>
 
