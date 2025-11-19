@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2025-11-19
+### :sparkles: New Features
+- [`c6c85e6`](https://github.com/jorben/grider/commit/c6c85e6f5a7058e78e9b726c96b72cf81d0c4bf5) - 实现自定义网格参数回测功能 *(commit by [@jorben](https://github.com/jorben))*
+- [`f275705`](https://github.com/jorben/grider/commit/f275705540e58e5b4e16d750db15bd30ae5cd396) - 合并网格参数和回测参数设置面板 *(commit by [@jorben](https://github.com/jorben))*
+
+### :wrench: Chores
+- [`928b642`](https://github.com/jorben/grider/commit/928b642f674b48f50a9a730561225230331de79d) - **env**: 添加行情接口密钥配置示例
+- [`7a885a4`](https://github.com/jorben/grider/commit/7a885a42a8296e9aa0edfa06aec9c9e2e7e1cb15) - remove openspec command files and update gitignore *(commit by [@jorben](https://github.com/jorben))*
+
+
 ## [1.2.8] - 2025-10-16
 ### :sparkles: New Features
 - [`9c55846`](https://github.com/jorben/grider/commit/9c5584686dcebfac23bef083df1bc18fe6bcf945) - **metrics**: 实现配对交易胜率计算 *(commit by [@jorben](https://github.com/jorben))*
@@ -190,3 +200,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.2.6]: https://github.com/jorben/grider/compare/1.2.5...1.2.6
 [1.2.7]: https://github.com/jorben/grider/compare/1.2.6...1.2.7
 [1.2.8]: https://github.com/jorben/grider/compare/1.2.7...1.2.8
+[1.3.0]: https://github.com/jorben/grider/compare/1.2.8...1.3.0
