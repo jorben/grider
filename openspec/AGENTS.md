@@ -2,6 +2,18 @@
 
 Instructions for AI coding assistants using OpenSpec for spec-driven development.
 
+## Language Requirements
+
+**所有提案、设计、任务、规范必须使用中文描述。**
+
+- `proposal.md`：使用中文描述变更理由、内容和影响
+- `design.md`：使用中文描述技术决策、风险评估和迁移计划
+- `tasks.md`：使用中文描述实施步骤和质量保证任务
+- `specs/*/spec.md`：使用中文描述需求和场景
+- 所有注释和文档也应使用中文
+
+此要求确保中文团队能够完全理解和实施规范变更。
+
 ## TL;DR Quick Checklist
 
 - Search existing work: `openspec spec list --long`, `openspec list` (use `rg` only for full-text search)
