@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.1] - 2025-11-19
+### :sparkles: New Features
+- [`edfe0b6`](https://github.com/jorben/grider/commit/edfe0b61b45b1a2c7181479c5f8f1c560e9aa00a) - 在回测页交易记录模块添加Excel导出功能 *(commit by [@jorben](https://github.com/jorben))*
+
+### :bug: Bug Fixes
+- [`c415e58`](https://github.com/jorben/grider/commit/c415e58b0a03b2cafba53c2cde93edad4a40e8e7) - 更新网页头部GitHub链接为正确的仓库地址 *(commit by [@jorben](https://github.com/jorben))*
+
+
 ## [1.3.0] - 2025-11-19
 ### :sparkles: New Features
 - [`c6c85e6`](https://github.com/jorben/grider/commit/c6c85e6f5a7058e78e9b726c96b72cf81d0c4bf5) - 实现自定义网格参数回测功能 *(commit by [@jorben](https://github.com/jorben))*
@@ -201,3 +209,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.2.7]: https://github.com/jorben/grider/compare/1.2.6...1.2.7
 [1.2.8]: https://github.com/jorben/grider/compare/1.2.7...1.2.8
 [1.3.0]: https://github.com/jorben/grider/compare/1.2.8...1.3.0
+[1.3.1]: https://github.com/jorben/grider/compare/1.3.0...1.3.1
