@@ -30,7 +30,7 @@ export default function AppHeader() {
           {/* 导航链接 - 响应式处理 */}
           <div className="flex items-center">
             <a
-              href="https://github.com/jorben/etf-grid-design"
+              href="https://github.com/jorben/grider"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1 sm:gap-2 p-1.5 sm:px-3 sm:py-2 text-gray-600 hover:text-gray-900 transition-colors rounded-lg hover:bg-gray-50"
