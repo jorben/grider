@@ -21,17 +21,27 @@ class TsanghiProvider(BaseProvider):
             params={"country_code": country_code}
         )
     
-    def get_calendar(self, exchange_code: str = "CHN", limit=10):
+    def get_calendar(self, exchange_code: str = "CHN", limit=10, start_date: str = None, end_date: str = None):
         """获取交易日历"""
+        params = {
+            "exchange_code": exchange_code,
+            "status": 1, # 仅输出交易日
+            "order": 2, # 降序
+            "columns": "date"
+        }
+
+        # 如果提供了日期范围，使用日期参数；否则使用limit
+        if start_date and end_date:
+            params.update({
+                "start_date": start_date,
+                "end_date": end_date
+            })
+        else:
+            params["limit"] = limit  # 最近的N个交易日
+
         return self.call_api(
             endpoint_name="calendar",
-            params={
-                "exchange_code": exchange_code,
-                "status": 1, # 仅输出交易日
-                "limit": limit, # 最近的N个交易日
-                "order": 2, # 降序
-                "columns": "date"
-                }
+            params=params
         )
     
     def search_by_ticker(self, ticker: str, country_code: str = "CHN"):

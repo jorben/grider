@@ -107,14 +107,15 @@ class ApiService {
    * @param {string} type - 证券类型（'ETF' 或 'STOCK'）
    * @returns {Promise<object>} 回测结果
    */
-  async runBacktest(etfCode, exchangeCode, gridStrategy, backtestConfig = null, type = 'STOCK') {
-    console.log('API runBacktest called with:', { etfCode, exchangeCode, gridStrategy: !!gridStrategy, backtestConfig, type });
+  async runBacktest(etfCode, exchangeCode, gridStrategy, backtestConfig = null, type = 'STOCK', customGridParams = null) {
+    console.log('API runBacktest called with:', { etfCode, exchangeCode, gridStrategy: !!gridStrategy, backtestConfig, type, customGridParams });
     const result = await this.post("/grid/backtest", {
       etfCode,
       exchangeCode,
       gridStrategy,
       backtestConfig,
       type,
+      customGridParams,
     });
     console.log('API runBacktest result:', result);
     return result;
@@ -130,7 +131,7 @@ export const getETFInfo = (etfCode) => apiService.getETFInfo(etfCode);
 export const getPopularETFs = () => apiService.getPopularETFs();
 export const healthCheck = () => apiService.healthCheck();
 export const getVersion = () => apiService.getVersion();
-export const runBacktest = (etfCode, exchangeCode, gridStrategy, backtestConfig, type) =>
-  apiService.runBacktest(etfCode, exchangeCode, gridStrategy, backtestConfig, type);
+export const runBacktest = (etfCode, exchangeCode, gridStrategy, backtestConfig, type, customGridParams) =>
+  apiService.runBacktest(etfCode, exchangeCode, gridStrategy, backtestConfig, type, customGridParams);
 
 export default apiService;

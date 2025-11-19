@@ -262,11 +262,20 @@ class TradingLogic:
         purchase_price = (first_kbar.high + first_kbar.low +
                          first_kbar.open + first_kbar.close) / 4
 
-        # 2. 计算可购买股数（使用self.min_trade_unit）
+        # 2. 检查购买价格是否在自定义价格区间内
+        if purchase_price < price_lower or purchase_price > price_upper:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"初始购买价格{purchase_price:.3f}超出自定义价格区间[{price_lower:.3f}, {price_upper:.3f}]，调整为0底仓")
+            return self._initialize_zero_position(
+                total_capital, strategy_base_price, price_lower, price_upper, first_kbar.close
+            )
+
+        # 3. 计算可购买股数（使用self.min_trade_unit）
         theoretical_shares = base_position_amount / purchase_price
         shares = int(theoretical_shares / self.min_trade_unit) * self.min_trade_unit
 
-        # 3. 检查资金充足性
+        # 4. 检查资金充足性
         if shares < self.min_trade_unit:
             # 资金不足，降级为0底仓
             import logging
@@ -276,10 +285,10 @@ class TradingLogic:
                 total_capital, strategy_base_price, price_lower, price_upper, first_kbar.close
             )
 
-        # 4. 计算实际成本（含手续费）
+        # 5. 计算实际成本（含手续费）
         cost = self.fee_calc.calculate_buy_cost(purchase_price, shares)
 
-        # 5. 验证资金安全
+        # 6. 验证资金安全
         if cost > total_capital:
             import logging
             logger = logging.getLogger(__name__)
@@ -288,7 +297,7 @@ class TradingLogic:
                 total_capital, strategy_base_price, price_lower, price_upper, first_kbar.close
             )
 
-        # 6. 创建初始状态
+        # 7. 创建初始状态
         cash = total_capital - cost
         position = shares
 
@@ -309,7 +318,7 @@ class TradingLogic:
             price_upper=price_upper
         )
 
-        # 7. 创建交易记录
+        # 8. 创建交易记录
         commission = cost - purchase_price * shares
         record = TradeRecord(
             time=first_kbar.time,

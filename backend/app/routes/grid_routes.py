@@ -80,7 +80,17 @@ def run_backtest():
         "exchangeCode": "XSHG",
         "gridStrategy": {...},
         "backtestConfig": {...},
-        "type": "ETF"  // 可选，默认为 "STOCK"
+        "type": "ETF",  // 可选，默认为 "STOCK"
+        "customGridParams": {  // 可选，自定义网格参数
+            "priceLower": 1.234,
+            "priceUpper": 1.567,
+            "totalCapital": 100000,
+            "benchmarkPrice": 1.345,
+            "gridStepSize": 0.01,
+            "singleTradeQuantity": 100,
+            "startDate": "2024-01-01",  // 可选
+            "endDate": "2024-12-31"     // 可选
+        }
     }
     """
     try:
@@ -106,6 +116,9 @@ def run_backtest():
         grid_strategy = data.get('gridStrategy')
         backtest_config = data.get('backtestConfig')
         type_param = data.get('type', 'STOCK')  # 默认 'STOCK'
+        custom_grid_params = data.get('customGridParams')  # 可选的自定义网格参数
+
+        logger.info(f"接收到的自定义网格参数: {custom_grid_params}")
 
         # 2. 执行回测
         backtest_service = BacktestService()
@@ -114,7 +127,8 @@ def run_backtest():
             exchange_code=exchange_code,
             grid_strategy=grid_strategy,
             backtest_config=backtest_config,
-            type=type_param
+            type=type_param,
+            custom_grid_params=custom_grid_params
         )
 
         # 3. 返回结果

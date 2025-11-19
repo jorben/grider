@@ -147,19 +147,21 @@ class DataService:
             logger.error(f"获取5分钟K线数据失败: {e}")
             raise
 
-    def get_trading_calendar(self, exchange_code: str, limit: int = 5) -> List[str]:
+    def get_trading_calendar(self, exchange_code: str, limit: int = 5, start_date: str = None, end_date: str = None) -> List[str]:
         """
-        获取最近N个交易日
+        获取交易日历
 
         Args:
             exchange_code: 交易所代码
-            limit: 获取天数
+            limit: 获取天数（当未指定日期范围时使用）
+            start_date: 开始日期（YYYY-MM-DD格式）
+            end_date: 结束日期（YYYY-MM-DD格式）
 
         Returns:
             交易日列表 ['2025-01-16', '2025-01-15', ...]
         """
         try:
-            response = self.provider.get_calendar(exchange_code, limit)
+            response = self.provider.get_calendar(exchange_code, limit, start_date, end_date)
             if response.get('code') == 200 and 'data' in response:
                 calendar_data = response['data']
                 return [row['date'] for row in calendar_data]
