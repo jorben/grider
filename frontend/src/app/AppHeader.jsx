@@ -1,4 +1,6 @@
+import React, { useState, useEffect } from "react";
 import { Waypoints, Github } from "lucide-react";
+import { getVersion } from "@shared/services/api";
 
 /**
  * 应用头部组件
@@ -6,6 +8,22 @@ import { Waypoints, Github } from "lucide-react";
  * 响应式设计：小屏幕下自动调整布局避免挤压
  */
 export default function AppHeader() {
+  const [version, setVersion] = useState("v1.0.0");
+
+  useEffect(() => {
+    const fetchVersion = async () => {
+      try {
+        const response = await getVersion();
+        if (response.success && response.data.version) {
+          setVersion(`v${response.data.version}`);
+        }
+      } catch (error) {
+        console.error("获取版本号失败:", error);
+      }
+    };
+
+    fetchVersion();
+  }, []);
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
@@ -34,10 +52,10 @@ export default function AppHeader() {
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1 sm:gap-2 p-1.5 sm:px-3 sm:py-2 text-gray-600 hover:text-gray-900 transition-colors rounded-lg hover:bg-gray-50"
-              title="GitHub 社区版"
+              title={`GitHub ${version}`}
             >
               <Github className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="hidden xs:inline text-xs sm:text-sm">社区版</span>
+              <span className="hidden xs:inline text-xs sm:text-sm">{version}</span>
             </a>
           </div>
         </div>
