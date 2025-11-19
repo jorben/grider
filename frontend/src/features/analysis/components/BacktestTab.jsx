@@ -2,8 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { runBacktest } from '@shared/services/api';
 import { hashString, safeSetSessionStorage, safeGetSessionStorage } from '@shared/utils';
 import BacktestGuide from './backtest/BacktestGuide';
-import BacktestConfigEditor from './backtest/BacktestConfigEditor';
-import GridParameterEditor from './backtest/GridParameterEditor';
+import GridParameterSettings from './backtest/GridParameterSettings';
 import BacktestMetrics from './backtest/BacktestMetrics';
 import BacktestCharts from './backtest/BacktestCharts';
 import TradeList from './backtest/TradeList';
@@ -25,7 +24,6 @@ export default function BacktestTab({ etfCode, exchangeCode, gridStrategy, type,
     tradingDaysPerYear: 244,
   });
   const [customGridParams, setCustomGridParams] = useState(null);
-  const [showGridParameterEditor, setShowGridParameterEditor] = useState(false);
 
   // 从localStorage加载回测配置
   useEffect(() => {
@@ -109,22 +107,16 @@ export default function BacktestTab({ etfCode, exchangeCode, gridStrategy, type,
     <div className="space-y-6">
       
 
-      {/* 参数编辑器 */}
-      <BacktestConfigEditor
-        config={backtestConfig}
-        onConfigChange={setBacktestConfig}
-        onRunBacktest={handleRunBacktest}
-      />
-
-      {/* 网格参数编辑器 */}
-      <GridParameterEditor
+      {/* 网格参数设置 */}
+      <GridParameterSettings
         gridStrategy={backtestResult?.grid_strategy || gridStrategy}
         inputParameters={{ totalCapital, total_capital: totalCapital }}
         defaultDates={backtestResult?.backtest_period}
+        backtestConfig={backtestConfig}
+        onConfigChange={setBacktestConfig}
         onParametersChange={handleCustomGridParamsChange}
         onRunBacktest={handleRunBacktest}
-        isVisible={showGridParameterEditor}
-        onToggleVisibility={() => setShowGridParameterEditor(!showGridParameterEditor)}
+        isVisible={true}
       />
       {console.log('BacktestTab backtestResult:', backtestResult)}
       {console.log('BacktestTab backtest_period:', backtestResult?.backtest_period)}

@@ -72,22 +72,6 @@ export default function BacktestMetrics({ metrics = {}, tradingMetrics = {}, ben
 
   return (
     <div className="space-y-6">
-      {/* 回测周期 */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-blue-100 rounded-lg">
-            <Calendar className="w-5 h-5 text-blue-600" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-blue-800">回测区间</p>
-            <p className="text-sm text-blue-700">
-              {period.start_date} ~ {period.end_date}
-              （{period.trading_days}个交易日，{period.total_bars}组数据点）
-            </p>
-          </div>
-        </div>
-      </div>
-
       {/* 核心指标 */}
       <div className="bg-white border border-gray-200 rounded-lg p-6">
         <div className="flex items-center gap-3 mb-4">
