@@ -212,3 +212,7 @@ __marimo__/
 # Claude Code
 .claude/
 .claude_index/
+
+# Cloudflare Worker
+worker/.wrangler/
+worker/.dev.vars
