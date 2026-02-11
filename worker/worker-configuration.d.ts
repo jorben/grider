@@ -3,4 +3,7 @@
 
 interface Env {
   GRIDER_CONTAINER: DurableObjectNamespace;
+  TSANGHI_TOKEN_01: string;
+  TSANGHI_TOKEN_02: string;
+  JWT_SECRET_KEY: string;
 }

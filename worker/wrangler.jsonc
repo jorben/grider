@@ -1,6 +1,8 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "grider",
+  "workers_dev": false,
+  "logpush": true,
   "main": "src/index.ts",
   "compatibility_date": "2025-10-08",
   "compatibility_flags": ["nodejs_compat"],
@@ -9,21 +11,21 @@
     {
       "class_name": "GriderContainer",
       "image": "../Dockerfile",
-      "max_instances": 1
-    }
+      "max_instances": 1,
+    },
   ],
   "durable_objects": {
     "bindings": [
       {
         "class_name": "GriderContainer",
-        "name": "GRIDER_CONTAINER"
-      }
-    ]
+        "name": "GRIDER_CONTAINER",
+      },
+    ],
   },
   "migrations": [
     {
       "new_sqlite_classes": ["GriderContainer"],
-      "tag": "v1"
-    }
-  ]
+      "tag": "v1",
+    },
+  ],
 }

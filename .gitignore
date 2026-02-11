@@ -3,6 +3,7 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+logs/
 cache/
 node_modules/
 
