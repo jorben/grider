@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { Share2, ArrowLeft, AlertTriangle } from "lucide-react";
+import { Share2, ArrowLeft, AlertTriangle, Sparkles, ExternalLink } from "lucide-react";
 import AnalysisReport from "@features/analysis/components/AnalysisReport";
 import DisclaimerModal from "@features/analysis/components/DisclaimerModal";
 import { analyzeETF } from "@shared/services/api";
@@ -355,6 +355,29 @@ const AnalysisPage = () => {
             </div>
           )}
         </div>
+
+        {/* 促销 Banner */}
+        <a
+          href="https://zenmux.ai/invite/9H70CU"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group block rounded-xl border border-blue-100 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 px-4 py-3 text-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 sm:px-6"
+          aria-label="点击获取 ZenMux 企业级大模型 API 服务首充额外赠送优惠"
+        >
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-center sm:text-center">
+            <div className="flex items-center gap-2 text-sm font-semibold sm:text-base">
+              <Sparkles className="h-5 w-5 flex-shrink-0 text-yellow-200" />
+              <span>ZenMux：可靠的企业级大模型API服务</span>
+            </div>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm sm:text-base">
+              <span className="text-blue-50">（首充可获5～8%额外赠送）</span>
+              <span className="inline-flex items-center gap-1 font-bold text-yellow-200 underline-offset-4 group-hover:underline">
+                点击获取
+                <ExternalLink className="h-4 w-4" />
+              </span>
+            </div>
+          </div>
+        </a>
 
         {/* 分析报告 - 只有在同意免责声明后才显示 */}
         {(disclaimerChecked || checkDisclaimerStatus()) && (
