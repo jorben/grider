@@ -33,8 +33,7 @@ app.all("/*", async (c) => {
         LOG_LEVEL: "INFO",
         LOG_TO_CONSOLE: "true",
         WORKERS: "2",
-        TSANGHI_TOKEN_01: c.env.TSANGHI_TOKEN_01,
-        TSANGHI_TOKEN_02: c.env.TSANGHI_TOKEN_02,
+        TICKFLOW_API_KEY: c.env.TICKFLOW_API_KEY,
         JWT_SECRET_KEY: c.env.JWT_SECRET_KEY,
       },
     });

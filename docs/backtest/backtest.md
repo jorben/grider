@@ -12,11 +12,10 @@
 
 #### 行情数据
 - **数据类型**：5分钟K线历史数据
-- **数据提供商**：TsanghiProvider
+- **数据提供商**：TickFlowProvider（基于 TickFlow Python SDK）
 - **数据字段**：`ticker, date, open, high, low, close, volume, amount`
 - **数据接口**：
-  - ETF：`get_etf_5min(ticker, exchange_code, start_date, end_date)`
-  - 股票：`get_stock_5min(ticker, exchange_code, start_date, end_date)`
+  - ETF / 股票统一：`get_5min(symbol, start_date, end_date)`（symbol 形如 `510300.SH`）
 
 #### 交易日历
 - **接口**：`get_calendar(exchange_code, limit)`

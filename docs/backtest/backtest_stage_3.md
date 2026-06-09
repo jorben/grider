@@ -14,7 +14,7 @@
 **总体技术架构**：
 - 后端：Python Flask + 回测算法引擎 ✅
 - 前端：React + Recharts图表库 ← 本阶段实现
-- 数据源：TsanghiProvider（5分钟K线 + 交易日历）✅
+- 数据源：TickFlowProvider（5分钟K线）+ exchange_calendars 离线库（交易日历）✅
 
 ---
 

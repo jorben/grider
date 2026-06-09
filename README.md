@@ -135,16 +135,16 @@ LOG_FORMAT=json
 LOG_DIR=logs
 
 # 外部API配置
-TSANGHI_API_KEY=your-tsanghi-api-key
+TICKFLOW_API_KEY=your-tickflow-api-key
 # 其他API密钥...
 ```
 
 ### 数据源配置
 
-项目支持多个数据源，需要在环境变量中配置相应的API密钥：
+项目使用 TickFlow 作为唯一外部金融数据源，需要在环境变量中配置 API Key：
 
-- **Tsanghi API**: 主要的股票和ETF数据源
-- **其他数据源**: 可配置备用数据源
+- **TickFlow API**: 主要的股票和ETF数据源（支付订阅），交易日历由 `exchange_calendars` 离线库提供
+- 详细接入方案见 `docs/tsanghi_vs_tickflow_analysis.md`
 
 ## 📖 使用指南
 

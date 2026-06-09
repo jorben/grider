@@ -1,0 +1,309 @@
+"""``TickFlowProvider`` 单元测试。
+
+覆盖：
+- 静态辅助方法 ``_kline_to_rows`` / ``_normalize_quote`` / ``_date_to_ms``
+- 离线日历 ``get_calendar``（基于 ``exchange_calendars`` 真实行为）
+- 搜索 ``search_by_ticker`` 在 mock 后的 universe 数据上的过滤与排序
+- 缓存 ``_cached_call`` 命中 / 未命中 / 失败分支
+"""
+
+import os
+from datetime import datetime, timezone, timedelta
+from unittest.mock import MagicMock, patch
+
+import pytest
+
+# 让 TickFlow() 无参构造时不会因缺少 key 抛错
+os.environ.setdefault("TICKFLOW_API_KEY", "test_placeholder_key")
+
+# 中国时区，与 provider 内部保持一致
+CN_TZ = timezone(timedelta(hours=8), name="Asia/Shanghai")
+
+from app.external.providers.tickflow_provider import (  # noqa: E402
+    TickFlowProvider,
+    _coerce_params,
+)
+
+
+# ---------------------------------------------------------------------------
+# 纯函数
+# ---------------------------------------------------------------------------
+
+
+def test_coerce_params_simple():
+    out = _coerce_params({"a": 1, "b": "x", "c": None, "d": True})
+    assert out == {"a": 1, "b": "x", "c": None, "d": True}
+
+
+def test_coerce_params_serializes_complex_values():
+    out = _coerce_params({"list": [1, 2, 3], "obj": {"k": "v"}})
+    assert out["list"] == "[1, 2, 3]"
+    assert out["obj"] == '{"k": "v"}'
+
+
+def test_coerce_params_none():
+    assert _coerce_params(None) == {}
+    assert _coerce_params({}) == {}
+
+
+def test_provider_initialize_with_placeholder_key():
+    """初始化：缺 API Key 时也能成功构造（仅警告）。"""
+    with patch.dict(os.environ, {"TICKFLOW_API_KEY": ""}, clear=False):
+        provider = TickFlowProvider()
+        # SDK 仍然成功初始化（占位 key），不会因缺失导致异常
+        assert provider is not None
+
+
+def test_short_to_internal():
+    assert TickFlowProvider._short_to_internal("SH") == "XSHG"
+    assert TickFlowProvider._short_to_internal("SZ") == "XSHE"
+    assert TickFlowProvider._short_to_internal("HK") == "XHKG"
+    assert TickFlowProvider._short_to_internal("US") == "XNYS"
+    assert TickFlowProvider._short_to_internal("XX") == "XX"  # 未知值原样返回
+
+
+def test_date_to_ms_start_and_end_of_day():
+    start_ms = TickFlowProvider._date_to_ms("2025-01-10", end_of_day=False)
+    end_ms = TickFlowProvider._date_to_ms("2025-01-10", end_of_day=True)
+    assert end_ms > start_ms
+    # 一整天 86400000 ms ± 1 秒
+    assert (end_ms - start_ms) >= 86_400_000 - 1000
+    assert (end_ms - start_ms) <= 86_400_000 + 1000
+
+
+def test_kline_to_rows_columnar_to_row():
+    """``_kline_to_rows`` 把 SDK 列式结构转行式 dict 列表。"""
+    # 时间戳表示 2025-01-10 00:00 / 2025-01-11 00:00 中国时区
+    columnar = {
+        "timestamp": [
+            int(datetime(2025, 1, 10, 0, 0, 0, tzinfo=CN_TZ).timestamp() * 1000),
+            int(datetime(2025, 1, 11, 0, 0, 0, tzinfo=CN_TZ).timestamp() * 1000),
+        ],
+        "open": [3.5, 3.6],
+        "high": [3.55, 3.65],
+        "low": [3.45, 3.55],
+        "close": [3.50, 3.62],
+        "volume": [1000, 1500],
+        "amount": [3500.0, 5400.0],
+    }
+    rows = TickFlowProvider._kline_to_rows(columnar, period="1d")
+    assert len(rows) == 2
+    assert rows[0]["date"] == "2025-01-10"
+    assert rows[0]["open"] == 3.5
+    assert rows[1]["close"] == 3.62
+
+
+def test_kline_to_rows_intraday_format():
+    """非日线 K 线应保留 ``YYYY-MM-DD HH:MM:SS`` 格式。"""
+    ts = int(datetime(2025, 1, 10, 9, 35, 0, tzinfo=CN_TZ).timestamp() * 1000)
+    columnar = {
+        "timestamp": [ts],
+        "open": [1.0],
+        "high": [1.0],
+        "low": [1.0],
+        "close": [1.0],
+        "volume": [1],
+        "amount": [1.0],
+    }
+    rows = TickFlowProvider._kline_to_rows(columnar, period="5m")
+    assert rows[0]["date"] == "2025-01-10 09:35:00"
+
+
+def test_kline_to_rows_invalid_input():
+    assert TickFlowProvider._kline_to_rows(None, period="1d") == []
+    assert TickFlowProvider._kline_to_rows("not a dict", period="1d") == []
+
+
+def test_normalize_quote_a_share():
+    """``_normalize_quote`` 提取 ticker/exchange_code 并计算 change_pct。"""
+    quote = {
+        "symbol": "510300.SH",
+        "name": "沪深300ETF",
+        "last_price": 3.6,
+        "prev_close": 3.5,
+        "open": 3.5,
+        "high": 3.65,
+        "low": 3.48,
+        "volume": 10000,
+        "amount": 35000.0,
+        # 2025-01-10 15:00:00 中国时区
+        "timestamp": int(datetime(2025, 1, 10, 15, 0, 0, tzinfo=CN_TZ).timestamp() * 1000),
+    }
+    out = TickFlowProvider._normalize_quote(quote)
+    assert out["symbol"] == "510300.SH"
+    assert out["ticker"] == "510300"
+    assert out["exchange_code"] == "XSHG"
+    assert out["close"] == 3.6
+    assert out["pre_close"] == 3.5
+    assert out["date"] == "2025-01-10 15:00:00"
+    # change_pct = (3.6 - 3.5) / 3.5 * 100 ≈ 2.857
+    assert out["change_pct"] == pytest.approx(2.857, rel=1e-2)
+
+
+def test_normalize_quote_hk_and_us():
+    hk = TickFlowProvider._normalize_quote({"symbol": "00700.HK", "last_price": 100, "prev_close": 99})
+    assert hk["exchange_code"] == "XHKG"
+    us = TickFlowProvider._normalize_quote({"symbol": "AAPL.US", "last_price": 200, "prev_close": 195})
+    assert us["exchange_code"] == "XNYS"
+
+
+def test_normalize_quote_change_pct_zero_prev():
+    """prev_close 为 0 时 change_pct 应为 None，不抛异常。"""
+    out = TickFlowProvider._normalize_quote({"symbol": "510300.SH", "last_price": 1.0, "prev_close": 0})
+    assert out["change_pct"] is None
+
+
+def test_normalize_quote_missing_timestamp():
+    """timestamp 缺失时 date 留空字符串。"""
+    out = TickFlowProvider._normalize_quote({"symbol": "510300.SH", "last_price": 1.0, "prev_close": 1.0})
+    assert out["date"] == ""
+
+
+# ---------------------------------------------------------------------------
+# exchange_calendars 集成
+# ---------------------------------------------------------------------------
+
+
+def test_get_calendar_xshg_returns_descending_dates():
+    """get_calendar(XSHG) 应返回降序日期字符串列表。"""
+    provider = TickFlowProvider()
+    resp = provider.get_calendar("XSHG", limit=5)
+    assert resp["code"] == 200
+    dates = [row["date"] for row in resp["data"]]
+    assert len(dates) >= 1
+    # 降序
+    assert dates == sorted(dates, reverse=True)
+    # 至少第一条是工作日
+    assert all(d.count("-") == 2 for d in dates)
+
+
+def test_get_calendar_respects_date_range():
+    provider = TickFlowProvider()
+    resp = provider.get_calendar("XSHG", start_date="2025-01-06", end_date="2025-01-10")
+    assert resp["code"] == 200
+    dates = [row["date"] for row in resp["data"]]
+    # 2025-01-06 ~ 2025-01-10 中只有 01-06、01-07、01-08、01-09、01-10 是工作日
+    assert "2025-01-06" in dates
+    assert "2025-01-10" in dates
+    # 周末 01-11、01-12 不应出现
+    assert "2025-01-11" not in dates
+    assert "2025-01-12" not in dates
+
+
+def test_get_calendar_unknown_exchange():
+    provider = TickFlowProvider()
+    resp = provider.get_calendar("FAKE", limit=5)
+    assert resp["code"] == 400
+    assert "不支持" in resp.get("message", "")
+
+
+# ---------------------------------------------------------------------------
+# search_by_ticker（mock universe 响应）
+# ---------------------------------------------------------------------------
+
+
+def _universe_resp(symbols, universe_id):
+    return {
+        "code": 200,
+        "data": {
+            "id": universe_id,
+            "name": universe_id,
+            "category": "etf" if "ETF" in universe_id else "equity",
+            "symbols": symbols,
+        },
+    }
+
+
+def test_search_by_ticker_startswith_priority():
+    provider = TickFlowProvider()
+    with patch.object(
+        provider,
+        "get_universe",
+        side_effect=[
+            _universe_resp(["510300.SH", "510500.SH", "159915.SZ"], "CN_ETF"),
+            # 510300 同时出现在 A 股，但 ETF 类型会覆盖 STOCK
+            _universe_resp(["510300.SH", "600000.SH", "000001.SZ"], "CN_Equity_A"),
+        ],
+    ):
+        resp = provider.search_by_ticker("510", "CHN")
+    assert resp["code"] == 200
+    tickers = [item["ticker"] for item in resp["data"]]
+    # 去重后：以 510 开头的应有 2 条（510300 / 510500）
+    starts_with = [t for t in tickers if t.startswith("510")]
+    assert len(starts_with) == 2
+    # 510300 的类型应被 ETF 覆盖
+    by_ticker = {item["ticker"]: item for item in resp["data"]}
+    assert by_ticker["510300"]["type"] == "ETF"
+    # 短 ticker（510500, 510300 都是 6 位）字典序应一致
+    assert tickers[0] in ("510300", "510500")
+
+
+def test_search_by_ticker_returns_typed_result():
+    provider = TickFlowProvider()
+    with patch.object(
+        provider,
+        "get_universe",
+        side_effect=[
+            _universe_resp(["510300.SH"], "CN_ETF"),
+            _universe_resp([], "CN_Equity_A"),
+        ],
+    ):
+        resp = provider.search_by_ticker("510300", "CHN")
+    assert resp["code"] == 200
+    assert resp["data"][0]["type"] == "ETF"
+    assert resp["data"][0]["exchange_code"] == "XSHG"
+    assert resp["data"][0]["symbol"] == "510300.SH"
+
+
+def test_search_by_ticker_empty_input():
+    provider = TickFlowProvider()
+    resp = provider.search_by_ticker("", "CHN")
+    assert resp["code"] == 200
+    assert resp["data"] == []
+
+
+# ---------------------------------------------------------------------------
+# 缓存流程
+# ---------------------------------------------------------------------------
+
+
+def test_cached_call_hit_and_miss(tmp_path, monkeypatch):
+    """_cached_call 第一次未命中会调用 producer；第二次缓存命中跳过 producer。"""
+    # 切换缓存目录到临时目录
+    monkeypatch.setenv("TICKFLOW_API_KEY", "test")
+    cfg_path = "app/config/config.yaml"
+    provider = TickFlowProvider()
+    # 重定向 cache_dir
+    provider.cache_manager.cache_dir = tmp_path / "cache"
+    provider.cache_manager.cache_dir.mkdir(parents=True, exist_ok=True)
+
+    producer = MagicMock(return_value={"code": 200, "data": [{"x": 1}]})
+    params = {"symbol": "510300.SH"}
+
+    # 第一次：缓存未命中，调用 producer
+    out1 = provider._cached_call("realtime", params, producer)
+    producer.assert_called_once()
+    assert out1 == {"code": 200, "data": [{"x": 1}]}
+
+    # 第二次：缓存命中，不再调用 producer
+    producer.reset_mock()
+    out2 = provider._cached_call("realtime", params, producer)
+    producer.assert_not_called()
+    assert out2 == {"code": 200, "data": [{"x": 1}]}
+
+
+def test_cached_call_does_not_cache_error(monkeypatch):
+    """失败响应不应被缓存。"""
+    monkeypatch.setenv("TICKFLOW_API_KEY", "test")
+    provider = TickFlowProvider()
+    provider.cache_manager.cache_dir = __import__("pathlib").Path("cache/_test_temp")
+    provider.cache_manager.cache_dir.mkdir(parents=True, exist_ok=True)
+
+    failing = MagicMock(return_value={"code": 500, "data": None, "message": "boom"})
+    out = provider._cached_call("realtime", {"symbol": "FAIL.SH"}, failing)
+    assert out["code"] == 500
+
+    # 再次调用应重新触发 producer（因为失败不缓存）
+    failing.reset_mock()
+    provider._cached_call("realtime", {"symbol": "FAIL.SH"}, failing)
+    assert failing.call_count == 1

@@ -17,6 +17,8 @@ dependencies = [
     "pandas>=2.3.3",
     "gunicorn>=23.0.0",
     "gevent>=25.9.1",
+    "tickflow>=0.1.22",
+    "exchange-calendars>=4.13.0",
 ]
 
 [project.optional-dependencies]
