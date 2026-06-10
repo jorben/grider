@@ -132,8 +132,8 @@ def ticker_to_tickflow(ticker: str, exchange_code: str) -> str:
     # 数字 ticker（A 股 / 港股）
     if ticker.isdigit():
         if exchange_short == "HK" or (not exchange_short and len(ticker) < 6):
-            # 港股补零到 4 位
-            padded = str(int(ticker)).zfill(4) if ticker else ""
+            # 港股补零到 5 位（TickFlow 格式：00700.HK / 03032.HK）
+            padded = str(int(ticker)).zfill(5) if ticker else ""
             return f"{padded}.{exchange_short or 'HK'}"
         if exchange_short in ("SH", "SZ"):
             # A 股 6 位保留前导零
@@ -186,23 +186,62 @@ def tickflow_to_ticker(symbol: str) -> Tuple[str, str]:
 _ETF_SHANGHAI_PREFIXES = ("5",)
 _ETF_SHENZHEN_PREFIXES = ("1", "159")
 
+# 港美股常见 ETF 集合（按代码字面量匹配；不含交易所后缀）。
+# 用 whitelist 而非纯启发式的原因：港股 3-5 位、美股纯字母既包含 ETF 也包含个股，
+# 纯形态启发式会把 0700（腾讯）、AAPL（苹果）等个股误判为 ETF。Whitelist 是更
+# 保守的方案，仅放行业务方确认过的常见 ETF 代码。
+_KNOWN_HK_ETFS = frozenset({
+    "3032",   # 恒生科技 ETF
+    "3033",   # 恒生科技 ETF（南方）
+    "2823",   # 安硕 A50
+    "2800",   # 盈富基金
+    "7200",   # 南方两倍做多恒生科技
+    "7560",   # 恒生科技 ETF
+    "3174",   # 南方两倍做空恒生科技
+    "9071",   # 中金恒生科技 ETF
+})
+_KNOWN_US_ETFS = frozenset({
+    "SPY",   # 标普 500 ETF
+    "QQQ",   # 纳斯达克 100 ETF
+    "VOO",   #  Vanguard 标普 500 ETF
+    "VTI",   #  Vanguard Total Stock Market
+    "IVV",   # iShares Core S&P 500
+    "IWM",   # iShares Russell 2000
+    "VEA",   # Vanguard FTSE Developed Markets
+    "VWO",   # Vanguard FTSE Emerging Markets
+    "BND",   # Vanguard Total Bond Market
+    "GLD",   # SPDR Gold Shares
+    "SLV",   # iShares Silver Trust
+    "TLT",   # iShares 20+ Year Treasury
+    "EEM",   # iShares MSCI Emerging Markets
+    "DIA",   # SPDR Dow Jones Industrial Average
+})
+
 
 def is_etf_ticker(ticker: str, exchange_code: str = "") -> bool:
     """粗略判断给定 ticker 是否可能为 ETF。
 
     判定规则：
     - 6 位 A 股代码：5 开头且在上海 → ETF；159 开头且在深圳 → ETF
-    - 不足 6 位：不足 6 位的代码（常见为港股 / 美股）不视为 ETF
-    - 非数字 ticker（如美股代码）默认 False
+    - 港股 / 美股：以 ``_KNOWN_HK_ETFS`` / ``_KNOWN_US_ETFS`` whitelist 判定
+    - 其他形态默认 False
     """
     if not ticker:
         return False
     code = str(ticker).strip()
+    exchange_short = normalize_exchange_code(exchange_code)
+
+    # 港股 / 美股 ETF：whitelist 判定（避免把 0700 / AAPL 等个股误识别）
+    # 港股代码先去前导零归一化（'3032' / '03032' 都应命中白名单）
+    if exchange_short == "HK" and code.isdigit() and str(int(code)) in _KNOWN_HK_ETFS:
+        return True
+    if exchange_short == "US" and code.upper() in _KNOWN_US_ETFS:
+        return True
+
     if not code.isdigit():
         return False
     if len(code) != 6:
         return False
-    exchange_short = normalize_exchange_code(exchange_code)
     if exchange_short == "SH":
         return code.startswith(_ETF_SHANGHAI_PREFIXES)
     if exchange_short == "SZ":

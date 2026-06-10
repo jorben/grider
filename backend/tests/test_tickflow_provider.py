@@ -198,6 +198,57 @@ def test_get_calendar_unknown_exchange():
 
 
 # ---------------------------------------------------------------------------
+# _fetch_kline count 参数
+# ---------------------------------------------------------------------------
+
+
+def test_fetch_kline_passes_count_when_date_range_given(tmp_path):
+    """指定 start_date/end_date 时必须显式传 count=10000（SDK 上限），否则默认 100 根
+    会导致日期范围早期的数据被截断（5m 周期下 100 根仅 ~2 个交易日）。"""
+    from unittest.mock import MagicMock
+    provider = TickFlowProvider()
+    # 隔离缓存目录，避免与生产缓存冲突
+    provider.cache_manager.cache_dir = tmp_path / "cache"
+    provider.cache_manager.cache_dir.mkdir(parents=True, exist_ok=True)
+    fake_klines = MagicMock()
+    fake_klines.get = MagicMock(
+        return_value={"timestamp": [], "open": [], "high": [], "low": [], "close": [], "volume": [], "amount": []}
+    )
+    fake_client = MagicMock()
+    fake_client.klines = fake_klines
+    provider._client = fake_client
+
+    provider._fetch_kline("510300.SH", "5m", "kline_5min", "2025-04-24", "2025-06-09", "forward")
+
+    fake_klines.get.assert_called_once()
+    _, kwargs = fake_klines.get.call_args
+    assert kwargs.get("count") == 10000, "日期范围请求必须显式传 count=10000"
+    assert kwargs.get("start_time") is not None
+    assert kwargs.get("end_time") is not None
+
+
+def test_fetch_kline_no_count_when_no_date_range(tmp_path):
+    """未指定日期范围时不强行传 count，由 SDK 默认行为决定（适合临时查询最新 N 根）。"""
+    from unittest.mock import MagicMock
+    provider = TickFlowProvider()
+    provider.cache_manager.cache_dir = tmp_path / "cache"
+    provider.cache_manager.cache_dir.mkdir(parents=True, exist_ok=True)
+    fake_klines = MagicMock()
+    fake_klines.get = MagicMock(
+        return_value={"timestamp": [], "open": [], "high": [], "low": [], "close": [], "volume": [], "amount": []}
+    )
+    fake_client = MagicMock()
+    fake_client.klines = fake_klines
+    provider._client = fake_client
+
+    provider._fetch_kline("510300.SH", "1d", "daily", "", "", "forward")
+
+    fake_klines.get.assert_called_once()
+    _, kwargs = fake_klines.get.call_args
+    assert "count" not in kwargs, "未指定日期时不应强行传 count"
+
+
+# ---------------------------------------------------------------------------
 # search_by_ticker（mock universe 响应）
 # ---------------------------------------------------------------------------
 
@@ -224,6 +275,8 @@ def test_search_by_ticker_startswith_priority():
             # 510300 同时出现在 A 股，但 ETF 类型会覆盖 STOCK
             _universe_resp(["510300.SH", "600000.SH", "000001.SZ"], "CN_Equity_A"),
         ],
+    ), patch.object(
+        provider, "_fetch_instrument_names", return_value={"510300.SH": "沪深300ETF", "510500.SH": "中证500ETF"}
     ):
         resp = provider.search_by_ticker("510", "CHN")
     assert resp["code"] == 200
@@ -234,6 +287,9 @@ def test_search_by_ticker_startswith_priority():
     # 510300 的类型应被 ETF 覆盖
     by_ticker = {item["ticker"]: item for item in resp["data"]}
     assert by_ticker["510300"]["type"] == "ETF"
+    # 名称字段被 instruments.batch 补全
+    assert by_ticker["510300"]["name"] == "沪深300ETF"
+    assert by_ticker["510500"]["name"] == "中证500ETF"
     # 短 ticker（510500, 510300 都是 6 位）字典序应一致
     assert tickers[0] in ("510300", "510500")
 
@@ -247,12 +303,15 @@ def test_search_by_ticker_returns_typed_result():
             _universe_resp(["510300.SH"], "CN_ETF"),
             _universe_resp([], "CN_Equity_A"),
         ],
+    ), patch.object(
+        provider, "_fetch_instrument_names", return_value={"510300.SH": "沪深300ETF"}
     ):
         resp = provider.search_by_ticker("510300", "CHN")
     assert resp["code"] == 200
     assert resp["data"][0]["type"] == "ETF"
     assert resp["data"][0]["exchange_code"] == "XSHG"
     assert resp["data"][0]["symbol"] == "510300.SH"
+    assert resp["data"][0]["name"] == "沪深300ETF"
 
 
 def test_search_by_ticker_empty_input():
@@ -260,6 +319,173 @@ def test_search_by_ticker_empty_input():
     resp = provider.search_by_ticker("", "CHN")
     assert resp["code"] == 200
     assert resp["data"] == []
+
+
+# ---------------------------------------------------------------------------
+# 港美股直通路径（country=HKG/USA 时跳过 CN universe，直接构造记录）
+# ---------------------------------------------------------------------------
+
+
+def test_search_by_ticker_hk_direct_etf():
+    """HKG + ETF 白名单代码 → 直通返回 XHKG ETF 记录（5 位补零），不触碰 universe。"""
+    provider = TickFlowProvider()
+    with patch.object(provider, "get_universe") as mock_uni, patch.object(
+        provider, "_fetch_instrument_names", return_value={"03032.HK": "恒生科技ETF"}
+    ):
+        resp = provider.search_by_ticker("3032", "HKG")
+    mock_uni.assert_not_called()  # 港股直通，不扫 CN universe
+    assert resp["code"] == 200
+    assert len(resp["data"]) == 1
+    item = resp["data"][0]
+    assert item["ticker"] == "03032"
+    assert item["symbol"] == "03032.HK"
+    assert item["exchange_code"] == "XHKG"
+    assert item["type"] == "ETF"  # 3032 在 _KNOWN_HK_ETFS 白名单中
+    assert item["name"] == "恒生科技ETF"
+
+
+def test_search_by_ticker_hk_direct_stock():
+    """HKG + 非白名单代码（0700 腾讯）→ 直通返回 STOCK 记录。"""
+    provider = TickFlowProvider()
+    with patch.object(provider, "get_universe") as mock_uni, patch.object(
+        provider, "_fetch_instrument_names", return_value={"00700.HK": "腾讯控股"}
+    ):
+        resp = provider.search_by_ticker("0700", "HKG")
+    mock_uni.assert_not_called()
+    assert resp["code"] == 200
+    assert len(resp["data"]) == 1
+    item = resp["data"][0]
+    assert item["symbol"] == "00700.HK"
+    assert item["exchange_code"] == "XHKG"
+    assert item["type"] == "STOCK"  # 0700 是腾讯股票，不在 ETF 白名单
+    assert item["name"] == "腾讯控股"
+
+
+def test_search_by_ticker_hk_not_polluted_by_cn_universe():
+    """回归：0700 (HKG) 不得被 CN universe 的 000700 子串误中。"""
+    provider = TickFlowProvider()
+    with patch.object(
+        provider,
+        "get_universe",
+        side_effect=lambda uid: _universe_resp(
+            ["000700.SZ"] if uid == "CN_Equity_A" else [], uid
+        ),
+    ) as mock_uni, patch.object(provider, "_fetch_instrument_names", return_value={}):
+        resp = provider.search_by_ticker("0700", "HKG")
+    mock_uni.assert_not_called()  # 直通路径下根本不应触发 universe 扫描
+    assert resp["code"] == 200
+    assert len(resp["data"]) == 1
+    assert resp["data"][0]["symbol"] == "00700.HK"  # 而不是 000700.SZ
+    assert resp["data"][0]["exchange_code"] == "XHKG"
+
+
+def test_search_by_ticker_us_direct_etf():
+    """USA + ETF 白名单代码（SPY）→ 直通返回 XNYS ETF 记录。"""
+    provider = TickFlowProvider()
+    with patch.object(provider, "get_universe") as mock_uni, patch.object(
+        provider, "_fetch_instrument_names", return_value={"SPY.US": "SPDR S&P 500"}
+    ):
+        resp = provider.search_by_ticker("spy", "USA")
+    mock_uni.assert_not_called()
+    assert resp["code"] == 200
+    assert len(resp["data"]) == 1
+    item = resp["data"][0]
+    assert item["ticker"] == "SPY"  # 小写输入被规范化为大写
+    assert item["symbol"] == "SPY.US"
+    assert item["exchange_code"] == "XNYS"
+    assert item["type"] == "ETF"  # SPY 在 _KNOWN_US_ETFS 白名单中
+    assert item["name"] == "SPDR S&P 500"
+
+
+def test_search_by_ticker_us_direct_stock():
+    """USA + 非白名单代码（AAPL 苹果）→ 直通返回 STOCK 记录。"""
+    provider = TickFlowProvider()
+    with patch.object(provider, "get_universe") as mock_uni, patch.object(
+        provider, "_fetch_instrument_names", return_value={}
+    ):
+        resp = provider.search_by_ticker("AAPL", "USA")
+    mock_uni.assert_not_called()
+    assert resp["code"] == 200
+    assert len(resp["data"]) == 1
+    item = resp["data"][0]
+    assert item["symbol"] == "AAPL.US"
+    assert item["type"] == "STOCK"
+
+
+def test_search_by_ticker_fallback_chn_not_triggered():
+    """CHN 走 CN universe，universe 全空时不应触发任何直通 / fallback（HKG/US 限定）。"""
+    provider = TickFlowProvider()
+    with patch.object(
+        provider,
+        "get_universe",
+        side_effect=[
+            _universe_resp([], "CN_ETF"),
+            _universe_resp([], "CN_Equity_A"),
+        ],
+    ), patch.object(provider, "_fetch_instrument_names", return_value={}):
+        resp = provider.search_by_ticker("510300", "CHN")
+    assert resp["code"] == 200
+    assert resp["data"] == []
+
+
+def test_country_to_short_mapping():
+    assert TickFlowProvider._country_to_short("CHN") == "SH"
+    assert TickFlowProvider._country_to_short("HKG") == "HK"
+    assert TickFlowProvider._country_to_short("USA") == "US"
+    assert TickFlowProvider._country_to_short("chn") == "SH"  # 大小写不敏感
+    assert TickFlowProvider._country_to_short("XXX") == ""  # 未知值返回空串
+    assert TickFlowProvider._country_to_short("") == ""
+
+
+def test_fetch_instrument_names_uses_sdk_and_caches():
+    """_fetch_instrument_names：未命中的 symbol 调用 instruments.batch 并写入缓存。"""
+    provider = TickFlowProvider()
+    provider._client = MagicMock()
+    provider._client.instruments.batch = MagicMock(
+        return_value=[{"symbol": "510300.SH", "name": "沪深300ETF"}]
+    )
+
+    # 第一次：未命中，调用 SDK
+    out1 = provider._fetch_instrument_names(["510300.SH", "159915.SZ"])
+    assert out1 == {"510300.SH": "沪深300ETF", "159915.SZ": ""}
+    assert provider._instrument_name_cache["510300.SH"] == "沪深300ETF"
+    assert provider._instrument_name_cache["159915.SZ"] == ""  # 标记已尝试
+    assert provider._client.instruments.batch.call_count == 1
+
+    # 第二次：缓存命中，不调用 SDK
+    provider._client.instruments.batch.reset_mock()
+    out2 = provider._fetch_instrument_names(["510300.SH", "159915.SZ"])
+    assert out2 == {"510300.SH": "沪深300ETF", "159915.SZ": ""}
+    assert provider._client.instruments.batch.call_count == 0
+
+
+def test_fetch_instrument_names_batches_large_input():
+    """超过 1000 个 symbol 时按 1000 切分。"""
+    provider = TickFlowProvider()
+    provider._client = MagicMock()
+    provider._client.instruments.batch = MagicMock(return_value=[])
+
+    # 构造 1500 个 symbol
+    symbols = [f"60000{i:03d}.SH" for i in range(1500)]
+    provider._fetch_instrument_names(symbols)
+
+    # 期望被切为 1000 + 500 两次
+    assert provider._client.instruments.batch.call_count == 2
+    first_call, second_call = provider._client.instruments.batch.call_args_list
+    assert len(first_call.args[0]) == 1000
+    assert len(second_call.args[0]) == 500
+
+
+def test_fetch_instrument_names_handles_sdk_failure():
+    """SDK 抛异常时返回缓存中的已有值（缺失项为空字符串），不向上抛。"""
+    provider = TickFlowProvider()
+    provider._client = MagicMock()
+    provider._client.instruments.batch = MagicMock(side_effect=Exception("network down"))
+    provider._instrument_name_cache["510300.SH"] = "cached-name"
+
+    out = provider._fetch_instrument_names(["510300.SH", "159915.SZ"])
+    assert out["510300.SH"] == "cached-name"
+    assert out["159915.SZ"] == ""
 
 
 # ---------------------------------------------------------------------------

@@ -24,6 +24,7 @@ import yaml
 from tickflow import TickFlow
 
 from app.external.file_cache_manager import FileCacheManager
+from app.utils.helper import is_etf_ticker
 from app.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -111,6 +112,9 @@ class TickFlowProvider:
 
         # exchange_calendars 懒加载缓存
         self._calendars: Dict[str, Any] = {}
+
+        # 标的名称内存缓存：{symbol: name}，由 _fetch_instrument_names 维护
+        self._instrument_name_cache: Dict[str, str] = {}
 
         logger.info("TickFlowProvider 初始化完成 (provider=%s)", provider_name)
 
@@ -451,6 +455,11 @@ class TickFlowProvider:
                 if end_date:
                     kwargs["end_time"] = self._date_to_ms(end_date, end_of_day=True)
 
+                # 显式传 count=10000（SDK 上限）。当仅指定 start/end 时，SDK 默认 count=100，
+                # 会导致日期范围内的早期数据被截断（例如 5m 周期下 100 根仅覆盖约 2 个交易日）。
+                if start_date or end_date:
+                    kwargs["count"] = 10000
+
                 kline = self.client.klines.get(symbol, **kwargs)
                 rows = self._kline_to_rows(kline, period=period)
                 return {"code": 200, "data": rows}
@@ -531,18 +540,86 @@ class TickFlowProvider:
     # 端点：代码搜索（本地缓存过滤）
     # ------------------------------------------------------------------
 
+    def _fetch_instrument_names(self, symbols: List[str]) -> Dict[str, str]:
+        """调用 ``client.instruments.batch`` 拉取名称，缓存为 ``instruments_meta`` 内存表。
+
+        Args:
+            symbols: 目标 symbol 列表（如 ``['510300.SH', '159915.SZ']``）
+
+        Returns:
+            ``{symbol: name}`` 映射；拉取失败时为空 dict。
+        """
+        if not symbols:
+            return {}
+
+        cached = self._instrument_name_cache
+        # 区分「未缓存」与「已缓存但名称为空」
+        missing = [s for s in symbols if s not in cached]
+        if not missing:
+            return {s: (cached.get(s) or "") for s in symbols}
+
+        if self._client is None:
+            return {s: (cached.get(s) or "") for s in symbols}
+
+        try:
+            # instruments.batch 一次最多 1000 个，按需分批
+            for i in range(0, len(missing), 1000):
+                batch = missing[i : i + 1000]
+                details = self._client.instruments.batch(batch) or []
+                for d in details:
+                    sym = d.get("symbol", "")
+                    name = (d.get("name") or "").strip()
+                    if sym:
+                        cached[sym] = name
+            # 仍未命中的 symbol 标记为已尝试（空字符串），避免反复请求
+            for s in missing:
+                cached.setdefault(s, "")
+            return {s: (cached.get(s) or "") for s in symbols}
+        except Exception as exc:
+            logger.warning("TickFlow instruments.batch 失败: %s", exc)
+            return {s: (cached.get(s) or "") for s in symbols}
+
     def search_by_ticker(self, ticker: str, country_code: str = "CHN") -> Dict[str, Any]:
         """在已加载的 universe 中按 ticker 前缀 / 子串模糊匹配。
 
         返回结构与旧 Tsanghi 接口兼容：
         ``{'code': 200, 'data': [{'ticker', 'exchange_code', 'name', 'type', 'symbol', ...}, ...]}``
+
+        ``name`` 字段通过 ``instruments.batch`` 按需补全（带内存级缓存）。
         """
         if not ticker:
             return {"code": 200, "data": []}
 
         query = str(ticker).strip()
 
-        # 收集 universe 数据（按需触发 SDK 调用 + 缓存）
+        # 港美股直通路径：country 已明确判定为 HKG / USA 时，CN universe 必然不含
+        # 该标的，直接按 country 构造记录并返回。
+        # 不能先扫 CN universe：子串模糊匹配会让 0700（腾讯）误中 000700（模塑科技）。
+        short = self._country_to_short(country_code)
+        if short in ("HK", "US"):
+            internal = "XHKG" if short == "HK" else "XNYS"
+            if short == "HK":
+                # 港股补零到 5 位（TickFlow 格式：00700.HK / 03032.HK）
+                norm = str(int(query)).zfill(5) if query.isdigit() else query
+            else:
+                norm = query.upper()
+            symbol = f"{norm}.{short}"
+            sec_type = "ETF" if is_etf_ticker(norm, internal) else "STOCK"
+            name_map = self._fetch_instrument_names([symbol])
+            record = {
+                "ticker": norm,
+                "symbol": symbol,
+                "exchange_code": internal,
+                "name": name_map.get(symbol, ""),
+                "type": sec_type,
+            }
+            logger.info(
+                "search_by_ticker 港美股直通: country=%s ticker=%s → %s (%s)",
+                country_code, query, symbol, sec_type,
+            )
+            return {"code": 200, "data": [record]}
+
+        # 收集 universe 数据（按需触发 SDK 调用 + 文件缓存）
         items: List[Dict[str, Any]] = []
         for universe_id in self.DEFAULT_UNIVERSES:
             resp = self.get_universe(universe_id)
@@ -558,6 +635,7 @@ class TickFlowProvider:
         # 模糊匹配：ticker 与去掉后缀的纯代码做 startswith / 包含
         matches: List[Dict[str, Any]] = []
         seen_keys: set = set()
+        matched_symbols: List[str] = []
         for item in items:
             symbol = item.get("symbol", "")
             raw_ticker = symbol.split(".", 1)[0] if "." in symbol else symbol
@@ -571,7 +649,11 @@ class TickFlowProvider:
                     (i for i, m in enumerate(matches) if m["symbol"] == key),
                     None,
                 )
-                if existing_idx is not None and item.get("type") == "ETF" and matches[existing_idx]["type"] != "ETF":
+                if (
+                    existing_idx is not None
+                    and item.get("type") == "ETF"
+                    and matches[existing_idx]["type"] != "ETF"
+                ):
                     matches[existing_idx] = {
                         "ticker": raw_ticker,
                         "symbol": symbol,
@@ -583,6 +665,7 @@ class TickFlowProvider:
                     }
                 continue
             seen_keys.add(key)
+            matched_symbols.append(symbol)
             matches.append(
                 {
                     "ticker": raw_ticker,
@@ -597,6 +680,13 @@ class TickFlowProvider:
 
         # 优先返回 startswith 命中，再按 ticker 长度升序
         matches.sort(key=lambda x: (not x["ticker"].startswith(query), len(x["ticker"]), x["ticker"]))
+
+        # 限制前 N 条匹配后再拉名称，避免批量拉全量 universe
+        top_symbols = [m["symbol"] for m in matches[:20]]
+        name_map = self._fetch_instrument_names(top_symbols) if top_symbols else {}
+        for m in matches[:20]:
+            m["name"] = name_map.get(m["symbol"], "")
+
         return {"code": 200, "data": matches}
 
     @staticmethod
@@ -604,6 +694,21 @@ class TickFlowProvider:
         return {
             "SH": "XSHG", "SZ": "XSHE", "HK": "XHKG", "US": "XNYS"
         }.get(short.upper(), short.upper())
+
+    @staticmethod
+    def _country_to_short(country_code: str) -> str:
+        """将业务层 country code（CHN/HKG/USA 等）映射为 exchange 短代码（SH/SZ/HK/US）。
+
+        无法识别时返回空字符串，调用方据此决定是否触发 fallback。
+        """
+        if not country_code:
+            return ""
+        code = country_code.strip().upper()
+        return {
+            "CHN": "SH",  # CHN 默认按沪市处理（与项目当前聚焦 A 股的语境一致）
+            "HKG": "HK",
+            "USA": "US",
+        }.get(code, "")
 
     # ------------------------------------------------------------------
     # 缓存管理（与 BaseProvider 兼容接口）

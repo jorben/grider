@@ -13,6 +13,7 @@ from app.algorithms.atr.calculator import ATRCalculator
 from app.algorithms.grid.arithmetic_grid import ArithmeticGridCalculator
 from app.algorithms.grid.geometric_grid import GeometricGridCalculator
 from app.algorithms.grid.optimizer import GridOptimizer
+from app.constants import ETF_POPULAR_LIST
 from .data_service import DataService
 from .suitability_analyzer import SuitabilityAnalyzer
 
@@ -73,10 +74,14 @@ class ETFAnalysisService:
                 raise ValueError(f"未获取到ETF价格数据: {etf_code}")
         
             
-            # 整合信息
+            # 整合信息（name 为空时回退到热门标的配置中的名称）
+            name = search.get('name') or next(
+                (item['name'] for item in ETF_POPULAR_LIST if item['code'] == etf_code),
+                '未知',
+            )
             etf_info = {
                 'code': etf_code,
-                'name': search.get('name', '未知'),
+                'name': name,
                 'management_company': search.get('management', ''),
                 'current_price': price_data.get('close', 0),
                 'volume': price_data.get('volume', 0),

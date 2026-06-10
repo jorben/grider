@@ -171,8 +171,8 @@ ETF_POPULAR_LIST: Final[list] = [
     {'code': '159819', 'name': '人工智能ETF'},
     {'code': '159742', 'name': '恒生科技ETF'},
     {'code': '159949', 'name': '创业板50ETF'},
-    {'code': '3032', 'name': '恒生科技ETF'},
-    {'code': 'SPY', 'name': 'S&P500ETF'}
+    {'code': '3032', 'name': '恒生科技ETF', 'country': 'HKG'},
+    {'code': 'SPY', 'name': 'S&P500ETF', 'country': 'USA'}
 ]
 
 # 常用资金

@@ -76,10 +76,10 @@ def test_ticker_to_tickflow_preserves_leading_zeros():
     assert ticker_to_tickflow("300750", "SZSE") == "300750.SZ"
 
 
-def test_ticker_to_tickflow_hk_pads_to_four():
-    # 港股 < 6 位补零到 4 位
-    assert ticker_to_tickflow("700", "XHKG") == "0700.HK"
-    assert ticker_to_tickflow("700", "HK") == "0700.HK"
+def test_ticker_to_tickflow_hk_pads_to_five():
+    # 港股 < 6 位补零到 5 位（TickFlow 格式：00700.HK）
+    assert ticker_to_tickflow("700", "XHKG") == "00700.HK"
+    assert ticker_to_tickflow("700", "HK") == "00700.HK"
 
 
 def test_ticker_to_tickflow_already_formatted():
@@ -122,7 +122,7 @@ def test_round_trip_a_share():
 
 def test_round_trip_hk():
     sym = ticker_to_tickflow("700", "XHKG")
-    assert tickflow_to_ticker(sym) == ("0700", "XHKG")
+    assert tickflow_to_ticker(sym) == ("00700", "XHKG")
 
 
 # ---------------------------------------------------------------------------
@@ -142,7 +142,24 @@ def test_round_trip_hk():
         ("000001", "XSHE", False),  # 普通深市股票
         ("600000", "XSHG", False),  # 普通沪市股票
         ("300750", "SZSE", False),  # 创业板
-        ("00700", "XHKG", False),  # 港股非 ETF
+        # 港股 ETF：whitelist 命中
+        ("3032", "XHKG", True),  # 恒生科技 ETF
+        ("3033", "XHKG", True),  # 恒生科技 ETF（南方）
+        ("2823", "XHKG", True),  # 安硕 A50
+        ("7200", "XHKG", True),  # 南方两倍做多恒生科技
+        # 港股非 ETF 形态：whitelist 未命中
+        ("00700", "XHKG", False),  # 港股 3 位（腾讯）— 非 ETF
+        ("0700", "XHKG", False),  # 同上
+        ("3690", "XHKG", False),  # 港股 4 位（美团）— 不在白名单
+        # 美股 ETF：whitelist 命中
+        ("SPY", "XNYS", True),  # 标普 500 ETF
+        ("QQQ", "XNYS", True),  # 纳斯达克 100 ETF
+        ("VOO", "XNYS", True),
+        # 美股非 ETF：whitelist 未命中
+        ("AAPL", "XNYS", False),  # 苹果股票
+        ("TSLA", "XNYS", False),  # 特斯拉股票
+        ("BRK.B", "XNYS", False),  # 含标点
+        ("SPY1", "XNYS", False),  # 含数字
     ],
 )
 def test_is_etf_ticker(ticker, exchange, expected):
@@ -154,7 +171,7 @@ def test_is_etf_ticker_non_digit():
 
 
 def test_is_etf_ticker_short_code():
-    # 不足 6 位视为非 ETF
+    # 不足 6 位视为非 ETF（A 股场景）
     assert is_etf_ticker("510", "XSHG") is False
 
 
@@ -166,6 +183,12 @@ def test_is_etf_ticker_empty():
 def test_detect_security_type():
     assert detect_security_type("510300", "XSHG") == "ETF"
     assert detect_security_type("000001", "XSHE") == "STOCK"
+    assert detect_security_type("AAPL", "XNYS") == "STOCK"
+    # 新增：港美 ETF whitelist 命中
+    assert detect_security_type("3032", "XHKG") == "ETF"
+    assert detect_security_type("SPY", "XNYS") == "ETF"
+    # 港美非 ETF
+    assert detect_security_type("0700", "XHKG") == "STOCK"
     assert detect_security_type("AAPL", "XNYS") == "STOCK"
 
 
