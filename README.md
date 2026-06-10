@@ -45,8 +45,12 @@ Lucide React          # 现代化图标库
 
 ### 后端技术栈
 ```
-Flask                 # Python Web框架
-Python 3.13+          # 现代化Python版本
+Flask                 # Python Web 框架
+Python 3.13+          # 现代化 Python 版本
+TickFlow SDK          # A 股 / 港股 / 美股实时行情
+exchange_calendars    # 离线交易日历（XSHG/XSHE/XHKG/XNYS）
+SQLAlchemy            # ORM
+Pandas                # 数据处理
 ```
 
 ### 部署支持
@@ -59,7 +63,7 @@ Gunicorn              # 生产级WSGI服务器
 
 ### 环境要求
 - Node.js 18.0+
-- Python 3.8+
+- Python 3.13+
 - Docker (可选)
 
 ### 使用Docker部署（推荐）
@@ -141,10 +145,14 @@ TICKFLOW_API_KEY=your-tickflow-api-key
 
 ### 数据源配置
 
-项目使用 TickFlow 作为唯一外部金融数据源，需要在环境变量中配置 API Key：
+项目使用 TickFlow 作为唯一外部金融数据源，支持 A 股、港股、美股三市场实时行情与历史 K 线。交易日历由 `exchange_calendars` 离线库提供（覆盖 XSHG/XSHE/XHKG/XNYS）。
 
-- **TickFlow API**: 主要的股票和ETF数据源（支付订阅），交易日历由 `exchange_calendars` 离线库提供
-- 详细接入方案见 `docs/tsanghi_vs_tickflow_analysis.md`
+```env
+# TickFlow API 密钥（必配）
+TICKFLOW_API_KEY=your-tickflow-api-key
+```
+
+港股代码按 TickFlow 标准补零至 5 位（如 `00700.HK`）。美股代码自动大写（如 `spy` → `SPY.US`）。详细接入方案见 `docs/tsanghi_vs_tickflow_analysis.md`。
 
 ## 📖 使用指南
 
@@ -251,10 +259,10 @@ grider/
 
 查看 [CHANGELOG.md](CHANGELOG.md) 了解详细的版本更新记录。
 
-### 最新版本 (1.3.0)
-- ✨ 实现自定义网格参数回测功能
-- 🔧 合并网格参数和回测参数设置面板
-- 🐛 修复已知问题并优化用户体验
+### 最新版本 (1.3.2)
+- ♻️ 数据源切换至 TickFlow，支持 A 股 / 港股 / 美股三市场
+- 🐛 修复港美股标的选择误识别问题（0700 vs 000700）
+- ✨ 新增港股 ETF 白名单及标的名解析缓存
 
 ## ⚠️ 风险提示
 
