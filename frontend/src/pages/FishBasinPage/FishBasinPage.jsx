@@ -147,7 +147,10 @@ export default function FishBasinPage() {
                 </div>
               </div>
               <div className="text-xs text-gray-500">
-                数据时间：{data?.results?.[0]?.latest_date || "—"} · 更新于 {data?.generated_at}
+                {typeof data?.realtime_count === "number" && data.realtime_count > 0
+                  ? `实时 ${data.realtime_count} 项，其余为收盘 · `
+                  : ""}
+                更新于 {data?.generated_at}
                 {data?.from_cache ? "（缓存）" : ""}
               </div>
             </div>
@@ -215,7 +218,7 @@ export default function FishBasinPage() {
                     <SortableTh label="状态转变" sortKey="status_since" activeKey={sortKey} dir={sortDir} onSort={requestSort} align="left" />
                     <SortableTh label="区间涨幅%" sortKey="range_pct" activeKey={sortKey} dir={sortDir} onSort={requestSort} align="left" />
                     <SortableTh label="排序变化" sortKey="rank_change" activeKey={sortKey} dir={sortDir} onSort={requestSort} align="left" />
-                    <th className="py-2 px-2">数据时间</th>
+                    <SortableTh label="数据时间" sortKey="data_time" activeKey={sortKey} dir={sortDir} onSort={requestSort} align="left" />
                   </tr>
                 </thead>
                 <tbody>
@@ -253,7 +256,10 @@ export default function FishBasinPage() {
                         typeof r.range_pct === "number" ? (r.range_pct > 0 ? "text-up-600" : r.range_pct < 0 ? "text-down-600" : "") : ""
                       }`}>{signedPct(r.range_pct)}</td>
                       <td className="py-2 px-2 text-left"><RankChange v={r.rank_change} /></td>
-                      <td className="py-2 px-2 text-gray-400 whitespace-nowrap">{r.latest_date || "—"}</td>
+                      <td className="py-2 px-2 text-left whitespace-nowrap text-xs text-gray-500">
+                        {r.data_time || r.latest_date || "—"}
+                        {r.is_realtime && <span className="text-emerald-500 ml-1" title="盘中实时">●</span>}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -262,6 +268,7 @@ export default function FishBasinPage() {
                 排序按偏离率从高到低（1=偏离率最高/最强）。临界值 = 20日均线 ×(1+浮动%)；现价/临界/20日线均取整。
                 偏离率底色：红=强(站上线)、绿=弱(跌破线)。量比=当日量÷近5日均量（商品现货无量显示—）。
                 区间涨幅=本轮状态起点至今涨跌。排序变化=较上次刷新的名次升降。
+                数据时间带 ● 为盘中实时(精确到秒，A股指数/港股/COMEX)，其余为最近收盘日期(美股及中证行业指数无实时源)。
                 {data?.elapsed_seconds != null && ` 本次计算耗时 ${data.elapsed_seconds}s。`}
               </p>
             </div>

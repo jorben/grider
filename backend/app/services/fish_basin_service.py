@@ -154,7 +154,77 @@ def _fetch_daily(item: Dict) -> Optional[pd.DataFrame]:
         return None
 
 
-def _evaluate_one(item: Dict, buffer_pct: float) -> Dict:
+def _fetch_realtime_maps() -> Dict:
+    """一次性拉取三类实时快照（A股指数/港股/COMEX），全清单共享。缓存 60 秒。
+
+    返回 {'idx': {代码->(最新价,涨跌幅小数)}, 'hk': {...}, 'comex': {名称->(最新价,涨跌幅小数)}}。
+    中证官方(csindex)与美股(东财)无可用实时源，不在此表，评估时自动回退收盘。
+    """
+    cached = _cache_get("fb_realtime_maps")
+    if cached is not None:
+        return cached
+
+    maps = {"idx": {}, "hk": {}, "comex": {}}
+    # A股指数实时（新浪）
+    try:
+        df = _retry(ak.stock_zh_index_spot_sina, retries=2, delay=1.0)
+        if df is not None and len(df):
+            for _, r in df.iterrows():
+                code = str(r.get("代码", "")).strip()
+                price = pd.to_numeric(r.get("最新价"), errors="coerce")
+                chg = pd.to_numeric(r.get("涨跌幅"), errors="coerce")
+                if code and pd.notna(price):
+                    maps["idx"][code] = (float(price), float(chg) / 100.0 if pd.notna(chg) else None)
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"A股指数实时拉取失败: {e}")
+    # 港股指数实时（新浪）
+    try:
+        df = _retry(ak.stock_hk_index_spot_sina, retries=2, delay=1.0)
+        if df is not None and len(df):
+            for _, r in df.iterrows():
+                code = str(r.get("代码", "")).strip()
+                price = pd.to_numeric(r.get("最新价"), errors="coerce")
+                chg = pd.to_numeric(r.get("涨跌幅"), errors="coerce")
+                if code and pd.notna(price):
+                    maps["hk"][code] = (float(price), float(chg) / 100.0 if pd.notna(chg) else None)
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"港股指数实时拉取失败: {e}")
+    # COMEX 外盘实时
+    try:
+        df = _retry(ak.futures_foreign_commodity_realtime, symbol=["GC", "SI"], retries=2, delay=1.0)
+        if df is not None and len(df):
+            for _, r in df.iterrows():
+                nm = str(r.get("名称", "")).strip()
+                price = pd.to_numeric(r.get("最新价"), errors="coerce")
+                chg = pd.to_numeric(r.get("涨跌幅"), errors="coerce")
+                if nm and pd.notna(price):
+                    # 该接口涨跌幅已是百分数值(如 0.36 表示 0.36%)
+                    maps["comex"][nm] = (float(price), float(chg) / 100.0 if pd.notna(chg) else None)
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"COMEX实时拉取失败: {e}")
+
+    _cache_set("fb_realtime_maps", maps, ttl=60)
+    return maps
+
+
+def _lookup_realtime(item: Dict, rt_maps: Dict):
+    """返回 (price, change_pct) 或 None。仅 A股指数/港股/COMEX 有实时源。"""
+    if not rt_maps:
+        return None
+    src = item.get("source")
+    sym = item.get("sym")
+    if src == "sina_index":
+        return rt_maps.get("idx", {}).get(sym)
+    if src == "hk":
+        return rt_maps.get("hk", {}).get(sym)
+    if src == "comex":
+        # COMEX 按名称匹配（GC->COMEX黄金, SI->COMEX白银）
+        nm = "COMEX黄金" if sym == "GC" else ("COMEX白银" if sym == "SI" else None)
+        return rt_maps.get("comex", {}).get(nm) if nm else None
+    return None
+
+
+def _evaluate_one(item: Dict, buffer_pct: float, rt_maps: Dict = None) -> Dict:
     code = str(item.get("code", "")).strip()
     name = item.get("name", code)
     cat = item.get("cat", "")
@@ -167,6 +237,21 @@ def _evaluate_one(item: Dict, buffer_pct: float) -> Dict:
         dates = df["date"].tolist()
         volumes = df["volume"].tolist()
 
+        # 实时覆盖：若能取到实时价，用其作为"今日临时收盘"参与计算
+        is_realtime = False
+        rt_change = None
+        rt = _lookup_realtime(item, rt_maps)
+        if rt is not None:
+            rt_price, rt_change = rt
+            today = datetime.now().strftime("%Y-%m-%d")
+            if dates and dates[-1] >= today:
+                closes[-1] = rt_price  # 覆盖当日
+            else:
+                closes.append(rt_price)  # 追加为新的一天
+                dates.append(today)
+                volumes.append(0)
+            is_realtime = True
+
         ma = calculate_ma(closes, _MA_PERIOD, "SMA")
         factor = 1.0 + (buffer_pct or 0) / 100.0
 
@@ -177,7 +262,10 @@ def _evaluate_one(item: Dict, buffer_pct: float) -> Dict:
         cur_threshold = cur_ma * factor
         cur_status = "YES" if cur_close >= cur_threshold else "NO"
 
-        change_pct = (cur_close / closes[-2] - 1) if (len(closes) >= 2 and closes[-2]) else None
+        if is_realtime and rt_change is not None:
+            change_pct = rt_change
+        else:
+            change_pct = (cur_close / closes[-2] - 1) if (len(closes) >= 2 and closes[-2]) else None
         deviation = (cur_close - cur_threshold) / cur_threshold if cur_threshold else None
 
         # 量比 = 当日量 / 过去5日均量（现货无量则 None）
@@ -221,6 +309,10 @@ def _evaluate_one(item: Dict, buffer_pct: float) -> Dict:
             "vol_ratio": round(vol_ratio, 2) if vol_ratio is not None else None,
             "range_pct": round(range_pct, 4) if range_pct is not None else None,
             "latest_date": dates[-1],
+            "is_realtime": is_realtime,
+            # 数据时间：实时行用当前时刻(时分秒)，收盘行用最近收盘日期
+            "data_time": (datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                          if is_realtime else dates[-1]),
             "error": None,
         }
     except Exception as e:  # noqa: BLE001
@@ -293,9 +385,12 @@ class FishBasinService:
         # 读取上次排名快照（用于排序变化）
         prev_rank = _cache_get(snap_key) or {}
 
+        # 预取实时快照（三类源各一次，全清单共享）
+        rt_maps = _fetch_realtime_maps()
+
         results: List[Dict] = []
         for item in indices:  # 串行（akshare/V8 非线程安全）
-            results.append(_evaluate_one(item, buffer_pct))
+            results.append(_evaluate_one(item, buffer_pct, rt_maps))
 
         _assign_strength_and_rankchange(results, prev_rank)
         # 默认按趋势强度升序（1 在前），失败项置后
@@ -305,16 +400,19 @@ class FishBasinService:
         new_rank = {r["code"]: r["strength"] for r in results if r.get("strength") is not None}
         _cache_set(snap_key, new_rank, ttl=_SNAPSHOT_TTL)
 
+        rt_count = sum(1 for r in results if r.get("is_realtime"))
         payload = {
             "results": results,
             "market_state": _market_state(results),
             "buffer_pct": buffer_pct,
             "ma_period": _MA_PERIOD,
+            "realtime_count": rt_count,
             "elapsed_seconds": round(time.time() - start, 1),
             "generated_at": time.strftime("%Y-%m-%d %H:%M:%S"),
             "from_cache": False,
         }
-        _cache_set(cache_key, payload, ttl=_CACHE_TTL)
+        # 实时模式：结果缓存缩短到 60 秒（与实时快照同步）
+        _cache_set(cache_key, payload, ttl=60)
         ms = payload["market_state"]
-        logger.info(f"鱼盆模型完成: {ms['yes']}/{ms['total']} YES, 耗时{payload['elapsed_seconds']}s")
+        logger.info(f"鱼盆模型完成: {ms['yes']}/{ms['total']} YES, 实时{rt_count}项, 耗时{payload['elapsed_seconds']}s")
         return payload
