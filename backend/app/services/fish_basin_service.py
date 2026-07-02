@@ -28,7 +28,7 @@ from app.utils.logger import get_logger
 logger = get_logger(__name__)
 
 _CACHE_TTL = 1800          # 行情缓存 30 分钟
-_SNAPSHOT_TTL = 86400      # 上一次排名快照保留 1 天（用于"排序变化"）
+_SNAPSHOT_TTL = 86400 * 10  # 排名快照/基线保留 10 天（跨周末/节假日仍可对比上一交易日）
 _MA_PERIOD = 20
 
 # 鱼盆模型标的清单（韩/日/台 免费源取不到，已剔除；微盘股免费源无数据，已剔除）
@@ -154,13 +154,16 @@ def _fetch_daily(item: Dict) -> Optional[pd.DataFrame]:
         return None
 
 
-def _fetch_realtime_maps() -> Dict:
-    """一次性拉取三类实时快照（A股指数/港股/COMEX），全清单共享。缓存 60 秒。
+def _fetch_realtime_maps(indices: List[Dict] = None) -> Dict:
+    """一次性拉取实时快照（A股指数/港股/COMEX/腾讯兜底），全清单共享。缓存 60 秒。
 
     返回 {'idx': {代码->(最新价,涨跌幅小数)}, 'hk': {...}, 'comex': {名称->(最新价,涨跌幅小数)}}。
     中证官方(csindex)与美股(东财)无可用实时源，不在此表，评估时自动回退收盘。
     """
-    cached = _cache_get("fb_realtime_maps")
+    # 缓存键含腾讯代码集合，避免大盘/板块两个清单共享到不含对方 qq 数据的缓存
+    qq_syms = _collect_qq_symbols(indices) if indices else []
+    ck = "fb_realtime_maps:" + (",".join(sorted(qq_syms)) if qq_syms else "base")
+    cached = _cache_get(ck)
     if cached is not None:
         return cached
 
@@ -203,24 +206,100 @@ def _fetch_realtime_maps() -> Dict:
     except Exception as e:  # noqa: BLE001
         logger.warning(f"COMEX实时拉取失败: {e}")
 
-    _cache_set("fb_realtime_maps", maps, ttl=60)
+    # 腾讯实时兜底：覆盖 sina 实时表没有、但腾讯有的 A股/北证指数
+    # （如北证50、及部分 6 位中证行业指数）。93xxxx/H30xxx 策略指数腾讯无数据，自动跳过。
+    try:
+        if qq_syms:
+            maps["qq"] = _fetch_tencent_rt(qq_syms)
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"腾讯实时拉取失败: {e}")
+
+    _cache_set(ck, maps, ttl=60)
     return maps
 
 
+def _qq_symbol(item: Dict) -> Optional[str]:
+    """推导腾讯行情代码。仅对腾讯支持的返回，93xxxx/H开头等返回 None。"""
+    src = item.get("source")
+    sym = str(item.get("sym", "")).strip()
+    if src == "sina_index":
+        # 已是 shxxxxxx/szxxxxxx/bjxxxxxx，腾讯同格式
+        return sym if sym[:2] in ("sh", "sz", "bj") else None
+    if src == "csindex":
+        # 纯数字：0xxxxx->sh，3xxxxx->sz(创业/深)；899->bj；93xxxx/H30xxx 腾讯无
+        if sym.isdigit() and len(sym) == 6:
+            if sym.startswith("0"):
+                return "sh" + sym
+            if sym.startswith("3"):
+                return "sz" + sym
+            if sym.startswith("899"):
+                return "bj" + sym
+        return None
+    return None
+
+
+def _collect_qq_symbols(indices: List[Dict]) -> List[str]:
+    seen = set()
+    out = []
+    for it in indices:
+        # 已有 sina 实时表覆盖的(sina_index)不必再查腾讯；仅补 csindex 且腾讯支持的
+        if it.get("source") != "csindex":
+            continue
+        qs = _qq_symbol(it)
+        if qs and qs not in seen:
+            seen.add(qs)
+            out.append(qs)
+    return out
+
+
+def _fetch_tencent_rt(qq_syms: List[str]) -> Dict:
+    """批量查腾讯行情，返回 {腾讯代码: (现价, 涨跌幅小数)}。字段: parts[3]=价, parts[32]=涨跌幅%。"""
+    import requests
+    result = {}
+    if not qq_syms:
+        return result
+    url = "https://qt.gtimg.cn/q=" + ",".join(qq_syms)
+    r = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=8)
+    r.encoding = "gbk"
+    for line in r.text.strip().split(";"):
+        line = line.strip()
+        if '="' not in line:
+            continue
+        try:
+            key = line.split("=")[0].replace("v_", "").strip()
+            val = line.split('"')[1]
+            parts = val.split("~")
+            if len(parts) > 32 and parts[3]:
+                price = float(parts[3])
+                chgpct = float(parts[32]) / 100.0 if parts[32] else None
+                if price > 0:
+                    result[key] = (price, chgpct)
+        except Exception:  # noqa: BLE001
+            continue
+    return result
+
+
 def _lookup_realtime(item: Dict, rt_maps: Dict):
-    """返回 (price, change_pct) 或 None。仅 A股指数/港股/COMEX 有实时源。"""
+    """返回 (price, change_pct) 或 None。A股指数/港股/COMEX 有实时源；csindex 走腾讯兜底。"""
     if not rt_maps:
         return None
     src = item.get("source")
     sym = item.get("sym")
     if src == "sina_index":
-        return rt_maps.get("idx", {}).get(sym)
+        hit = rt_maps.get("idx", {}).get(sym)
+        if hit:
+            return hit
+        # sina 实时表偶尔缺某代码，再试腾讯
+        qs = _qq_symbol(item)
+        return rt_maps.get("qq", {}).get(qs) if qs else None
     if src == "hk":
         return rt_maps.get("hk", {}).get(sym)
     if src == "comex":
-        # COMEX 按名称匹配（GC->COMEX黄金, SI->COMEX白银）
         nm = "COMEX黄金" if sym == "GC" else ("COMEX白银" if sym == "SI" else None)
         return rt_maps.get("comex", {}).get(nm) if nm else None
+    if src == "csindex":
+        qs = _qq_symbol(item)
+        return rt_maps.get("qq", {}).get(qs) if qs else None
     return None
 
 
@@ -382,11 +461,21 @@ class FishBasinService:
 
     def _do_eval(self, indices: List[Dict], cache_key: str, snap_key: str, buffer_pct: float) -> Dict:
         start = time.time()
-        # 读取上次排名快照（用于排序变化）
-        prev_rank = _cache_get(snap_key) or {}
+        today = datetime.now().strftime("%Y-%m-%d")
 
-        # 预取实时快照（三类源各一次，全清单共享）
-        rt_maps = _fetch_realtime_maps()
+        # 排序变化基准：按"交易日"锁定，而非每次刷新覆盖。
+        # cur_snap = 当日最新排名（当天刷新会更新）；baseline = 上一交易日的排名。
+        # 当天所有刷新都与"上一交易日排名"对比，这样 rank_change 反映"较昨日名次升降"。
+        cur_snap = _cache_get(snap_key) or {}
+        baseline = _cache_get(snap_key + ":baseline") or {}
+        if cur_snap.get("date") and cur_snap.get("date") != today and cur_snap.get("rank"):
+            # 进入新的一天：把昨天最后的排名提升为基线
+            baseline = cur_snap
+            _cache_set(snap_key + ":baseline", baseline, ttl=_SNAPSHOT_TTL)
+        prev_rank = baseline.get("rank", {}) if isinstance(baseline, dict) else {}
+
+        # 预取实时快照（含腾讯兜底，全清单共享）
+        rt_maps = _fetch_realtime_maps(indices)
 
         results: List[Dict] = []
         for item in indices:  # 串行（akshare/V8 非线程安全）
@@ -396,9 +485,9 @@ class FishBasinService:
         # 默认按趋势强度升序（1 在前），失败项置后
         results.sort(key=lambda r: (r.get("strength") is None, r.get("strength") or 9999))
 
-        # 保存本次排名快照
+        # 保存"当日最新排名"（带日期），供跨日提升为基线
         new_rank = {r["code"]: r["strength"] for r in results if r.get("strength") is not None}
-        _cache_set(snap_key, new_rank, ttl=_SNAPSHOT_TTL)
+        _cache_set(snap_key, {"date": today, "rank": new_rank}, ttl=_SNAPSHOT_TTL)
 
         rt_count = sum(1 for r in results if r.get("is_realtime"))
         payload = {

@@ -21,7 +21,8 @@ const devBg = (v) => {
 
 // 排序变化箭头：正=上升(变强)红，负=下降绿
 const RankChange = ({ v }) => {
-  if (typeof v !== "number" || v === 0) return <span className="text-gray-400">0</span>;
+  if (typeof v !== "number") return <span className="text-gray-300" title="暂无上一交易日基线">—</span>;
+  if (v === 0) return <span className="text-gray-400">0</span>;
   if (v > 0) return <span className="text-red-600 font-medium">↑{v}</span>;
   return <span className="text-green-600 font-medium">↓{Math.abs(v)}</span>;
 };
@@ -267,7 +268,7 @@ export default function FishBasinPage() {
               <p className="text-xs text-gray-500 mt-3">
                 排序按偏离率从高到低（1=偏离率最高/最强）。临界值 = 20日均线 ×(1+浮动%)；现价/临界/20日线均取整。
                 偏离率底色：红=强(站上线)、绿=弱(跌破线)。量比=当日量÷近5日均量（商品现货无量显示—）。
-                区间涨幅=本轮状态起点至今涨跌。排序变化=较上次刷新的名次升降。
+                区间涨幅=本轮状态起点至今涨跌。排序变化=较上一交易日收盘的名次升降(首次无基线显示—，次日起生效)。
                 数据时间带 ● 为盘中实时(精确到秒，A股指数/港股/COMEX)，其余为最近收盘日期(美股及中证行业指数无实时源)。
                 {data?.elapsed_seconds != null && ` 本次计算耗时 ${data.elapsed_seconds}s。`}
               </p>
