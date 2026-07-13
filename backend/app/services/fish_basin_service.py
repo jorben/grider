@@ -70,6 +70,7 @@ FISH_BASIN_SECTORS: List[Dict] = [
     {"code": "H30590", "name": "机器人", "source": "csindex", "sym": "H30590", "cat": "科技"},
     {"code": "399395", "name": "有色金属", "source": "sina_index", "sym": "sz399395", "cat": "周期"},
     {"code": "931152", "name": "创新药", "source": "csindex", "sym": "931152", "cat": "医药"},
+    {"code": "930641", "name": "中证中药", "source": "csindex", "sym": "930641", "cat": "医药"},
     {"code": "000941", "name": "新能源", "source": "csindex", "sym": "000941", "cat": "新能源"},
     {"code": "000922", "name": "中证红利", "source": "csindex", "sym": "000922", "cat": "红利"},
     {"code": "931151", "name": "光伏产业", "source": "csindex", "sym": "931151", "cat": "新能源"},
