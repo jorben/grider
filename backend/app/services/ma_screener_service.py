@@ -68,6 +68,7 @@ def _evaluate_one(item: Dict, period: int, ma_type: str,
             "sharpe_ratio": pm["sharpe_ratio"],
             "total_trades": tm["total_trades"],
             "round_trips": tm.get("sell_trades", 0),  # 往返次数（每次卖出=一次完整买卖）
+            "profit_loss_ratio": tm.get("profit_loss_ratio"),  # 盈亏比（平均盈利/平均亏损）
             "win_rate": tm["win_rate"],
             "last_trade_date": last_trade_date,  # 最新一次买/卖日期（YYYY-MM-DD）
             "error": None,

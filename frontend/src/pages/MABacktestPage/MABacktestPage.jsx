@@ -305,13 +305,14 @@ export default function MABacktestPage() {
                   （{result.backtest_period?.trading_days}个交易日）
                 </span>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <Metric label="策略总收益" value={pct(m?.total_return)} positive={m?.total_return} />
                 <Metric label="持有不动收益" value={pct(bm?.hold_return)} positive={bm?.hold_return} />
                 <Metric label="超额收益" value={pct(bm?.excess_return)} positive={bm?.excess_return} />
                 <Metric label="年化收益" value={pct(m?.annualized_return)} positive={m?.annualized_return} />
                 <Metric label="最大回撤" value={pct(m?.max_drawdown)} positive={0} />
                 <Metric label="夏普比率" value={m?.sharpe_ratio != null ? m.sharpe_ratio.toFixed(2) : "N/A"} />
+                <Metric label="盈亏比" value={tm?.profit_loss_ratio != null ? tm.profit_loss_ratio.toFixed(2) : "N/A"} />
                 <Metric label="交易次数" value={`${tm?.sell_trades ?? 0} 次（买${tm?.buy_trades}/卖${tm?.sell_trades}）`} />
                 <Metric label="胜率" value={pct(tm?.win_rate)} />
               </div>

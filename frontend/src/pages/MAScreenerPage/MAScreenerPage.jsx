@@ -259,6 +259,8 @@ export default function MAScreenerPage() {
                     <SortableTh label="超额收益" sortKey="excess_return" activeKey={sortKey} dir={sortDir} onSort={requestSort} />
                     <SortableTh label="策略收益" sortKey="total_return" activeKey={sortKey} dir={sortDir} onSort={requestSort} />
                     <SortableTh label="持有收益" sortKey="hold_return" activeKey={sortKey} dir={sortDir} onSort={requestSort} />
+                    <SortableTh label="盈亏比" sortKey="profit_loss_ratio" activeKey={sortKey} dir={sortDir} onSort={requestSort} />
+                    <SortableTh label="夏普比率" sortKey="sharpe_ratio" activeKey={sortKey} dir={sortDir} onSort={requestSort} />
                     <SortableTh label="最大回撤" sortKey="max_drawdown" activeKey={sortKey} dir={sortDir} onSort={requestSort} />
                     <SortableTh label="交易次数" sortKey="round_trips" activeKey={sortKey} dir={sortDir} onSort={requestSort} />
                     <SortableTh label="最近交易时间" sortKey="last_trade_date" activeKey={sortKey} dir={sortDir} onSort={requestSort} />
@@ -274,7 +276,7 @@ export default function MAScreenerPage() {
                       <td className="py-3 px-2 text-gray-700">{r.name}</td>
                       <td className="py-3 px-2 text-gray-500">{r.category}</td>
                       {r.excess_return === null || r.excess_return === undefined ? (
-                        <td className="py-3 px-2 text-right text-red-400" colSpan={7}>
+                        <td className="py-3 px-2 text-right text-red-400" colSpan={9}>
                           数据获取失败
                         </td>
                       ) : (
@@ -284,6 +286,12 @@ export default function MAScreenerPage() {
                           </td>
                           <td className={`py-3 px-2 text-right ${signColor(r.total_return)}`}>{pct(r.total_return)}</td>
                           <td className={`py-3 px-2 text-right ${signColor(r.hold_return)}`}>{pct(r.hold_return)}</td>
+                          <td className="py-3 px-2 text-right text-gray-600">
+                            {typeof r.profit_loss_ratio === "number" ? r.profit_loss_ratio.toFixed(2) : "—"}
+                          </td>
+                          <td className="py-3 px-2 text-right text-gray-600">
+                            {typeof r.sharpe_ratio === "number" ? r.sharpe_ratio.toFixed(2) : "—"}
+                          </td>
                           <td className="py-3 px-2 text-right text-down-600">{pct(r.max_drawdown)}</td>
                           <td className="py-3 px-2 text-right text-gray-600">{r.round_trips ?? r.total_trades}</td>
                           <td className="py-3 px-2 text-right text-gray-600 whitespace-nowrap">{r.last_trade_date || "—"}</td>
