@@ -181,29 +181,31 @@ class MetricsCalculator:
     def _calculate_paired_win_rate(self, trade_records: List[TradeRecord]) -> float:
         """
         配对交易胜率计算
-        
-        使用FIFO（先进先出）原则匹配买入和卖出交易：
-        1. 按时间排序所有交易
-        2. 维护买入队列，每次卖出时从最早的买入开始匹配
-        3. 计算每个配对的净盈亏（包含双向手续费）
-        4. 统计盈利配对的比例
-        
-        Args:
-            trade_records: 交易记录列表
-            
-        Returns:
-            float: 配对交易胜率
+
+        使用FIFO（先进先出）原则匹配买入和卖出交易，统计盈利配对的比例。
+        """
+        paired_profits = self._compute_paired_profits(trade_records)
+        if not paired_profits:
+            return 0.0
+        profitable_pairs = sum(1 for profit in paired_profits if profit > 0)
+        return profitable_pairs / len(paired_profits)
+
+    def _compute_paired_profits(self, trade_records: List[TradeRecord]) -> List[float]:
+        """用 FIFO 原则把买卖配对，返回每笔往返的净盈亏（含双向手续费）列表。
+
+        这样即便回测引擎没有在单笔 TradeRecord 上记录 profit（如均线策略），
+        也能从买卖价差重建每笔往返盈亏，供胜率/盈亏比等指标共用。
         """
         if not trade_records:
-            return 0.0
-        
+            return []
+
         # 按时间排序交易记录
         sorted_trades = sorted(trade_records, key=lambda x: x.time)
-        
+
         # 买入队列：存储 (买入价格, 数量, 手续费)
         buy_queue = []
         paired_profits = []
-        
+
         for trade in sorted_trades:
             if trade.type == 'BUY':
                 # 买入交易加入队列
@@ -251,19 +253,22 @@ class MetricsCalculator:
                     if buy_record['quantity'] == 0:
                         buy_queue.pop(0)
         
-        # 计算胜率
-        if not paired_profits:
-            return 0.0
-        
-        profitable_pairs = sum(1 for profit in paired_profits if profit > 0)
-        total_pairs = len(paired_profits)
-        
-        return profitable_pairs / total_pairs
+        return paired_profits
 
     def _calculate_profit_loss_ratio(self, trade_records: List[TradeRecord]) -> Optional[float]:
-        """计算盈亏比"""
+        """计算盈亏比（平均盈利 / 平均亏损）。
+
+        优先使用引擎记录的单笔 profit（网格策略）；若所有 profit 均为 None
+        （如均线策略），则退回到 FIFO 配对重建的每笔往返盈亏，确保均线策略也有盈亏比。
+        """
         profits = [t.profit for t in trade_records if t.profit is not None and t.profit > 0]
         losses = [abs(t.profit) for t in trade_records if t.profit is not None and t.profit < 0]
+
+        # 引擎未记录单笔盈亏时，用买卖配对重建
+        if not profits and not losses:
+            paired = self._compute_paired_profits(trade_records)
+            profits = [p for p in paired if p > 0]
+            losses = [abs(p) for p in paired if p < 0]
 
         if not profits or not losses:
             return None
