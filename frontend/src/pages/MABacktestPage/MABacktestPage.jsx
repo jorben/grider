@@ -6,7 +6,9 @@ import {
   LineChart as LineChartIcon,
   Info,
   TrendingUp,
+  Download,
 } from "lucide-react";
+import * as XLSX from "xlsx";
 import { runMABacktest } from "@shared/services/api";
 import MABacktestChart from "./MABacktestChart";
 import CustomCodeList from "@features/etf/components/CustomCodeList";
@@ -70,6 +72,39 @@ export default function MABacktestPage() {
       setLoading(false);
     }
   }, [code, capital, maType, effectivePeriod, startDate, endDate]);
+
+  // 导出交易记录为 Excel（.xlsx）
+  const handleExportExcel = useCallback(() => {
+    const records = result?.trade_records || [];
+    if (records.length === 0) return;
+    try {
+      const exportData = records.map((t, i) => ({
+        "序号": i + 1,
+        "时间": t.time,
+        "方向": t.type === "BUY" ? "买入" : "卖出",
+        "价格": typeof t.price === "number" ? Number(t.price.toFixed(3)) : t.price,
+        "数量": t.quantity,
+        "手续费": typeof t.commission === "number" ? Number(t.commission.toFixed(2)) : t.commission,
+        "持仓": t.position,
+        "现金": t.cash,
+      }));
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(exportData, {
+        header: ["序号", "时间", "方向", "价格", "数量", "手续费", "持仓", "现金"],
+      });
+      ws["!cols"] = [
+        { wch: 8 }, { wch: 20 }, { wch: 8 }, { wch: 12 },
+        { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 15 },
+      ];
+      XLSX.utils.book_append_sheet(wb, ws, "交易记录");
+      const maLabel = `${result?.ma_config?.ma_type || maType}${result?.ma_config?.period || period}`;
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/[:]/g, "-");
+      XLSX.writeFile(wb, `均线交易记录_${code}_${maLabel}_${timestamp}.xlsx`);
+    } catch (e) {
+      console.error("导出Excel失败:", e);
+      alert("导出Excel失败，请稍后重试");
+    }
+  }, [result, code, maType, period]);
 
   const m = result?.performance_metrics;
   const tm = result?.trading_metrics;
@@ -298,7 +333,18 @@ export default function MABacktestPage() {
 
             {/* 交易记录 */}
             <div className="bg-white rounded-xl shadow-lg p-6">
-              <h2 className="font-semibold text-gray-900 mb-4">交易记录（{result.trade_records?.length || 0} 笔）</h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-semibold text-gray-900">交易记录（{result.trade_records?.length || 0} 笔）</h2>
+                <button
+                  onClick={handleExportExcel}
+                  disabled={!result.trade_records || result.trade_records.length === 0}
+                  className="flex items-center gap-2 px-3 py-1.5 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  title="导出Excel文件"
+                >
+                  <Download className="w-4 h-4" />
+                  导出
+                </button>
+              </div>
               <div className="overflow-x-auto max-h-96 overflow-y-auto">
                 <table className="w-full text-sm">
                   <thead className="sticky top-0 bg-white">
