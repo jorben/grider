@@ -53,6 +53,9 @@ def _evaluate_one(item: Dict, period: int, ma_type: str,
         pm = result["performance_metrics"]
         tm = result["trading_metrics"]
         bm = result["benchmark_comparison"]
+        # 最近一次交易（买入或卖出）的日期。trade_records 按时间顺序追加，末条即最新。
+        trades = result.get("trade_records") or []
+        last_trade_date = trades[-1]["time"][:10] if trades else None
         return {
             "code": code,
             "name": info.get("name") or name,
@@ -66,6 +69,7 @@ def _evaluate_one(item: Dict, period: int, ma_type: str,
             "total_trades": tm["total_trades"],
             "round_trips": tm.get("sell_trades", 0),  # 往返次数（每次卖出=一次完整买卖）
             "win_rate": tm["win_rate"],
+            "last_trade_date": last_trade_date,  # 最新一次买/卖日期（YYYY-MM-DD）
             "error": None,
         }
     except Exception as e:  # noqa: BLE001

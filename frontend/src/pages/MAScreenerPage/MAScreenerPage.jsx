@@ -261,6 +261,7 @@ export default function MAScreenerPage() {
                     <SortableTh label="持有收益" sortKey="hold_return" activeKey={sortKey} dir={sortDir} onSort={requestSort} />
                     <SortableTh label="最大回撤" sortKey="max_drawdown" activeKey={sortKey} dir={sortDir} onSort={requestSort} />
                     <SortableTh label="交易次数" sortKey="round_trips" activeKey={sortKey} dir={sortDir} onSort={requestSort} />
+                    <SortableTh label="最近交易时间" sortKey="last_trade_date" activeKey={sortKey} dir={sortDir} onSort={requestSort} />
                     <SortableTh label="胜率" sortKey="win_rate" activeKey={sortKey} dir={sortDir} onSort={requestSort} />
                     <th className="py-3 px-2"></th>
                   </tr>
@@ -273,7 +274,7 @@ export default function MAScreenerPage() {
                       <td className="py-3 px-2 text-gray-700">{r.name}</td>
                       <td className="py-3 px-2 text-gray-500">{r.category}</td>
                       {r.excess_return === null || r.excess_return === undefined ? (
-                        <td className="py-3 px-2 text-right text-red-400" colSpan={6}>
+                        <td className="py-3 px-2 text-right text-red-400" colSpan={7}>
                           数据获取失败
                         </td>
                       ) : (
@@ -285,16 +286,19 @@ export default function MAScreenerPage() {
                           <td className={`py-3 px-2 text-right ${signColor(r.hold_return)}`}>{pct(r.hold_return)}</td>
                           <td className="py-3 px-2 text-right text-down-600">{pct(r.max_drawdown)}</td>
                           <td className="py-3 px-2 text-right text-gray-600">{r.round_trips ?? r.total_trades}</td>
+                          <td className="py-3 px-2 text-right text-gray-600 whitespace-nowrap">{r.last_trade_date || "—"}</td>
                           <td className="py-3 px-2 text-right text-gray-600">{pct(r.win_rate)}</td>
                         </>
                       )}
                       <td className="py-3 px-2">
-                        <Link
-                          to={`/ma-backtest?code=${r.code}`}
+                        <a
+                          href={`/ma-backtest?code=${r.code}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
                           className="text-indigo-600 hover:text-indigo-700 text-xs whitespace-nowrap"
                         >
                           详细回测
-                        </Link>
+                        </a>
                       </td>
                     </tr>
                   ))}
