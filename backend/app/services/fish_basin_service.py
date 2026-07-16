@@ -348,13 +348,17 @@ def _evaluate_one(item: Dict, buffer_pct: float, rt_maps: Dict = None) -> Dict:
             change_pct = (cur_close / closes[-2] - 1) if (len(closes) >= 2 and closes[-2]) else None
         deviation = (cur_close - cur_threshold) / cur_threshold if cur_threshold else None
 
-        # 量比 = 当日量 / 过去5日均量（现货无量则 None）
+        # 量比 = 最近交易日成交量 / 之前5日均量。
+        # 注意：用原始日线量(df["volume"])，不用上面被实时逻辑 append(0) 污染的 volumes，
+        # 否则盘中追加当日实时价时 volumes[-1]=0 会导致量比一律为空。
         vol_ratio = None
-        if volumes[-1] and len(volumes) >= 6:
-            prev5 = volumes[-6:-1]
+        daily_vols = df["volume"].tolist()
+        if len(daily_vols) >= 6:
+            cur_vol = daily_vols[-1]
+            prev5 = daily_vols[-6:-1]
             avg5 = sum(prev5) / len(prev5) if prev5 else 0
-            if avg5 > 0:
-                vol_ratio = volumes[-1] / avg5
+            if cur_vol and avg5 > 0:
+                vol_ratio = cur_vol / avg5
 
         # 状态持续起点：最近一次状态翻转后的第一天
         status_since = dates[-1]
