@@ -19,6 +19,7 @@ from typing import List, Optional
 import akshare as ak
 
 from app.algorithms.backtest.models import KBar
+from app.utils.helper import parse_otc_marker
 from app.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -232,6 +233,37 @@ def _get_stock_name_table() -> dict:
     return table
 
 
+def _get_fund_name_table() -> dict:
+    """全量场外(开放式)基金 code->简称 表，带内存+磁盘长缓存。
+
+    数据源：东方财富 `fund_name_em`（约 2.7 万只，首次下载较慢），
+    与个股名称表策略一致：磁盘长缓存跨重启复用，失败则兜底显示代码。
+    """
+    cache_key = "table:fund_names"
+    cached = _cache_get(cache_key)
+    if cached is not None:
+        return cached
+    disk = _disk_cache_load("fund_names")
+    if disk:
+        _cache_set(cache_key, disk, ttl=86400)
+        return disk
+    table = {}
+    try:
+        df = _retry(ak.fund_name_em, retries=2, delay=1.0)
+        # 列通常为 ['基金代码', '拼音缩写', '基金简称', '基金类型', '拼音全称']
+        cols = df.columns.tolist()
+        code_col = "基金代码" if "基金代码" in cols else cols[0]
+        name_col = "基金简称" if "基金简称" in cols else (cols[2] if len(cols) > 2 else cols[-1])
+        for _, row in df.iterrows():
+            table[str(row[code_col]).zfill(6)] = str(row[name_col])
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"加载场外基金名称表失败: {e}")
+    if table:
+        _cache_set(cache_key, table, ttl=86400)
+        _disk_cache_save("fund_names", table)
+    return table
+
+
 def _classify(ticker: str, country_code: str = "CHN") -> tuple[bool, str]:
     """判断证券类型与交易所代码。
 
@@ -288,10 +320,23 @@ class DataService:
     # ------------------------------------------------------------------
     # 基础信息 / 搜索
     # ------------------------------------------------------------------
-    def search_by_ticker(self, ticker: str, country_code: str = "CHN"):
-        """搜索标的，返回 {code, name, exchange_code, type}。"""
+    def search_by_ticker(self, ticker: str, country_code: str = "CHN", sec_type_hint: str = ""):
+        """搜索标的，返回 {code, name, exchange_code, type}。
+
+        sec_type_hint='FUND' 或代码带场外基金标记(F/O)时，识别为场外(开放式)基金。
+        """
         try:
             code = str(ticker).strip()
+            # 场外基金优先识别：由标记或上层 hint 决定（其代码与场内标的冲突，需显式区分）
+            clean_code, is_otc = parse_otc_marker(code)
+            if is_otc or sec_type_hint == "FUND":
+                return {
+                    "code": clean_code,
+                    "name": self._lookup_fund_name(clean_code),
+                    "exchange_code": "",
+                    "type": "FUND",
+                    "management": "",
+                }
             # 指数优先识别（白名单），避免与深市个股 000xxx 冲突
             if _is_index(code):
                 sym = _index_sina_symbol(code)
@@ -356,6 +401,24 @@ class DataService:
             logger.warning(f"名称查询失败，使用代码兜底: {code}, {e}")
 
         if name and name != code:
+            _cache_set(cache_key, name, ttl=86400)
+        return name
+
+    def _lookup_fund_name(self, code: str) -> str:
+        """获取场外基金名称（名称表 + 缓存 + 兜底）。查不到则显示 场外基金{code}。"""
+        cache_key = f"fundname:{code}"
+        cached = _cache_get(cache_key)
+        if cached:
+            return cached
+        name = None
+        try:
+            table = _get_fund_name_table()
+            name = table.get(code) or table.get(str(code).zfill(6))
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"场外基金名称查询失败: {code}, {e}")
+        if not name:
+            name = f"场外基金{code}"
+        else:
             _cache_set(cache_key, name, ttl=86400)
         return name
 
@@ -444,6 +507,15 @@ class DataService:
         if cached is not None:
             return cached
 
+        # 场外基金：走开放式基金净值接口，单独处理并直接返回
+        if sec_type == "FUND":
+            df = self._fetch_full_open_fund(code)
+            if df is None or len(df) == 0:
+                return None
+            df = df.dropna(subset=["open", "high", "low", "close"]).reset_index(drop=True)
+            _cache_set(cache_key, df, ttl=3600)
+            return df
+
         # 主源：新浪(sina) — 一次返回全量历史，稳定快速
         df = self._fetch_full_sina(code, sec_type)
 
@@ -481,6 +553,37 @@ class DataService:
         # 当日收盘后数据稳定，缓存 1 小时即可
         _cache_set(cache_key, df, ttl=3600)
         return df
+
+    def _fetch_full_open_fund(self, code: str) -> Optional[pd.DataFrame]:
+        """场外(开放式)基金全量净值序列，统一为日线字段。
+
+        数据源：东方财富 `fund_open_fund_info_em`（单位净值走势）。
+        场外基金每个交易日仅有一个「单位净值」，故 open/high/low/close 均用净值填充，
+        volume=0（净值申赎无盘中成交量）。这样上层回测/均线引擎可无差别复用。
+        """
+        try:
+            raw = _retry(ak.fund_open_fund_info_em, symbol=code,
+                         indicator="单位净值走势", retries=3, delay=1.5)
+            if raw is None or len(raw) == 0:
+                return None
+            # 列：净值日期 / 单位净值 / 日增长率
+            date_col = "净值日期" if "净值日期" in raw.columns else raw.columns[0]
+            nav_col = "单位净值" if "单位净值" in raw.columns else raw.columns[1]
+            nav = pd.to_numeric(raw[nav_col], errors="coerce")
+            df = pd.DataFrame({
+                "date": pd.to_datetime(raw[date_col]).dt.strftime("%Y-%m-%d"),
+                "open": nav.values,
+                "high": nav.values,
+                "low": nav.values,
+                "close": nav.values,
+                "volume": 0,
+            })
+            df["amount"] = 0.0
+            df = df.dropna(subset=["close"]).sort_values("date").reset_index(drop=True)
+            return df
+        except Exception as e:  # noqa: BLE001
+            logger.error(f"场外基金净值获取失败: {code}, {e}")
+            return None
 
     def _fetch_full_sina(self, code: str, sec_type: str) -> Optional[pd.DataFrame]:
         """新浪全量日线，统一字段（不做区间过滤）。
@@ -533,6 +636,11 @@ class DataService:
                        start_date: str, end_date: str, type: str = "STOCK") -> List[KBar]:
         try:
             code = str(ticker).strip()
+
+            # 场外基金没有分钟/盘中数据，每日仅一个净值点，直接用日线净值作为回测K线
+            if type == "FUND":
+                logger.info(f"场外基金使用日线净值作为回测K线: {code} {start_date}~{end_date}")
+                return self._daily_as_kbars(code, type, start_date, end_date)
 
             # 长周期（>120天）直接用日线，避免分钟数据量过大导致卡顿/超时
             try:

@@ -293,8 +293,14 @@ class SuitabilityAnalyzer:
             # 计算流动性指标
             avg_amount = df['amount'].mean() / 10000  # 元转换为万元
             
-            # 成交量稳定性（变异系数）
-            volume_stability = df['volume'].std() / df['volume'].mean()  # 变异系数
+            # 成交量稳定性（变异系数）；场外基金无成交量(volume=0)，避免 0/0 产生 NaN
+            _vol_mean = df['volume'].mean()
+            if not _vol_mean or pd.isna(_vol_mean):
+                volume_stability = 0.0
+            else:
+                volume_stability = df['volume'].std() / _vol_mean  # 变异系数
+                if pd.isna(volume_stability):
+                    volume_stability = 0.0
             
             # 3. 各维度评估
             amplitude_eval = self.evaluate_amplitude(atr_analysis['current_atr_ratio'])

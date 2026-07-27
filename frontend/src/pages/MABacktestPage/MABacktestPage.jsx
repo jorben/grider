@@ -162,10 +162,11 @@ export default function MABacktestPage() {
               <input
                 value={code}
                 onChange={(e) => setCode(e.target.value.replace(/[^0-9a-zA-Z]/g, "").toUpperCase())}
-                placeholder="如：510300、603137"
-                maxLength={6}
+                placeholder="如：510300、603137；场外基金加F，如 F007339"
+                maxLength={7}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2"
               />
+              <p className="mt-1 text-xs text-gray-400">场外（开放式）基金请在代码开头或结尾加字母 F（如 F007339），以便与场内标的区分。</p>
             </div>
             <div>
               <label className="block text-sm text-gray-600 mb-1">投资金额（元）</label>

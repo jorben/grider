@@ -207,8 +207,8 @@ export const parseAnalysisURL = (pathname, search) => {
     isValid: false,
   };
 
-  // 解析ETF代码
-  const pathMatch = pathname.match(/^\/analysis\/([a-zA-Z0-9]{2,6})$/);
+  // 解析ETF代码（支持场外基金标记，最长7位，如 F007339）
+  const pathMatch = pathname.match(/^\/analysis\/([a-zA-Z0-9]{2,7})$/);
   if (pathMatch) {
     result.etfCode = pathMatch[1];
   }

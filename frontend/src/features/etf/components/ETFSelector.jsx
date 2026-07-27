@@ -34,18 +34,23 @@ export default function ETFSelector({
           onChange={(e) =>
             onChange(e.target.value.replace(/[^0-9a-zA-Z]/g, "").toUpperCase())
           }
-          placeholder="请输入标的代码，如：510300、603137、SPY"
+          placeholder="请输入标的代码，如：510300、603137、SPY；场外基金加F，如 F007339"
           className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
             error ? "border-red-300" : "border-gray-300"
           }`}
-          maxLength={6}
+          maxLength={7}
         />
+        <p className="mt-1 text-xs text-gray-400">
+          场外（开放式）基金请在代码开头或结尾加字母 F，例如 F007339，以便与场内个股/ETF 区分。
+        </p>
 
         {/* 标的信息区域 */}
         <div className="mt-2" style={{ minHeight: "80px" }}>
           {loading && <ETFInfoSkeleton />}
 
-          {!loading && etfInfo && etfInfo.code === value && (
+          {!loading && etfInfo &&
+            (etfInfo.code === value ||
+              value.replace(/^[FO]|[FO]$/g, "") === etfInfo.code) && (
             <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <div className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-blue-600" />

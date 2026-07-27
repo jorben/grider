@@ -215,7 +215,8 @@ class BacktestService:
             # 手续费按证券类型区分：指数免佣；ETF 去掉最低5元(仅按费率)；个股保留最低5元
             if type == 'INDEX':
                 fee_calc = FeeCalculator(commission_rate=0.0, min_commission=0.0, apply_min=False)
-            elif type == 'ETF':
+            elif type in ('ETF', 'FUND'):
+                # ETF/场外基金：按费率计费，不套用个股的最低5元佣金
                 fee_calc = FeeCalculator(
                     commission_rate=config.commission_rate,
                     min_commission=config.min_commission,

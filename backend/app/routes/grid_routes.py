@@ -9,7 +9,7 @@ from app.constants import (
 )
 
 from app.utils.logger import get_logger
-from app.utils.helper import determine_country
+from app.utils.helper import resolve_ticker
 
 logger = get_logger(__name__)
 bp = Blueprint('grid_routes', __name__)
@@ -19,7 +19,7 @@ bp = Blueprint('grid_routes', __name__)
 def analyze_strategy(validated_data):
     """网格交易策略分析"""
     try:
-        etf_code, country = determine_country(validated_data['etfCode'].strip())
+        etf_code, country, sec_type_hint = resolve_ticker(validated_data['etfCode'].strip())
         total_capital = float(validated_data['totalCapital'])
         grid_type = validated_data['gridType']
         risk_preference = validated_data['riskPreference']
@@ -27,7 +27,7 @@ def analyze_strategy(validated_data):
         adjustment_coefficient = float(validated_data.get('adjustmentCoefficient', 1.0))
         
         logger.info(f"开始分析ETF策略: {etf_code}, 资金{total_capital}, "
-                   f"{grid_type}网格, {risk_preference}，调节系数{adjustment_coefficient}")
+                   f"{grid_type}网格, {risk_preference}，调节系数{adjustment_coefficient}，类型{sec_type_hint or '自动'}")
         
         etf_service = ETFAnalysisService(country=country)
         # 执行分析
@@ -36,7 +36,8 @@ def analyze_strategy(validated_data):
             total_capital=total_capital,
             grid_type=grid_type,
             risk_preference=risk_preference,
-            adjustment_coefficient=adjustment_coefficient
+            adjustment_coefficient=adjustment_coefficient,
+            sec_type_hint=sec_type_hint
         )
         
         logger.info(f"ETF策略分析完成: {etf_code}, "
@@ -176,11 +177,11 @@ def run_ma_backtest():
         if not raw_code:
             return jsonify({'success': False, 'error': '标的代码不能为空'}), HTTP_BAD_REQUEST
 
-        etf_code, country = determine_country(raw_code)
+        etf_code, country, sec_type_hint = resolve_ticker(raw_code)
 
         # 解析标的信息（交易所、证券类型）
         analysis_service = ETFAnalysisService(country=country)
-        info = analysis_service.data_client.search_by_ticker(etf_code, country)
+        info = analysis_service.data_client.search_by_ticker(etf_code, country, sec_type_hint)
         exchange_code = info.get('exchange_code', '')
         sec_type = info.get('type', 'STOCK')
 

@@ -7,7 +7,7 @@ from app.constants import (
 )
 
 from app.utils.logger import get_logger
-from app.utils.helper import determine_country
+from app.utils.helper import resolve_ticker
 
 logger = get_logger(__name__)
 bp = Blueprint('info_routes', __name__)
@@ -44,8 +44,8 @@ def get_batch_names():
         result = {}
         for raw in codes[:100]:  # 限制最多100个，避免滥用
             try:
-                code, country = determine_country(raw)
-                info = _data_service.search_by_ticker(code, country)
+                code, country, sec_type_hint = resolve_ticker(raw)
+                info = _data_service.search_by_ticker(code, country, sec_type_hint)
                 result[raw] = info.get('name') or raw
             except Exception:  # noqa: BLE001
                 result[raw] = raw
@@ -59,15 +59,15 @@ def get_batch_names():
 def get_basic_info(etf_code):
     """获取ETF基础信息"""
     try:
-        # 验证ETF代码格式
-        etf_code, country = determine_country(etf_code)
+        # 验证ETF代码格式（含场外基金标记解析）
+        etf_code, country, sec_type_hint = resolve_ticker(etf_code)
         if not etf_code:
             return jsonify({
                 'success': False,
                 'message': 'ETF代码为空'
             }), HTTP_BAD_REQUEST
         etf_service = ETFAnalysisService(country=country)
-        etf_info = etf_service.get_basic_info(etf_code)
+        etf_info = etf_service.get_basic_info(etf_code, sec_type_hint)
         return jsonify({
             'success': True,
             'data': etf_info

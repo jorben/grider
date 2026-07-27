@@ -314,8 +314,8 @@ export default function GridComparePage() {
                   value={c}
                   onChange={(e) => setCodeAt(i, e.target.value)}
                   onFocus={() => setActiveSlot(i)}
-                  placeholder="如：510300、000688"
-                  maxLength={6}
+                  placeholder="如：510300；场外基金加F，如 F007339"
+                  maxLength={7}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2"
                 />
               </div>
