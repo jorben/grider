@@ -234,7 +234,8 @@ class GridOptimizer:
     
     def calculate_fund_allocation_v2(self, total_capital: float,
                                     price_levels: List[float],
-                                    current_price: float) -> Dict:
+                                    current_price: float,
+                                    forced_single_quantity: int = None) -> Dict:
         """
         智能资金分配计算 V2 - 不依赖外部底仓比例
         
@@ -248,6 +249,9 @@ class GridOptimizer:
             total_capital: 总投资资金
             price_levels: 价格水平列表
             current_price: 当前价格（作为买卖分界点）
+            forced_single_quantity: 用户指定的单笔股数。若提供，则跳过"按资金反推"，
+                直接用该值计算底仓与买入资金（底仓股数=卖出网格数×单笔股数），
+                并据此真实反映资金利用率/安全系数（不再静默缩减，尊重用户输入）。
             
         Returns:
             资金分配结果（保持原接口字段结构）
@@ -273,10 +277,17 @@ class GridOptimizer:
             
             # 4. 计算单笔股数
             # 单笔股数 = floor(可用资金 ÷ 资金需求系数 ÷ min_unit) × min_unit
-            theoretical_shares = available_capital / fund_requirement_factor
             min_unit = self._get_min_trade_unit()
-            shares_per_unit = int(theoretical_shares / min_unit)
-            single_trade_quantity = max(min_unit, shares_per_unit * min_unit)
+            if forced_single_quantity and forced_single_quantity > 0:
+                # 用户显式指定单笔股数：尊重用户输入，不按资金反推、不静默缩减。
+                # 仅向下取整到最小交易单位的整数倍以保证可成交。
+                single_trade_quantity = max(
+                    min_unit, int(forced_single_quantity / min_unit) * min_unit
+                )
+            else:
+                theoretical_shares = available_capital / fund_requirement_factor
+                shares_per_unit = int(theoretical_shares / min_unit)
+                single_trade_quantity = max(min_unit, shares_per_unit * min_unit)
             
             # 5. 计算底仓股数和资金
             # 底仓股数 = 卖出网格数量 × 单笔股数
@@ -291,7 +302,8 @@ class GridOptimizer:
             safety_ratio = total_required_fund / available_capital
             
             # 8. 如果超出资金限制，调整单笔股数
-            if safety_ratio > 1.0:
+            #    用户显式指定单笔数量时不自动缩减（尊重输入），仅如实反映安全系数。
+            if safety_ratio > 1.0 and not (forced_single_quantity and forced_single_quantity > 0):
                 adjustment_factor = 0.95 / safety_ratio  # 留5%安全边际
                 adjusted_shares = int(single_trade_quantity * adjustment_factor / min_unit) * min_unit
                 single_trade_quantity = max(min_unit, adjusted_shares)

@@ -15,7 +15,7 @@ const ETFInfoSkeleton = () => {
 
       <div className="skeleton-loading">
         <div className="loading-spinner"></div>
-        <span className="loading-text">正在加载ETF信息...</span>
+        <span className="loading-text">正在加载标的信息...</span>
       </div>
     </div>
   );

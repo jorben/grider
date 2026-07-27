@@ -50,19 +50,20 @@ class ETFAnalysisService:
         self.grid_optimizer = grid_optimizer or GridOptimizer(country=self.country)
         self.suitability_analyzer = suitability_analyzer or SuitabilityAnalyzer()
     
-    def get_basic_info(self, etf_code: str) -> Dict:
+    def get_basic_info(self, etf_code: str, sec_type_hint: str = '') -> Dict:
         """
         获取ETF基础信息
         
         Args:
             etf_code: ETF代码
+            sec_type_hint: 证券类型提示（'FUND' 表示场外基金）
             
         Returns:
             ETF基础信息
         """
         try:
             # 查找代码信息
-            search = self.data_client.search_by_ticker(etf_code, self.country)
+            search = self.data_client.search_by_ticker(etf_code, self.country, sec_type_hint)
             logger.info(f'search result: {search}')
             if not search:
                 raise ValueError(f"未找到相关代码: {etf_code}")
@@ -96,13 +97,14 @@ class ETFAnalysisService:
             logger.error(f"获取ETF基础信息失败: {etf_code}, {str(e)}")
             raise
     
-    def get_historical_data(self, etf_code: str, days: int = 365) -> pd.DataFrame:
+    def get_historical_data(self, etf_code: str, days: int = 365, sec_type_hint: str = '') -> pd.DataFrame:
         """
         获取历史数据
         
         Args:
             etf_code: ETF代码
             days: 获取天数
+            sec_type_hint: 证券类型提示（'FUND' 表示场外基金）
             
         Returns:
             历史数据DataFrame
@@ -112,7 +114,7 @@ class ETFAnalysisService:
             end_date = datetime.now().strftime('%Y-%m-%d')
             start_date = (datetime.now() - timedelta(days=days)).strftime('%Y-%m-%d')
             # 查找代码信息
-            search = self.data_client.search_by_ticker(etf_code, self.country)
+            search = self.data_client.search_by_ticker(etf_code, self.country, sec_type_hint)
             if not search:
                 raise ValueError(f"未找到相关代码: {etf_code}")
             # 获取历史数据（使用增强缓存）
@@ -136,7 +138,8 @@ class ETFAnalysisService:
     
     def analyze_etf_strategy(self, etf_code: str, total_capital: float,
                            grid_type: str, risk_preference: str,
-                           adjustment_coefficient: float = 1.0) -> Dict:
+                           adjustment_coefficient: float = 1.0,
+                           sec_type_hint: str = '') -> Dict:
         """
         完整的ETF网格交易策略分析
         
@@ -154,10 +157,10 @@ class ETFAnalysisService:
                        f"{grid_type}网格, {risk_preference}, 调节系数{adjustment_coefficient}")
             
             # 1. 获取ETF基础信息
-            etf_info = self.get_basic_info(etf_code)
+            etf_info = self.get_basic_info(etf_code, sec_type_hint)
             
             # 2. 获取历史数据（1年）
-            df = self.get_historical_data(etf_code, days=365)
+            df = self.get_historical_data(etf_code, days=365, sec_type_hint=sec_type_hint)
             
             # 4. 执性适宜度评估
             suitability_result = self.suitability_analyzer.comprehensive_evaluation(df, etf_info)

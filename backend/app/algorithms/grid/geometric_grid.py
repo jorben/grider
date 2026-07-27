@@ -45,8 +45,10 @@ class GeometricGridCalculator:
             # 将绝对步长转换为相对于基准价格的比例
             step_ratio = step_size / base_price
             
-            # 限制步长比例在合理范围内（0.1% - 10%）
-            step_ratio = max(0.001, min(0.1, step_ratio))
+            # 限制步长比例在合理范围内（0.1% - 50%）
+            # 上限放宽到50%，以支持用户自定义较大的等比步长（如15%）；
+            # 默认ATR步长很小，不受此上限影响。
+            step_ratio = max(0.001, min(0.5, step_ratio))
             
             # 向上扩展网格点
             current_price = base_price

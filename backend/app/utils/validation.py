@@ -360,19 +360,20 @@ def validate_backtest_request(data: dict) -> dict:
             return {'valid': False, 'error': f'网格策略缺少{field}字段'}
 
     # 验证回测配置（可选）
-    if 'backtestConfig' in data:
+    if data.get('backtestConfig'):
         config = data['backtestConfig']
 
-        # 验证费率范围
-        if 'commissionRate' in config:
-            rate = config['commissionRate']
-            if not (0 <= rate <= 1):
-                return {'valid': False, 'error': '手续费率必须在0-1之间'}
+        if isinstance(config, dict):
+            # 验证费率范围
+            if 'commissionRate' in config:
+                rate = config['commissionRate']
+                if rate is not None and not (0 <= rate <= 1):
+                    return {'valid': False, 'error': '手续费率必须在0-1之间'}
 
-        # 验证最低收费
-        if 'minCommission' in config:
-            min_fee = config['minCommission']
-            if min_fee < 0:
-                return {'valid': False, 'error': '最低收费不能为负'}
+            # 验证最低收费
+            if 'minCommission' in config:
+                min_fee = config['minCommission']
+                if min_fee is not None and min_fee < 0:
+                    return {'valid': False, 'error': '最低收费不能为负'}
 
     return {'valid': True, 'error': None}

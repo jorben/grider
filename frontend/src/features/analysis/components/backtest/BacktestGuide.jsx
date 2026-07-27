@@ -4,11 +4,32 @@ import { Lightbulb, X, BarChart3, Settings, AlertTriangle } from 'lucide-react';
 
 /**
  * 回测功能引导组件
+ * @param {object} period - 回测周期信息 { start_date, end_date, trading_days, total_bars }
  */
-export default function BacktestGuide() {
+export default function BacktestGuide({ period }) {
   const [showGuide, setShowGuide] = usePersistedState('backtest-guide-shown', true);
 
   if (!showGuide) return null;
+
+  // 根据实际回测数据动态生成数据说明
+  const buildDataDescription = () => {
+    if (!period) {
+      return '基于历史K线数据进行模拟回测';
+    }
+
+    const { start_date, end_date, trading_days, total_bars } = period;
+    const days = trading_days || 0;
+    const bars = total_bars || 0;
+
+    // 判断数据粒度：每个交易日的bar数 >= 2 视为日内(5分钟)，否则为日线
+    const barsPerDay = days > 0 ? bars / days : 0;
+    const granularity = barsPerDay >= 2 ? '5分钟K线' : '日线';
+
+    if (start_date && end_date) {
+      return `基于 ${start_date} 至 ${end_date}（共${days}个交易日）的${granularity}数据进行模拟回测`;
+    }
+    return `基于最近${days}个交易日的${granularity}数据进行模拟回测`;
+  };
 
   return (
     <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6 mb-6">
@@ -33,7 +54,7 @@ export default function BacktestGuide() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div className="flex items-start gap-2">
               <BarChart3 className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-              <span className="text-blue-800">基于最近30个交易日的5分钟K线数据进行模拟回测</span>
+              <span className="text-blue-800">{buildDataDescription()}</span>
             </div>
             <div className="flex items-start gap-2">
               <AlertTriangle className="w-4 h-4 text-orange-600 mt-0.5 flex-shrink-0" />

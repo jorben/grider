@@ -18,7 +18,7 @@ jwt = JWTManager()
 def create_app():
 
 # 根据环境变量决定静态文件配置
-    FLASK_ENV = os.environ.get('FLASK_ENV', 'development')
+    FLASK_ENV = os.environ.get('FLASK_ENV', 'development').strip().lower()
     if FLASK_ENV == 'production':
         # 生产环境：配置静态文件服务
         app = Flask(__name__,
@@ -64,51 +64,48 @@ def create_app():
     return app
 
 def setup_static_routes(app):
-    """设置静态文件路由（仅生产环境）"""
-    
+    """设置静态文件路由（仅生产环境）
+
+    使用基于模块位置的绝对路径，避免依赖当前工作目录（CWD）。
+    静态目录为 项目根/static （即 backend 的上一级目录下的 static）。
+    """
+    # backend/app/__init__.py -> backend/app -> backend -> 项目根
+    _project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    static_dir = os.path.join(_project_root, 'static')
+    index_file = os.path.join(static_dir, 'index.html')
+
+    def _serve_index():
+        if os.path.exists(index_file):
+            return send_file(index_file)
+        app.logger.error(f"静态文件 index.html 不存在: {index_file}")
+        return {
+            'success': False,
+            'message': '前端文件未找到，请检查构建是否完成（static/index.html）'
+        }, 404
+
     @app.route('/')
     def serve_index():
         """服务前端主页"""
-        try:
-            return send_file('../../static/index.html')
-        except FileNotFoundError:
-            app.logger.error("静态文件 index.html 不存在")
-            return {
-                'success': False,
-                'message': '前端文件未找到，请检查构建是否完成'
-            }, 404
-    
+        return _serve_index()
+
     @app.route('/<path:path>')
     def serve_spa_routes(path):
         """服务SPA路由（非API和静态文件路径）"""
-        # 如果是API路由或静态文件路由，跳过
+        # 如果是API路由，跳过
         if path.startswith('api/'):
             return None
 
         # 定义前端路由路径（这些路径应该返回 index.html）
-        frontend_routes = ['analysis', 'dashboard', 'settings', 'help']
+        frontend_routes = ['analysis', 'dashboard', 'settings', 'help', 'screener', 'ma-backtest', 'ma-screener', 'ma-compare', 'grid-compare', 'fish-basin']
 
         # 检查是否是前端路由
         if any(path.startswith(route) for route in frontend_routes):
-            try:
-                return send_file('../../static/index.html')
-            except FileNotFoundError:
-                app.logger.error("静态文件 index.html 不存在")
-                return {
-                    'success': False,
-                    'message': '前端文件未找到'
-                }, 404
-        
-        # 尝试提供静态文件
-        try:
-            return send_from_directory('../../static', path)
-        except FileNotFoundError:
-            # 文件不存在时返回index.html（支持其他前端路由）
-            try:
-                return send_file('../../static/index.html')
-            except FileNotFoundError:
-                app.logger.error("静态文件 index.html 不存在")
-                return {
-                    'success': False,
-                    'message': '前端文件未找到'
-                }, 404
+            return _serve_index()
+
+        # 尝试提供静态文件（绝对目录）
+        file_path = os.path.join(static_dir, path)
+        if os.path.isfile(file_path):
+            return send_from_directory(static_dir, path)
+
+        # 文件不存在时返回 index.html（支持前端路由刷新）
+        return _serve_index()

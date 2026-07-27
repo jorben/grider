@@ -175,6 +175,71 @@ ETF_POPULAR_LIST: Final[list] = [
     {'code': 'SPY', 'name': 'S&P500ETF'}
 ]
 
+# ============================================================================
+# 网格标的筛选器候选池
+# ============================================================================
+# 适合网格交易筛选的主流 ETF 候选池（流动性较好，覆盖宽基/行业/跨境/红利/商品债券）。
+# 想增减标的：直接编辑此列表即可（前端无需改动，筛选页会自动按此列表评分）。
+SCREENER_CANDIDATES: Final[list] = [
+    # ---------- 宽基（用指数，历史更长） ----------
+    {'code': '000300', 'name': '沪深300指数', 'category': '宽基指数'},
+    {'code': '000905', 'name': '中证500指数', 'category': '宽基指数'},
+    {'code': '000016', 'name': '上证50指数', 'category': '宽基指数'},
+    {'code': '399006', 'name': '创业板指', 'category': '宽基指数'},
+    {'code': '000688', 'name': '科创50指数', 'category': '宽基指数'},
+    {'code': '000852', 'name': '中证1000指数', 'category': '宽基指数'},
+    {'code': '399673', 'name': '创业板50指数', 'category': '宽基指数'},
+    {'code': '563300', 'name': '中证2000ETF', 'category': '宽基指数'},
+    {'code': '899050', 'name': '北证50指数', 'category': '宽基指数'},
+    # ---------- 行业/主题 ETF ----------
+    {'code': '512880', 'name': '证券ETF', 'category': '行业主题'},
+    {'code': '512170', 'name': '医疗ETF', 'category': '行业主题'},
+    {'code': '512010', 'name': '医药ETF', 'category': '行业主题'},
+    {'code': '159928', 'name': '消费ETF', 'category': '行业主题'},
+    {'code': '512690', 'name': '酒ETF', 'category': '行业主题'},
+    {'code': '512480', 'name': '半导体ETF', 'category': '行业主题'},
+    {'code': '159995', 'name': '芯片ETF', 'category': '行业主题'},
+    {'code': '515050', 'name': '5G通信ETF', 'category': '行业主题'},
+    {'code': '159819', 'name': '人工智能ETF', 'category': '行业主题'},
+    {'code': '516160', 'name': '新能源ETF', 'category': '行业主题'},
+    {'code': '515030', 'name': '新能源车ETF', 'category': '行业主题'},
+    {'code': '512660', 'name': '军工ETF', 'category': '行业主题'},
+    {'code': '512800', 'name': '银行ETF', 'category': '行业主题'},
+    {'code': '515790', 'name': '光伏ETF', 'category': '行业主题'},
+    {'code': '512290', 'name': '生物医药ETF', 'category': '行业主题'},
+    {'code': '516010', 'name': '游戏ETF', 'category': '行业主题'},
+    {'code': '512200', 'name': '房地产ETF', 'category': '行业主题'},
+    {'code': '159766', 'name': '旅游ETF', 'category': '行业主题'},
+    {'code': '159870', 'name': '化工ETF', 'category': '行业主题'},
+    {'code': '512980', 'name': '传媒ETF', 'category': '行业主题'},
+    {'code': '159227', 'name': '航空航天ETF', 'category': '行业主题'},
+    {'code': '159206', 'name': '卫星ETF', 'category': '行业主题'},
+    {'code': '159996', 'name': '家电ETF', 'category': '行业主题'},
+    {'code': '159881', 'name': '有色金属ETF', 'category': '行业主题'},
+    {'code': '159399', 'name': '现金流ETF', 'category': '行业主题'},
+    # ---------- 红利 ----------
+    {'code': '510880', 'name': '红利ETF', 'category': '红利价值'},
+    {'code': '513630', 'name': '港股红利ETF', 'category': '红利价值'},
+    # ---------- 海外/跨境 ----------
+    {'code': '513100', 'name': '纳指ETF', 'category': '跨境海外'},
+    {'code': '513500', 'name': '标普500ETF', 'category': '跨境海外'},
+    {'code': '159866', 'name': '日经225ETF', 'category': '跨境海外'},
+    {'code': '159678', 'name': '韩国ETF', 'category': '跨境海外'},
+    {'code': '513030', 'name': '德国ETF', 'category': '跨境海外'},
+    {'code': '513080', 'name': '法国CAC40ETF', 'category': '跨境海外'},
+    {'code': '513050', 'name': '中概互联网ETF', 'category': '跨境海外'},
+    {'code': '513180', 'name': '恒生科技指数ETF', 'category': '跨境海外'},
+    {'code': '513310', 'name': '中韩半导体ETF', 'category': '跨境海外'},
+    {'code': '164824', 'name': '印度LOF', 'category': '跨境海外'},
+    {'code': '161127', 'name': '标普生物科技LOF', 'category': '跨境海外'},
+    # ---------- 商品/能源 ----------
+    {'code': '159985', 'name': '豆粕ETF', 'category': '商品能源'},
+    {'code': '518880', 'name': '黄金ETF', 'category': '商品能源'},
+    {'code': '161226', 'name': '白银LOF', 'category': '商品能源'},
+    {'code': '501018', 'name': '南方原油LOF', 'category': '商品能源'},
+    {'code': '162411', 'name': '华宝油气LOF', 'category': '商品能源'},
+]
+
 # 常用资金
 CAPITAL_PRESETS: Final[list] = [
     {'value': 100000, 'label': '10万', 'popular': True},
@@ -225,6 +290,6 @@ __all__ = [
     'MIN_PASSWORD_LENGTH', 'MAX_PASSWORD_LENGTH',
 
     # 业务相关
-    'ETF_POPULAR_LIST', 'CAPITAL_PRESETS',
+    'ETF_POPULAR_LIST', 'CAPITAL_PRESETS', 'SCREENER_CANDIDATES',
     
 ]

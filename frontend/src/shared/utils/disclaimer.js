@@ -7,22 +7,8 @@
  * @returns {boolean} true: 已确认且未过期, false: 未确认或已过期
  */
 export const checkDisclaimerStatus = () => {
-  const disclaimerAccepted = localStorage.getItem('disclaimer_accepted');
-  
-  if (!disclaimerAccepted) {
-    return false; // 未做过确认
-  }
-
-  try {
-    const acceptedDate = new Date(disclaimerAccepted);
-    const now = new Date();
-    const daysDiff = Math.floor((now - acceptedDate) / (1000 * 60 * 60 * 24));
-    
-    return daysDiff <= 30; // 30天内有效
-  } catch (error) {
-    console.error('解析免责声明日期失败:', error);
-    return false; // 解析失败，重新确认
-  }
+  // 本工具仅供自己使用，免责声明弹窗已永久关闭，始终视为已同意。
+  return true;
 };
 
 /**

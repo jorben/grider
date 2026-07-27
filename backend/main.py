@@ -35,4 +35,5 @@ if __name__ == "__main__":
     debug = os.environ.get('FLASK_ENV') == 'development'
     
     app.logger.info(f"启动网格交易策略分析系统，版本: {APP_VERSION}, 服务地址: {host}:{port}")
-    app.run(host=host, port=port, debug=debug)
+    # threaded=True：允许并发处理请求，避免单个长请求（如批量筛选）阻塞整个服务
+    app.run(host=host, port=port, debug=debug, threaded=True)

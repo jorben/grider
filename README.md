@@ -1,298 +1,153 @@
-# Grider - ETF网格交易策略分析工具
+# Grider - ETF/股票 网格交易策略分析工具（AkShare 免费数据版）
 
-[![Version](https://img.shields.io/github/release/jorben/grider.svg)](CHANGELOG.md)
-[![License](https://img.shields.io/badge/license-Apache%202.0-green.svg)](LICENSE)
+🎯 一个网格交易策略分析与回测工具：基于 ATR 算法计算网格参数、评估标的适宜度、做历史回测。
 
-🎯 **Grider** 是一个专业的ETF网格交易策略分析工具，提供全面的回测功能、智能参数优化和多市场支持。帮助投资者量化分析网格交易策略的表现，优化投资决策。
-
-## ✨ 核心特性
-
-### 🚀 网格交易策略分析
-- **智能网格计算**：支持等差网格和等比网格两种策略
-- **ATR动态网格**：基于平均真实波动率的动态网格调整
-- **多参数优化**：网格数量、风险系数、调整系数等参数智能建议
-- **风险评估**：内置风险模型和适宜度评分系统
-
-### 📊 专业回测系统
-- **历史数据回测**：支持30-120个交易日的详细回测分析
-- **实时交易模拟**：精确模拟网格交易的买入卖出逻辑
-- **性能指标分析**：收益率、最大回撤、夏普比率等专业指标
-- **交易记录明细**：完整的交易历史记录和Excel导出功能
-
-### 🌍 多市场支持
-- **A股市场**：沪深股票和ETF支持
-- **港股市场**：香港ETF和股票数据
-- **美股市场**：美国ETF和股票支持
-- **实时行情**：集成多家数据源，确保数据准确性
-
-### 💻 现代化界面
-- **响应式设计**：完美适配桌面端和移动端
-- **交互式图表**：基于Recharts的丰富数据可视化
-- **实时更新**：数据自动刷新和缓存优化
-- **用户友好**：直观的操作界面和详细的使用指导
-
-## 🏗️ 技术架构
-
-### 前端技术栈
-```
-React 18.2.0          # 现代化React框架
-Vite 5.0.8            # 快速构建工具
-Tailwind CSS 3.3.6    # 原子化CSS框架
-Recharts 3.2.1        # 数据可视化库
-Axios 1.6.0           # HTTP客户端
-Lucide React          # 现代化图标库
-```
-
-### 后端技术栈
-```
-Flask                 # Python Web框架
-Python 3.13+          # 现代化Python版本
-```
-
-### 部署支持
-```
-Docker                # 容器化部署
-Gunicorn              # 生产级WSGI服务器
-```
-
-## 🚀 快速开始
-
-### 环境要求
-- Node.js 18.0+
-- Python 3.8+
-- Docker (可选)
-
-### 使用Docker部署（推荐）
-
-```bash
-# 克隆项目
-git clone https://github.com/jorben/grider.git
-cd grider
-
-# 构建并启动服务
-docker-compose up -d
-
-# 访问应用
-open http://localhost:5000
-```
-
-### 本地开发部署
-
-#### 1. 克隆项目
-```bash
-git clone https://github.com/jorben/grider.git
-cd grider
-```
-
-#### 2. 后端设置
-```bash
-cd backend
-# 安装依赖
-uv sync
-
-# 配置环境变量
-cp .env.example .env
-# 编辑 .env 文件，配置必要的API密钥
-
-# 启动后端服务
-uv run main.py
-```
-
-#### 3. 前端设置
-```bash
-cd frontend
-
-# 安装依赖
-npm install
-
-# 启动开发服务器
-npm run dev
-
-# 构建生产版本
-npm run build
-```
-
-#### 4. 访问应用
-- 开发环境：http://localhost:3000
-- 生产环境：http://localhost:5000
-
-## ⚙️ 配置说明
-
-### 环境变量配置
-
-在 `backend/.env` 文件中配置以下变量：
-
-```env
-# 应用配置
-FLASK_ENV=development
-FLASK_PORT=5000
-FLASK_HOST=0.0.0.0
-
-
-# 日志配置
-LOG_LEVEL=INFO
-LOG_FORMAT=json
-LOG_DIR=logs
-
-# 外部API配置
-TSANGHI_API_KEY=your-tsanghi-api-key
-# 其他API密钥...
-```
-
-### 数据源配置
-
-项目支持多个数据源，需要在环境变量中配置相应的API密钥：
-
-- **Tsanghi API**: 主要的股票和ETF数据源
-- **其他数据源**: 可配置备用数据源
-
-## 📖 使用指南
-
-### 1. 选择ETF产品
-- 在搜索框中输入ETF代码或名称
-- 支持A股、港股、美股市场的ETF
-- 查看ETF的基本信息和历史表现
-
-### 2. 配置网格参数
-- **投资资金**: 设置网格交易的总资金
-- **网格类型**: 选择等差网格或等比网格
-- **网格数量**: 设置网格的层数（建议5-20层）
-- **风险系数**: 调整策略的风险偏好
-- **调整系数**: 微调网格参数
-
-### 3. 查看分析报告
-- **策略概述**: 查看网格策略的基本参数和建议
-- **风险评估**: 了解策略的风险等级和适宜度
-- **回测结果**: 查看历史回测的交易记录和收益表现
-- **性能指标**: 分析收益率、最大回撤等关键指标
-
-### 4. 导出和分享
-- 支持将回测结果导出为Excel文件
-- 可生成分析报告的分享链接
-- 支持打印和PDF导出功能
-
-## 🧪 测试
-
-### 运行后端测试
-```bash
-cd backend
-python -m pytest tests/ -v
-```
-
-### 运行前端测试
-```bash
-cd frontend
-npm test
-```
-
-### 代码质量检查
-```bash
-# 后端代码检查
-cd backend
-flake8 app/
-mypy app/
-
-# 前端代码检查
-cd frontend
-npm run lint
-npm run lint:fix
-```
-
-## 📁 项目结构
-
-```
-grider/
-├── frontend/                 # 前端React应用
-│   ├── src/
-│   │   ├── app/             # 应用主框架
-│   │   ├── features/        # 功能模块
-│   │   │   ├── analysis/    # 分析功能
-│   │   │   ├── etf/         # ETF选择
-│   │   │   └── history/     # 历史记录
-│   │   ├── shared/          # 共享组件和工具
-│   │   └── pages/           # 页面组件
-│   ├── public/              # 静态资源
-│   └── package.json
-├── backend/                 # 后端Flask应用
-│   ├── app/
-│   │   ├── algorithms/      # 算法模块
-│   │   │   ├── grid/        # 网格算法
-│   │   │   └── atr/         # ATR计算
-│   │   ├── external/        # 外部API集成
-│   │   ├── models/          # 数据模型
-│   │   ├── routes/          # API路由
-│   │   ├── services/        # 业务服务
-│   │   └── utils/           # 工具函数
-│   ├── cache/               # 缓存目录
-│   ├── logs/                # 日志目录
-│   └── main.py
-├── CHANGELOG.md             # 更新日志
-├── Dockerfile              # Docker配置
-├── docker-compose.yml      # Docker Compose配置
-└── README.md               # 项目文档
-```
-
-## 🤝 贡献指南
-
-欢迎贡献代码！请遵循以下步骤：
-
-1. Fork 项目
-2. 创建功能分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 创建 Pull Request
-
-### 代码规范
-- 前端：使用 ESLint 和 Prettier
-- 后端：遵循 PEP 8 规范
-- 提交信息：使用 Conventional Commits 格式
-
-## 📄 更新日志
-
-查看 [CHANGELOG.md](CHANGELOG.md) 了解详细的版本更新记录。
-
-### 最新版本 (1.3.0)
-- ✨ 实现自定义网格参数回测功能
-- 🔧 合并网格参数和回测参数设置面板
-- 🐛 修复已知问题并优化用户体验
-
-## ⚠️ 风险提示
-
-**投资有风险，入市需谨慎**
-
-本工具提供的所有分析和建议仅供参考，不构成投资建议：
-
-- 网格交易策略可能面临持续下跌的风险
-- 历史回测结果不代表未来表现
-- 市场波动可能导致实际收益与预期存在差异
-- 建议在充分了解风险的前提下谨慎投资
-
-## 📞 支持与反馈
-
-- **GitHub Issues**: [提交问题](https://github.com/jorben/grider/issues)
-- **功能建议**: [功能请求](https://github.com/jorben/grider/discussions)
-- **邮件联系**: [发送邮件](mailto:jorben@aix.me)
-
-## 📜 许可证
-
-本项目采用 Apache 2.0 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
-
-## 🙏 致谢
-
-感谢以下开源项目和服务：
-
-- [React](https://reactjs.org/) - 用户界面框架
-- [Flask](https://flask.palletsprojects.com/) - Web框架
-- [Recharts](https://recharts.org/) - 数据可视化
-- [Tailwind CSS](https://tailwindcss.com/) - CSS框架
-- 以及所有为开源社区做出贡献的开发者们
+> 本版本基于开源项目 [jorben/grider](https://github.com/jorben/grider)（Apache-2.0）改造，
+> **数据源由付费的 Tsanghi 替换为免费的 [AkShare](https://akshare.akfamily.xyz/)**（东方财富 / 新浪公开行情），
+> **无需任何 token、无到期、不花钱**。前端已预编译并由后端托管，运行时**只需 Python，无需 Node**。
 
 ---
 
-<div align="center">
+## ✨ 主要特性
 
-**🚀 如果这个项目对您有帮助，请给我们一个 Star！**
+- **免费数据**：AkShare（新浪为主源、东方财富兜底），支持 A 股、ETF（个股也支持）
+- **ATR 智能网格**：等差/等比网格、适宜度 4 维评分、参数智能建议
+- **网格标的筛选器**：一键对约 50 只主流 ETF 批量评分并按适宜度排序，快速挑出适合网格的标的
+- **均线策略回测**：趋势跟随（SMA/EMA、周期可选、仓位可配），与网格策略互补对比
+- **专业回测**：收益率/最大回撤/夏普比率、交易记录明细、Excel 导出
+- **分析前可自定义参数**：首页勾选即可在分析后直接编辑价格区间/步长/单笔数量/回测区间
+- **单端口部署**：后端同时托管前端页面，浏览器访问一个地址即可
 
-Made with ❤️ by [Jorben](https://github.com/jorben/grider)
+---
 
-</div>
+## 🚀 快速开始（一键启动）
+
+### 前提：装一次 Python（免费）
+- Windows：https://www.python.org/downloads/ （安装时勾选 **Add Python to PATH**）
+- macOS：`brew install python` 或 https://www.python.org/downloads/macos/
+
+### 获取代码
+```bash
+git clone https://github.com/vickingwu/grider.git
+cd grider
+```
+
+### 启动
+- **Windows**：双击 `start.bat`
+- **macOS**：先 `chmod +x start.command`，然后双击 `start.command`（或终端 `./start.command`）
+
+脚本会自动：检测 Python → 首次创建虚拟环境并安装依赖（约 2-5 分钟）→ 启动服务 → 自动打开浏览器。
+
+启动完成后访问：**http://127.0.0.1:5000**
+
+> 关闭弹出的命令行/终端窗口即可停止服务。
+
+---
+
+## 🧰 手动启动（脚本不可用时）
+
+**Windows**
+```bat
+cd backend
+python -m venv .venv
+.venv\Scripts\python.exe -m pip install -r requirements.txt
+set FLASK_ENV=production
+.venv\Scripts\python.exe main.py --port 5000 --host 127.0.0.1
+```
+
+**macOS / Linux**
+```bash
+cd backend
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt
+export FLASK_ENV=production
+.venv/bin/python main.py --port 5000 --host 127.0.0.1
+```
+然后浏览器打开 http://127.0.0.1:5000
+
+---
+
+## 🔍 网格标的筛选器
+
+不知道选哪个标的？用筛选器一键挑选。
+
+- **入口**：首页右上角「网格标的筛选器」按钮 → `/screener` 页面。
+- **做什么**：对约 50 只主流 ETF（宽基 / 行业 / 跨境 / 红利 / 商品债券）逐个跑**与详情页完全一致**的适宜度评分，按总分从高到低排序成表格。
+- **评分维度**（满分 100）：振幅 ATR(35) + 波动率(30) + 市场特征 ADX(25) + 流动性(10)。
+  - ≥70 非常适合 / 60~70 基本适合 / <60 不适合。
+  - 适合网格的标的特征：天天震荡（ATR≥2%）、年化波动率 15%~45%、不走单边趋势（ADX<20）、成交活跃。
+- **表格内容**：排名、代码、名称、分类、总分、ATR%、波动率%、ADX、日均成交额、结论；支持按分类筛选，每行可直接跳转到详细分析。
+- **性能**：全候选池约 12~15 秒完成（受免费数据源速度影响），结果缓存 1 小时，二次打开秒出；可点「强制刷新数据」重算。
+- **自定义候选池**：直接编辑 `backend/app/constants.py` 里的 `SCREENER_CANDIDATES` 列表（增减代码即可，前端无需改动）。
+
+---
+
+## 📈 均线策略回测
+
+与网格策略互补的另一种回测方式。
+
+- **入口**：首页右上角「均线策略回测」按钮 → `/ma-backtest` 独立页面（不走网格分析流程）。
+- **策略逻辑**：趋势跟随——收盘价**上穿**所选均线视为金叉买入，**下穿**视为死叉清仓。
+  - 与网格相反：网格适合**震荡**行情（低买高卖），均线适合**趋势**行情（追涨杀跌）。
+- **参数**：
+  - 均线类型：SMA（简单）/ EMA（指数）
+  - 均线周期：5 / 20 / 50 / 99 / 128 / 225 日，或自定义（2~500）
+  - 买入仓位比例：10%~100%（默认满仓）
+  - 回测区间：可选，留空默认最近半年；跨度超 120 天自动用日线
+- **结果**：收益/持有对比/超额/年化/回撤/夏普/交易次数/胜率 + 价格·均线·买卖点叠加图 + 交易记录表。
+
+> 💡 **长周期均线无需手动拉长区间**：选 128/225 日等长周期均线时，后端会自动在回测开始日之前
+> 额外多取相应天数的"预热数据"来计算均线（这段数据只用于喂均线，不参与买卖与收益统计），
+> 因此即使回测区间只有近半年，长周期均线也能在区间首日就有值，不会报错。
+
+> 提示：均线在**震荡行情**里会被反复触发（俗称"被洗"），收益可能不如持有；在**单边趋势**里优势明显。建议多换几个周期对比。
+
+---
+
+## 🏗️ 技术架构
+
+```
+前端：React 18 + Vite + Tailwind + Recharts（已预编译到 static/）
+后端：Flask (Python 3.10+) + pandas
+数据：AkShare（新浪主源 / 东方财富兜底，带本地缓存）
+```
+
+目录结构（简要）：
+```
+grider/
+├── backend/          # Flask 后端 + 算法 + AkShare 数据层
+│   ├── app/services/data_service.py   # 数据获取（AkShare）
+│   ├── app/algorithms/                # ATR / 网格 / 回测算法
+│   └── main.py
+├── frontend/         # React 源码（开发用）
+├── static/           # 预编译前端（生产运行用，后端托管）
+├── start.bat         # Windows 一键启动
+├── start.command     # macOS 一键启动
+└── SETUP.md          # 详细安装/排错说明
+```
+
+---
+
+## ❓ 常见问题
+
+- **日志刷 “Connection aborted / 调用失败”**：正常现象。主数据源（东方财富）偶发限流，
+  系统会自动切换到新浪兜底，不影响结果。
+- **个股名称首次显示成代码**：首次下载名称表约十几秒，之后缓存到 `backend/cache/`（重启复用）。
+- **端口被占用**：换端口启动（如 `--port 5001`），浏览器用对应端口访问。
+- **修改了前端源码想生效**：需在 `frontend/` 执行 `npm install && npm run build`，
+  再把 `frontend/dist` 覆盖到根目录 `static/`（仅此场景需要 Node）。
+
+更多细节见 [SETUP.md](SETUP.md)。
+
+---
+
+## ⚠️ 风险提示
+
+本工具所有数据与分析结果**仅供学习研究，不构成任何投资建议**。
+网格交易可能面临持续下跌风险，历史回测不代表未来表现。投资有风险，决策需谨慎。
+
+---
+
+## 📜 许可证
+
+本项目基于 [jorben/grider](https://github.com/jorben/grider) 改造，遵循 **Apache 2.0** 许可证，详见 [LICENSE](LICENSE)。

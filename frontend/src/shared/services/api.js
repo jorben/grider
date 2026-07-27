@@ -85,6 +85,59 @@ class ApiService {
   }
 
   /**
+   * 批量获取标的名称（仅名称，快速）
+   * @param {string[]} codes
+   */
+  async getBatchNames(codes = []) {
+    if (!codes.length) return { success: true, data: {} };
+    return this.get("/info/batch-names", { codes: codes.join(",") });
+  }
+
+  /**
+   * 运行网格标的筛选器（批量评估候选池，按适宜度排序）
+   * @param {boolean} forceRefresh - 是否忽略缓存强制重算
+   */
+  async runScreener(forceRefresh = false) {
+    return this.get("/screener", forceRefresh ? { refresh: 1 } : {});
+  }
+
+  /**
+   * 运行均线策略回测（趋势跟随）
+   * @param {object} params - { etfCode, totalCapital, maParams, backtestConfig, startDate, endDate }
+   */
+  async runMABacktest(params) {
+    return this.post("/grid/ma-backtest", params);
+  }
+
+  /**
+   * 运行均线标的筛选器（对候选池用同一均线参数批量回测，按超额收益排序）
+   * @param {object} opts - { period, maType, capital, positionRatio, refresh }
+   */
+  async runMAScreener(opts = {}) {
+    const params = {};
+    if (opts.period != null) params.period = opts.period;
+    if (opts.maType) params.maType = opts.maType;
+    if (opts.capital != null) params.capital = opts.capital;
+    if (opts.positionRatio != null) params.positionRatio = opts.positionRatio;
+    if (opts.startDate) params.startDate = opts.startDate;
+    if (opts.endDate) params.endDate = opts.endDate;
+    if (opts.refresh) params.refresh = 1;
+    return this.get("/screener/ma", params);
+  }
+
+  /**
+   * 鱼盆模型（市场风向标）：主流宽基指数 20 日线 YES/NO + 趋势强度
+   * @param {object} opts - { buffer, refresh }
+   */
+  async runFishBasin(opts = {}) {
+    const params = {};
+    if (opts.buffer != null) params.buffer = opts.buffer;
+    if (opts.board) params.board = opts.board;
+    if (opts.refresh) params.refresh = 1;
+    return this.get("/screener/fish-basin", params);
+  }
+
+  /**
    * 健康检查
    */
   async healthCheck() {
@@ -129,6 +182,11 @@ const apiService = new ApiService();
 export const analyzeETF = (parameters) => apiService.analyzeETF(parameters);
 export const getETFInfo = (etfCode) => apiService.getETFInfo(etfCode);
 export const getPopularETFs = () => apiService.getPopularETFs();
+export const getBatchNames = (codes) => apiService.getBatchNames(codes);
+export const runScreener = (forceRefresh) => apiService.runScreener(forceRefresh);
+export const runMABacktest = (params) => apiService.runMABacktest(params);
+export const runMAScreener = (opts) => apiService.runMAScreener(opts);
+export const runFishBasin = (opts) => apiService.runFishBasin(opts);
 export const healthCheck = () => apiService.healthCheck();
 export const getVersion = () => apiService.getVersion();
 export const runBacktest = (etfCode, exchangeCode, gridStrategy, backtestConfig, type, customGridParams) =>

@@ -27,6 +27,7 @@ const GridParametersCard = ({
   showDetailed = false,
   dataQuality,
   etfInfo,
+  isCustomized = false,
 }) => {
   if (!gridStrategy) return null;
 
@@ -61,6 +62,15 @@ const GridParametersCard = ({
 
   return (
     <div className="space-y-6">
+      {/* 自定义参数提示：当展示的是回测中编辑后的网格时 */}
+      {isCustomized && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-start gap-2">
+          <Info className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+          <p className="text-sm text-amber-800">
+            当前显示的是您在「回测分析」中自定义并应用的网格参数（非系统初始推荐）。
+          </p>
+        </div>
+      )}
       {/* 资金分配策略 */}
       <div className="bg-white border border-gray-200 rounded-lg p-6">
         <div className="flex items-center gap-3 mb-4">

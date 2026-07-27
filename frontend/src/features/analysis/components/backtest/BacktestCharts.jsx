@@ -44,7 +44,13 @@ export default function BacktestCharts({ priceCurve = [], equityCurve = [], trad
           hour: '2-digit',
           minute: '2-digit',
         }),
-        fullTime: bar.time,
+        fullTime: new Date(bar.time).toLocaleString('zh-CN', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
         close: bar.close,
         high: bar.high,
         low: bar.low,
@@ -70,6 +76,13 @@ export default function BacktestCharts({ priceCurve = [], equityCurve = [], trad
 
       return {
         time: new Date(point.time).toLocaleString('zh-CN', {
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+        fullTime: new Date(point.time).toLocaleString('zh-CN', {
+          year: 'numeric',
           month: '2-digit',
           day: '2-digit',
           hour: '2-digit',
@@ -210,7 +223,7 @@ export default function BacktestCharts({ priceCurve = [], equityCurve = [], trad
                   const data = payload[0].payload;
                   return (
                     <div className="bg-white p-4 border border-gray-200 rounded-lg shadow-lg">
-                      <p className="text-sm font-semibold text-gray-900 mb-2">{data.time}</p>
+                      <p className="text-sm font-semibold text-gray-900 mb-2">{data.fullTime}</p>
                       <div className="space-y-1 text-sm">
                         <p className="text-blue-600 font-medium">
                           网格策略: {data.gridReturn.toFixed(2)}%

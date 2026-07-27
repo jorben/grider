@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Search, TrendingUp } from "lucide-react";
 import ETFInfoSkeleton from "./ETFInfoSkeleton";
+import CustomCodeList from "./CustomCodeList";
 
 /**
  * ETF选择器组件
- * 负责ETF代码输入、热门ETF选择、ETF信息展示
+ * 负责ETF代码输入、自定义标的选择、ETF信息展示
  */
 export default function ETFSelector({
   value,
@@ -14,51 +15,16 @@ export default function ETFSelector({
   etfInfo,
   loading,
 }) {
-  const hotETFs = ["510300", "159915", "588000", "512170", "3032" , "SPY"];
-
-  // 获取热门ETF列表
-  useEffect(() => {
-    fetch("/api/info/popular")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          // 这里可以设置popularETFs，但通过props传递更合适
-        }
-      })
-      .catch((err) => console.error("获取热门标的失败:", err));
-  }, []);
-
   return (
     <div>
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-3">
-        <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+      <div className="mb-3">
+        <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
           <Search className="w-4 h-4" />
           标的选择
         </label>
 
-        {/* 热门ETF */}
-        <div className="flex items-center">
-          <span className="hidden sm:inline text-xs text-gray-500 mr-2">热门标的：</span>
-          <div className="flex flex-wrap gap-2">
-            {hotETFs.map((code) => {
-              const etf = popularETFs.find((e) => e.code === code);
-              return (
-                <button
-                  key={code}
-                  type="button"
-                  onClick={() => onChange(code)}
-                  className={`px-3 py-1 text-xs rounded-full border transition-colors ${
-                    value === code
-                      ? "bg-blue-100 border-blue-300 text-blue-700"
-                      : "bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100"
-                  }`}
-                >
-                  {code} {etf?.name || ""}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        {/* 自定义标的（可增删、点击填入），独占一行以容纳更多代码 */}
+        <CustomCodeList value={value} onSelect={onChange} />
       </div>
 
       <div className="relative">
@@ -68,18 +34,23 @@ export default function ETFSelector({
           onChange={(e) =>
             onChange(e.target.value.replace(/[^0-9a-zA-Z]/g, "").toUpperCase())
           }
-          placeholder="请输入标的代码，如：510300"
+          placeholder="请输入标的代码，如：510300、603137、SPY；场外基金加F，如 F007339"
           className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
             error ? "border-red-300" : "border-gray-300"
           }`}
-          maxLength={6}
+          maxLength={7}
         />
+        <p className="mt-1 text-xs text-gray-400">
+          场外（开放式）基金请在代码开头或结尾加字母 F，例如 F007339，以便与场内个股/ETF 区分。
+        </p>
 
-        {/* ETF信息区域 */}
+        {/* 标的信息区域 */}
         <div className="mt-2" style={{ minHeight: "80px" }}>
           {loading && <ETFInfoSkeleton />}
 
-          {!loading && etfInfo && etfInfo.code === value && (
+          {!loading && etfInfo &&
+            (etfInfo.code === value ||
+              value.replace(/^[FO]|[FO]$/g, "") === etfInfo.code) && (
             <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <div className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-blue-600" />

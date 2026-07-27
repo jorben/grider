@@ -14,7 +14,7 @@ import {
   ThermometerSun,
 } from "lucide-react";
 
-const SuitabilityCard = ({ evaluation, dataQuality, showDetailed = false }) => {
+const SuitabilityCard = ({ evaluation, dataQuality, showDetailed = false, isCustomized = false }) => {
   if (!evaluation) return null;
 
   const {
@@ -24,7 +24,10 @@ const SuitabilityCard = ({ evaluation, dataQuality, showDetailed = false }) => {
     recommendation,
     has_fatal_flaw,
     fatal_flaws,
+    based_on,
   } = evaluation;
+
+  const isBacktestBased = based_on === "backtest";
 
   // 获取适宜度等级颜色 - 与 AnalysisReport 保持一致
   const getSuitabilityColor = (score) => {
@@ -56,37 +59,68 @@ const SuitabilityCard = ({ evaluation, dataQuality, showDetailed = false }) => {
     return <XCircle className="w-5 h-5" />;
   };
 
-  // 评估维度配置
-  const dimensions = [
-    {
-      key: "amplitude",
-      title: "振幅评估",
-      icon: <TrendingUp className="w-5 h-5" />,
-      description: "基于ATR算法的价格波动分析",
-      maxScore: 35,
-    },
-    {
-      key: "volatility",
-      title: "波动率评估",
-      icon: <BarChart3 className="w-5 h-5" />,
-      description: "年化历史波动率风险收益评估",
-      maxScore: 30,
-    },
-    {
-      key: "market_characteristics",
-      title: "市场特征评估",
-      icon: <Activity className="w-5 h-5" />,
-      description: "ADX指数趋势震荡分析",
-      maxScore: 25,
-    },
-    {
-      key: "liquidity",
-      title: "流动性评估",
-      icon: <Droplets className="w-5 h-5" />,
-      description: "成交量稳定性和充足性分析",
-      maxScore: 10,
-    },
-  ];
+  // 评估维度配置（依据来源切换标题/描述/满分）
+  const dimensions = isBacktestBased
+    ? [
+        {
+          key: "amplitude",
+          title: "超额收益",
+          icon: <TrendingUp className="w-5 h-5" />,
+          description: "策略相对买入持有的增益",
+          maxScore: 40,
+        },
+        {
+          key: "volatility",
+          title: "策略收益",
+          icon: <BarChart3 className="w-5 h-5" />,
+          description: "回测期内的绝对盈利能力",
+          maxScore: 25,
+        },
+        {
+          key: "market_characteristics",
+          title: "回撤控制",
+          icon: <Activity className="w-5 h-5" />,
+          description: "回测期内最大回撤水平",
+          maxScore: 20,
+        },
+        {
+          key: "liquidity",
+          title: "交易活跃度",
+          icon: <Droplets className="w-5 h-5" />,
+          description: "完整网格往返交易次数",
+          maxScore: 15,
+        },
+      ]
+    : [
+        {
+          key: "amplitude",
+          title: "振幅评估",
+          icon: <TrendingUp className="w-5 h-5" />,
+          description: "基于ATR算法的价格波动分析",
+          maxScore: 35,
+        },
+        {
+          key: "volatility",
+          title: "波动率评估",
+          icon: <BarChart3 className="w-5 h-5" />,
+          description: "年化历史波动率风险收益评估",
+          maxScore: 30,
+        },
+        {
+          key: "market_characteristics",
+          title: "市场特征评估",
+          icon: <Activity className="w-5 h-5" />,
+          description: "ADX指数趋势震荡分析",
+          maxScore: 25,
+        },
+        {
+          key: "liquidity",
+          title: "流动性评估",
+          icon: <Droplets className="w-5 h-5" />,
+          description: "成交量稳定性和充足性分析",
+          maxScore: 10,
+        },
+      ];
 
   return (
     <div className="space-y-6">
@@ -100,9 +134,21 @@ const SuitabilityCard = ({ evaluation, dataQuality, showDetailed = false }) => {
             <h3 className="text-xl font-bold text-green-900">
               标的网格交易适宜度评估
             </h3>
-            <p className="text-green-700">四维度量化评分体系</p>
+            <p className="text-green-700">
+              {isBacktestBased ? "基于本次回测实测结果评分" : "四维度量化评分体系"}
+            </p>
           </div>
         </div>
+
+        {isBacktestBased && (
+          <div className="mb-4 bg-white/70 border border-green-200 rounded-lg p-3 flex items-start gap-2">
+            <Info className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+            <p className="text-sm text-green-800">
+              本评分基于「回测分析」的实测表现（超额收益、策略收益、回撤、交易次数），
+              与概览、回测分析三个标签同源一致。更换参数或时间区间后会随回测结果变化。
+            </p>
+          </div>
+        )}
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-white p-4 rounded-lg">
@@ -142,7 +188,9 @@ const SuitabilityCard = ({ evaluation, dataQuality, showDetailed = false }) => {
               </span>
             </div>
             <div className="text-lg font-bold text-gray-900">4个</div>
-            <div className="text-xs text-gray-600">振幅·波动·特征·流动</div>
+            <div className="text-xs text-gray-600">
+              {isBacktestBased ? "超额·收益·回撤·活跃" : "振幅·波动·特征·流动"}
+            </div>
           </div>
 
           <div className="bg-white p-4 rounded-lg">
@@ -250,7 +298,70 @@ const SuitabilityCard = ({ evaluation, dataQuality, showDetailed = false }) => {
       </div>
 
       {/* 评分标准说明 */}
-      {showDetailed && (
+      {showDetailed && isBacktestBased && (
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0">
+              <div className="p-2 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-lg">
+                <Info className="w-5 h-5 text-blue-600" />
+              </div>
+            </div>
+            <div className="flex-1">
+              <h4 className="font-semibold text-blue-900 mb-3">
+                评分标准说明（基于回测）
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div className="flex items-start gap-2">
+                  <TrendingUp className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <span className="font-medium text-blue-900">超额收益 (40分)</span>
+                    <div className="mt-1 space-y-0.5 text-blue-800">
+                      <div>• ≥15%: 40分　• 8%-15%: 32分</div>
+                      <div>• 3%-8%: 24分　• 0%-3%: 14分</div>
+                      <div>• &lt;0 (跑输持有): 0分</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <BarChart3 className="w-4 h-4 text-purple-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <span className="font-medium text-blue-900">策略收益 (25分)</span>
+                    <div className="mt-1 space-y-0.5 text-blue-800">
+                      <div>• ≥20%: 25分　• 10%-20%: 20分</div>
+                      <div>• 3%-10%: 14分　• 0%-3%: 8分</div>
+                      <div>• 亏损: 0分</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Activity className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <span className="font-medium text-blue-900">回撤控制 (20分)</span>
+                    <div className="mt-1 space-y-0.5 text-blue-800">
+                      <div>• ≤8%: 20分　• 8%-15%: 15分</div>
+                      <div>• 15%-25%: 9分　• &gt;25%: 3分</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Droplets className="w-4 h-4 text-orange-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <span className="font-medium text-blue-900">交易活跃度 (15分)</span>
+                    <div className="mt-1 space-y-0.5 text-blue-800">
+                      <div>• ≥15次: 15分　• 8-15次: 12分</div>
+                      <div>• 3-8次: 8分　• 1-3次: 4分</div>
+                      <div>• 未触发: 0分</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 评分标准说明 */}
+      {showDetailed && !isBacktestBased && (
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
           <div className="flex items-start gap-4">
             <div className="flex-shrink-0">

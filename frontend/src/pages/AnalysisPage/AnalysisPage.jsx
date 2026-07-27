@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { Share2, ArrowLeft, AlertTriangle } from "lucide-react";
+import { ArrowLeft, AlertTriangle } from "lucide-react";
 import AnalysisReport from "@features/analysis/components/AnalysisReport";
 import DisclaimerModal from "@features/analysis/components/DisclaimerModal";
 import { analyzeETF } from "@shared/services/api";
@@ -12,7 +12,6 @@ import {
   encodeAnalysisParams,
 } from "@shared/utils/url";
 import { checkDisclaimerStatus, acceptDisclaimer } from "@shared/utils/disclaimer";
-import { useShare } from "@shared/hooks/useShare";
 
 /**
  * 分析页面组件
@@ -22,7 +21,6 @@ const AnalysisPage = () => {
   const { etfCode } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { shareContent } = useShare();
 
   // 状态管理
   const [analysisData, setAnalysisData] = useState(null);
@@ -32,6 +30,8 @@ const AnalysisPage = () => {
   const [showParameterForm, setShowParameterForm] = useState(false);
   const [showDisclaimer, setShowDisclaimer] = useState(false);
   const [disclaimerChecked, setDisclaimerChecked] = useState(false);
+  // 回测自定义后实际使用的投资金额，用于让顶部标题与各标签口径一致
+  const [effectiveCapital, setEffectiveCapital] = useState(null);
 
   // 引用
   const parameterFormRef = useRef(null);
@@ -78,6 +78,7 @@ const AnalysisPage = () => {
   // 执行分析
   const handleAnalysis = async (parameters) => {
     setLoading(true);
+    setEffectiveCapital(null);  // 新分析重置，避免沿用上次回测的自定义金额
 
     try {
       const response = await analyzeETF(parameters);
@@ -155,17 +156,6 @@ const AnalysisPage = () => {
     if (currentParams) {
       handleAnalysis(currentParams);
     }
-  };
-
-  // 分享功能
-  const handleShare = async () => {
-    const shareData = {
-      title: `${analysisData?.etf_info?.name || etfCode} - ETF网格交易策略分析`,
-      text: `查看 ${analysisData?.etf_info?.name || etfCode} 的智能网格交易策略分析结果`,
-      url: window.location.href,
-    };
-
-    await shareContent(shareData);
   };
 
   // 返回首页
@@ -265,16 +255,6 @@ const AnalysisPage = () => {
                 <ArrowLeft className="w-4 h-4" />
                 <span className="hidden sm:inline">返回首页</span>
               </button>
-
-              {/* 分享按钮 */}
-              <button
-                onClick={handleShare}
-                className="btn btn-primary btn-sm flex items-center gap-2"
-                title="分享报告"
-              >
-                <Share2 className="w-4 h-4" />
-                <span className="hidden sm:inline">分享报告</span>
-              </button>
             </div>
 
             {/* 小屏幕：第二行 - 标题和参数信息 */}
@@ -287,7 +267,7 @@ const AnalysisPage = () => {
               {/* 移动端参数信息显示 */}
               <div className="mt-2">
                 <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-600">
-                  <span>投资金额：{currentParams?.totalCapital?.toLocaleString()}元</span>
+                  <span>投资金额：{(effectiveCapital ?? currentParams?.totalCapital)?.toLocaleString()}元</span>
                   <span>网格类型：{currentParams?.gridType}</span>
                   <span>频率偏好：{currentParams?.riskPreference}</span>
                   <span>调节系数：{currentParams?.adjustmentCoefficient}</span>
@@ -314,24 +294,12 @@ const AnalysisPage = () => {
                     网格策略分析
                   </h1>
                   <p className="text-sm text-gray-600 truncate">
-                    投资金额：{currentParams?.totalCapital?.toLocaleString()}元 |
+                    投资金额：{(effectiveCapital ?? currentParams?.totalCapital)?.toLocaleString()}元 |
                     网格类型：{currentParams?.gridType} |
                     频率偏好：{currentParams?.riskPreference} |
                     调节系数：{currentParams?.adjustmentCoefficient}
                   </p>
                 </div>
-              </div>
-
-              {/* 右侧：分享按钮 */}
-              <div className="hidden sm:flex items-center">
-                <button
-                  onClick={handleShare}
-                  className="btn btn-primary btn-sm flex items-center gap-2"
-                  title="分享报告"
-                >
-                  <Share2 className="w-4 h-4" />
-                  分享报告
-                </button>
               </div>
             </div>
           </div>
@@ -363,7 +331,8 @@ const AnalysisPage = () => {
             loading={loading}
             onBackToInput={handleBackToHome}
             onReAnalysis={handleReAnalysis}
-            showShareButton={true}
+            editParamsFirst={currentParams?.editParamsFirst}
+            onEffectiveCapitalChange={setEffectiveCapital}
           />
         )}
 

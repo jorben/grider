@@ -36,6 +36,11 @@ const ParameterForm = ({ onAnalysis, loading, initialValues }) => {
     "adjustmentCoefficient",
     initialValues?.adjustmentCoefficient || 1.0,
   );
+  // 是否在分析后直接进入"自定义网格参数"编辑（分析前勾选）
+  const [editParamsFirst, setEditParamsFirst] = usePersistedState(
+    "editParamsFirst",
+    false,
+  );
 
   const [popularETFs, setPopularETFs] = useState([]);
   const [capitalPresets, setCapitalPresets] = useState([]);
@@ -172,6 +177,7 @@ const ParameterForm = ({ onAnalysis, loading, initialValues }) => {
       gridType,
       riskPreference,
       adjustmentCoefficient: parseFloat(adjustmentCoefficient),
+      editParamsFirst,
     };
 
     // 检查用户是否需要重新确认免责声明
@@ -238,6 +244,17 @@ const ParameterForm = ({ onAnalysis, loading, initialValues }) => {
 
         {/* 提交按钮 */}
         <div className="pt-2">
+          <label className="flex items-center gap-2 mb-3 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={editParamsFirst}
+              onChange={(e) => setEditParamsFirst(e.target.checked)}
+              className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+            />
+            <span className="text-sm text-gray-700">
+              分析前自定义网格参数（价格区间 / 步长 / 单笔数量 / 回测区间）
+            </span>
+          </label>
           <button
             type="submit"
             disabled={loading}

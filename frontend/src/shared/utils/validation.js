@@ -8,13 +8,16 @@
  * @param {string} etfCode - ETF代码
  * @returns {boolean} 是否为有效的6位数字ETF代码
  *
+ * 支持场外基金标记：代码开头或结尾可带字母 F/O（如 F007339），最长 7 位。
+ *
  * @example
  * validateETFCode('510300') // true
  * validateETFCode('ABC123') // true
+ * validateETFCode('F007339') // true
  * validateETFCode('1') // false
  */
 export const validateETFCode = (etfCode) => {
-  return etfCode && /^[A-Za-z0-9]{2,6}$/.test(etfCode);
+  return etfCode && /^[A-Za-z0-9]{2,7}$/.test(etfCode);
 };
 
 /**

@@ -71,6 +71,11 @@ export const encodeAnalysisParams = (params) => {
     searchParams.set("adjustment", params.adjustmentCoefficient.toString());
   }
 
+  // 分析前自定义网格参数标记
+  if (params.editParamsFirst) {
+    searchParams.set("edit", "1");
+  }
+
   return searchParams;
 };
 
@@ -110,6 +115,11 @@ export const decodeAnalysisParams = (searchParams) => {
     if (!isNaN(adjustmentNum) && adjustmentNum >= 0.0 && adjustmentNum <= 2.0) {
       params.adjustmentCoefficient = adjustmentNum;
     }
+  }
+
+  // 解析"分析前自定义网格参数"标记
+  if (searchParams.get("edit") === "1") {
+    params.editParamsFirst = true;
   }
 
   return params;
@@ -197,8 +207,8 @@ export const parseAnalysisURL = (pathname, search) => {
     isValid: false,
   };
 
-  // 解析ETF代码
-  const pathMatch = pathname.match(/^\/analysis\/([a-zA-Z0-9]{2,6})$/);
+  // 解析ETF代码（支持场外基金标记，最长7位，如 F007339）
+  const pathMatch = pathname.match(/^\/analysis\/([a-zA-Z0-9]{2,7})$/);
   if (pathMatch) {
     result.etfCode = pathMatch[1];
   }
